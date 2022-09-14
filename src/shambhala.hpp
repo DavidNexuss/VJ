@@ -1,8 +1,8 @@
 #pragma once
+#include "controllers/io.hpp"
+#include "controllers/viewport.hpp"
 #include "core/core.hpp"
-#include "io.hpp"
 #include "simple_vector.hpp"
-#include "viewport.hpp"
 #include <glm/glm.hpp>
 #include <unordered_map>
 #pragma once
@@ -19,12 +19,13 @@ using uint32_t = unsigned int;
 using uint8_t = unsigned char;
 
 struct IResource {
-  virtual void use();
+  virtual io_buffer read();
+  bool needsUpdate;
 };
 
 struct MemoryResource : public IResource {
-  simple_vector<uint8_t> buffer;
-  virtual void use();
+  io_buffer buffer;
+  virtual io_buffer read();
 };
 
 struct Node {
@@ -47,28 +48,23 @@ public:
 };
 
 struct Shader {
-  void add(MemoryResource *memory);
-
-private:
   GLuint shader;
-  const char *data;
-  bool needsUpdate;
+  IResource *file;
+  bool available();
 };
 
 enum ShaderType {
   FRAGMENT_SHADER = 0,
   VERTEX_SHADER,
   GEOMETRY_SHADER,
-  TESSELATION_SHADER,
+  TESS_EVALUATION_SHADER,
+  TESS_CONTROL_SHADER,
   SHADER_TYPE_COUNT
 };
 
 struct Program {
   Shader shaders[SHADER_TYPE_COUNT];
-  void use();
   GLuint getUniform(const std::string &name);
-
-private:
   GLuint shaderProgram = -1;
 };
 
@@ -274,10 +270,12 @@ public:
   vector<FrameBufferAttachmentDescriptor> attachmentsDefinition;
 };
 
-struct EngineParameters {
+struct EngineControllers {
   shambhala::IViewport *viewport;
   shambhala::IIO *io;
 };
+
+struct EngineParameters : public EngineControllers {};
 
 namespace shambhala {
 
@@ -293,6 +291,7 @@ GLuint createTexture(bool filter);
 GLuint createCubemap();
 GLuint createRenderBuffer();
 GLuint createFramebuffer();
+GLuint getShaderType(int shaderType);
 
 void uploadTexture(GLenum target, unsigned char *texturebuffer, int width,
                    int height, int components);
@@ -343,7 +342,16 @@ void renderPass();
 
 IViewport *viewport();
 IIO *io();
+
 void createEngine(EngineParameters parameters);
+void destroyEngine();
+
+void loop_beginRenderContext();
+void loop_endRenderContext();
+void loop_beginUIContext();
+void loop_endUIContext();
+void loop_declarativeRender();
+bool loop_shouldClose();
 
 namespace resource {
 MemoryResource *ioMemoryFile(const char *path);

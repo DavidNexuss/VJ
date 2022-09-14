@@ -93,6 +93,15 @@ void ViewportGLFW::restoreViewport() {
 
 bool ViewportGLFW::isMousePressed() { return mousePressed; }
 
+void ViewportGLFW::dispatchRenderEvents() {
+  glfwSwapBuffers(currentWindow);
+  glfwPollEvents();
+}
+
+bool ViewportGLFW::shouldClose() {
+  return glfwWindowShouldClose(currentWindow);
+}
+
 using namespace std;
 void *ViewportGLFW::createWindow(const WindowConfiguration &configuration) {
 

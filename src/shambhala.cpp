@@ -135,6 +135,12 @@ void device::configureRenderBuffer(GLenum mode, int width, int height) {
 
 //--------------------------[BEGIN COMPILE]
 
+GLuint device::getShaderType(int shaderType) {
+  const static GLuint shaderTypes[] = {
+      GL_VERTEX_SHADER, GL_VERTEX_SHADER, GL_GEOMETRY_SHADER,
+      GL_TESS_EVALUATION_SHADER, GL_TESS_CONTROL_SHADER};
+  return shaderTypes[shaderType];
+}
 GLuint device::compileShader(const char *data, GLenum type) {
   GLuint shader = glCreateShader(type);
   glShaderSource(shader, 1, &data, NULL);
@@ -267,7 +273,7 @@ void device::disposeShader(GLuint shader) { glDeleteShader(shader); }
 struct UseState {
 
   // Current use state
-  Program *currentProgram;
+  Program *currentProgram = nullptr;
   Mesh *currentMesh = nullptr;
   MeshLayout *currentMeshLayout = nullptr;
   ModelConfiguration currentModelConfiguration;
@@ -286,10 +292,39 @@ struct UseState {
 };
 static UseState guseState;
 
+void device::useProgram(Program *program) {
+  if (guseState.currentProgram == program)
+    return;
+
+  bool programUpdate = program->shaderProgram == -1;
+  GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
+  int currentShader = 0;
+  for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
+    if (program->shaders[i].available()) {
+      bool shaderUpdate = program->shaders[i].file->needsUpdate;
+      programUpdate |= shaderUpdate;
+      if (shaderUpdate) {
+        program->shaders[i].shader = device::compileShader(
+            (const char *)program->shaders[i].file->read().data,
+            device::getShaderType(i));
+      }
+
+      shaders[currentShader++] = program->shaders[i].shader;
+    }
+  }
+
+  if (programUpdate) {
+    program->shaderProgram = device::compileProgram(shaders);
+  }
+
+  device::useProgram(program);
+  guseState.currentProgram = program;
+}
 void device::useMeshLayout(MeshLayout *layout) {
   if (layout->vao == -1)
     layout->vao = device::createVAO(layout->attributes);
   device::bindVao(layout->vao);
+  guseState.currentMeshLayout = layout;
 }
 void device::useMesh(Mesh *mesh) {
   device::useMeshLayout(mesh->meshLayout);
@@ -303,6 +338,7 @@ void device::useMesh(Mesh *mesh) {
   }
   device::bindVbo(mesh->vbo);
   device::bindEbo(mesh->ebo);
+  guseState.currentMesh = mesh;
 }
 
 void device::useTexture(Texture *texture) {
@@ -486,7 +522,9 @@ void Model::draw() {
 }
 //---------------------[MODEL END]
 //---------------------[BEGIN ENGINE]
+
 struct Engine {
+  EngineControllers controllers;
   std::vector<int> modelindices;
   simple_vector<Model *> models;
   bool shouldSort = false;
@@ -504,13 +542,29 @@ struct Engine {
 };
 
 static Engine engine;
-//---------------------[BEGIN ENGINECONFIGURATION]
-static IViewport *_viewport;
-void shambhala::createEngine(EngineParameters parameters) {
-  _viewport = parameters.viewport;
+
+void shambhala::loop_beginRenderContext() {
+  glViewport(0, 0, viewport()->screenWidth, viewport()->screenHeight);
+}
+void shambhala::loop_beginUIContext() {}
+void shambhala::loop_endRenderContext() { viewport()->dispatchRenderEvents(); }
+void shambhala::loop_declarativeRender() {}
+void shambhala::loop_endUIContext() {}
+
+// TODO FIX: glfw header incluse
+bool shambhala::loop_shouldClose() {
+  return viewport()->shouldClose() || viewport()->isKeyPressed(GLFW_KEY_ESCAPE);
 }
 
-IViewport *shambhala::viewport() { return _viewport; }
+void shambhala::destroyEngine() {}
+//---------------------[BEGIN ENGINECONFIGURATION]
+void shambhala::createEngine(EngineParameters parameters) {
+  engine.controllers = parameters;
+}
+
+IViewport *shambhala::viewport() { return engine.controllers.viewport; }
+IIO *shambhala::io() { return engine.controllers.io; }
+
 //---------------------[END ENGINECONFIGURATION]
 
 //---------------------[BEGIN ENGINECREATE]
@@ -539,4 +593,3 @@ void shambhala::renderPass() {
 }
 //---------------------[END ENGINEUPDATE]
 //---------------------[END ENGINE]
-int main() {}

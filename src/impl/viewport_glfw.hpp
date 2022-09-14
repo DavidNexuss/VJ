@@ -1,10 +1,11 @@
 #pragma once
+#include <controllers/viewport.hpp>
 #include <unordered_map>
-#include <viewport.hpp>
 
 namespace shambhala {
 struct ViewportGLFW : public IViewport {
   ViewportGLFW();
+
   virtual void initCallbacks(void *window) override;
   virtual bool isKeyPressed(int keyCode) override;
   virtual bool isKeyJustPressed(int keyCode) override;
@@ -12,6 +13,8 @@ struct ViewportGLFW : public IViewport {
   virtual void fakeViewportSize(int width, int height) override;
   virtual void restoreViewport() override;
   virtual bool isMousePressed() override;
+  virtual void dispatchRenderEvents() override;
+  virtual bool shouldClose() override;
 
   bool mousePressed;
 

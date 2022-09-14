@@ -24,5 +24,7 @@ struct IViewport {
   virtual bool isMousePressed() = 0;
 
   virtual void *createWindow(const WindowConfiguration &configuration);
+  virtual void dispatchRenderEvents() = 0;
+  virtual bool shouldClose() = 0;
 };
 } // namespace shambhala

@@ -22,3 +22,5 @@ io_buffer shambhala::LinuxIO::readFile(const char *path) {
   fileBuffer[fileSize] = 0;
   return {fileBuffer, fileSize};
 }
+
+void shambhala::LinuxIO::freeFile(uint8_t *buffer) { delete[] buffer; }
