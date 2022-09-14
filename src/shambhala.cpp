@@ -251,9 +251,13 @@ GLuint device::createCubemap() {
   return texId;
 }
 //-------------------------[END CREATE]
-//-------------------------[BEGIN BIND]
+//-------------------------[BEGIN GL]
 
-struct BindState {};
+struct BindState {
+  GLuint boundTextures[Standard::maxTextureUnits] = {0};
+  int activeTextureUnit = -1;
+  void clearState();
+};
 static BindState gBindState;
 
 void device::bindVao(GLuint vao) { glBindVertexArray(vao); }
@@ -262,7 +266,29 @@ void device::bindEbo(GLuint ebo) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo); }
 void device::bindRenderBuffer(GLuint fbo) {
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 }
-//-------------------------[END BIND]
+
+void device::bindTexture(GLuint textureId, GLenum mode) {
+  device::bindTexture(textureId, mode, Standard::tCreation);
+}
+
+void device::bindTexture(GLuint textureId, GLenum mode, int textureUnit) {
+  if (gBindState.boundTextures[textureUnit] != textureId) {
+    gBindState.boundTextures[textureUnit] = textureId;
+    if (gBindState.activeTextureUnit != textureUnit) {
+      glActiveTexture(textureUnit);
+      gBindState.activeTextureUnit = textureUnit;
+    }
+    glBindTexture(mode, textureId);
+  }
+}
+
+void device::bindFrameBuffer(GLuint frameBuffer) {
+  glBindFramebuffer(GL_FRAMEBUFFER, frameBuffer);
+}
+GLuint device::getUniform(GLuint program, const char *name) {
+  return glGetUniformLocation(program, name);
+}
+//-------------------------[END GL]
 
 //-------------------------[BEGIN DISPOSE]
 void device::disposeProgram(GLuint program) { glDeleteProgram(program); }
@@ -286,7 +312,8 @@ struct UseState {
 
   void bindUniforms(Material *material) {
     for (auto &uniform : material->uniforms) {
-      uniform.second.bind(currentProgram->getUniform(uniform.first));
+      uniform.second.bind(device::getUniform(currentProgram->shaderProgram,
+                                             uniform.first.c_str()));
     }
   }
 };
@@ -300,7 +327,7 @@ void device::useProgram(Program *program) {
   GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
   int currentShader = 0;
   for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
-    if (program->shaders[i].available()) {
+    if (program->shaders[i].file != nullptr) {
       bool shaderUpdate = program->shaders[i].file->needsUpdate;
       programUpdate |= shaderUpdate;
       if (shaderUpdate) {
@@ -339,6 +366,10 @@ void device::useMesh(Mesh *mesh) {
   device::bindVbo(mesh->vbo);
   device::bindEbo(mesh->ebo);
   guseState.currentMesh = mesh;
+}
+
+void device::useTexture(UTexture texture) {
+  device::bindTexture(texture.texID, texture.mode, texture.unit);
 }
 
 void device::useTexture(Texture *texture) {

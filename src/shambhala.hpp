@@ -49,8 +49,7 @@ public:
 
 struct Shader {
   GLuint shader;
-  IResource *file;
-  bool available();
+  IResource *file = nullptr;
 };
 
 enum ShaderType {
@@ -64,7 +63,6 @@ enum ShaderType {
 
 struct Program {
   Shader shaders[SHADER_TYPE_COUNT];
-  GLuint getUniform(const std::string &name);
   GLuint shaderProgram = -1;
 };
 
@@ -292,6 +290,7 @@ GLuint createCubemap();
 GLuint createRenderBuffer();
 GLuint createFramebuffer();
 GLuint getShaderType(int shaderType);
+GLuint getUniform(GLuint program, const char *name);
 
 void uploadTexture(GLenum target, unsigned char *texturebuffer, int width,
                    int height, int components);

@@ -23,7 +23,7 @@ struct IViewport {
   virtual void restoreViewport() = 0;
   virtual bool isMousePressed() = 0;
 
-  virtual void *createWindow(const WindowConfiguration &configuration);
+  virtual void *createWindow(const WindowConfiguration &configuration) = 0;
   virtual void dispatchRenderEvents() = 0;
   virtual bool shouldClose() = 0;
 };
