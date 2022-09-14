@@ -8,5 +8,6 @@ struct io_buffer {
 namespace shambhala {
 struct IIO {
   virtual io_buffer readFile(const char *path);
+  virtual void freeFile(uint8_t *buffer);
 };
 } // namespace shambhala

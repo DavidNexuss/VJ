@@ -1,0 +1,7 @@
+#include <io.hpp>
+
+namespace shambhala {
+struct LinuxIO : public shambhala::IIO {
+  io_buffer readFile(const char *path) override;
+};
+} // namespace shambhala

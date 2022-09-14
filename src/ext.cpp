@@ -1,5 +1,6 @@
 
 #include "ext.hpp"
+#include "shambhala.hpp"
 #include "standard.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -49,8 +50,10 @@ vector<Texture *> loadMaterialTextures(aiMaterial *mat, aiTextureType type) {
   for (int i = 0; i < mat->GetTextureCount(type); i++) {
     aiString str;
     mat->GetTexture(type, i, &str);
-    result.push(
-        Loader::textures->load(TextureDefinition{std::string(str.C_Str())}));
+    Texture *text = shambhala::createTexture();
+    text->addTextureResource(
+        shambhala::resource::stbiTextureFile(str.C_Str(), 3));
+    result.push(text);
   }
   return result;
 }
@@ -58,42 +61,43 @@ Material *
 createMaterialInstance(const aiScene *scene, aiMaterial *material,
                        const SceneLoaderConfiguration &configuration) {
 
-  MaterialInstanceDefinition minstance;
+  Material *minstance = shambhala::createMaterial();
   for (int i = 0; i < configuration.textureTypes.size(); i++) {
     vector<Texture *> materialtextures =
         loadMaterialTextures(material, configuration.textureTypes[i]);
 
     // Sets glTexture unit!!!
-    minstance.setTexture(configuration.textureNames[i], materialtextures[0], i,
-                         GL_TEXTURE_2D);
+    // TODO: Fix
+    minstance->set(configuration.textureNames[i],
+                   DynamicTexture(materialtextures[0], i));
   }
   if (configuration.materialInstanceAmbientCoef) {
     aiColor3D ka;
     material->Get(AI_MATKEY_COLOR_AMBIENT, ka);
-    minstance.set("ka", getColor(ka));
+    minstance->set("ka", getColor(ka));
   }
   if (configuration.materialInstanceDiffuseCoef) {
     aiColor3D kd;
     material->Get(AI_MATKEY_COLOR_DIFFUSE, kd);
-    minstance.set("kd", getColor(kd));
+    minstance->set("kd", getColor(kd));
   }
   if (configuration.materialInstanceSpecularCoef) {
     aiColor3D ks;
     material->Get(AI_MATKEY_COLOR_SPECULAR, ks);
-    minstance.set("ks", getColor(ks));
+    minstance->set("ks", getColor(ks));
   }
   if (configuration.materialInstanceEmissiveCoef) {
     aiColor3D ke;
     material->Get(AI_MATKEY_COLOR_SPECULAR, ke);
-    minstance.set("ke", getColor(ke));
+    minstance->set("ke", getColor(ke));
   }
   if (configuration.materialInstanceShinnessCoef) {
     float sh;
     material->Get(AI_MATKEY_SHININESS, sh);
-    minstance.set("sh", sh);
+    minstance->set("sh", sh);
   }
 
-  return Loader::materialInstances->load(minstance);
+  return minstance;
 }
 Mesh *createMesh(const aiScene *scene, aiMesh *mesh,
                  const SceneLoaderConfiguration &configuration) {
@@ -150,7 +154,7 @@ Mesh *createMesh(const aiScene *scene, aiMesh *mesh,
   }
 
   int indexcount = indices.size();
-  Mesh *meshid = Loader::meshes->add(configuration.meshLayout);
+  Mesh *meshid = shambhala::createMesh();
   meshid->vertexBuffer = vertexBuffer.drop();
   meshid->indexBuffer = indices.drop();
   return meshid;
@@ -179,17 +183,16 @@ Node *processNode(aiNode *node, const aiScene *scene, Scene &result,
                   LoadingContext &context,
                   const SceneLoaderConfiguration &configuration) {
 
-  Node *engineNode = Loader::nodes->add();
+  Node *engineNode = shambhala::createNode();
   engineNode->setTransformMatrix(getTransformMatrix(node->mTransformation));
 
   for (size_t i = 0; i < node->mNumMeshes; i++) {
-    ModelDefinition mdef;
-
-    mdef.meshID = context.loadMesh(scene, node->mMeshes[i], configuration);
-    mdef.materialInstanceID = context.loadMaterial(
+    Model *model = shambhala::createModel();
+    model->mesh = context.loadMesh(scene, node->mMeshes[i], configuration);
+    model->material = context.loadMaterial(
         scene, scene->mMeshes[node->mMeshes[i]]->mMaterialIndex, configuration);
-    mdef.nodeID = engineNode;
-    result.models.push(Loader::models->load(mdef));
+    model->node = engineNode;
+    result.models.add(model);
   }
 
   for (size_t i = 0; i < node->mNumChildren; i++) {
@@ -213,7 +216,6 @@ Scene::Scene(const SceneDefinition &def) {
   LoadingContext context;
   rootNode =
       processNode(scene->mRootNode, scene, *this, context, def.configuration);
-  sceneOwner =
-      Loader::modelList->getIterator(Loader::workingRenderTarget->sceneIndex);
+  sceneOwner = shambhala::getWorkingModelList();
 }
 Scene::~Scene() {}

@@ -86,6 +86,10 @@ struct DynamicTexture {
   Texture *sourceTexture;
   int unit;
   GLenum mode = GL_TEXTURE_2D;
+
+  DynamicTexture();
+  DynamicTexture(Texture *sourceTexture, int unit);
+  DynamicTexture(Texture *sourceTexture, int unit, GLenum mode);
 };
 
 #define UNIFORMS_LIST(o)                                                       \
@@ -199,6 +203,8 @@ struct Model : public ModelConfiguration {
 
 struct ModelList {
   simple_vector<Model *> models;
+
+  void add(Model *model);
 };
 
 struct TextureResource : public IResource {
@@ -319,6 +325,7 @@ void useMaterial(Material *material);
 void clear(int flags);
 } // namespace device
 
+Node *createNode();
 Texture *createTexture();
 Model *createModel();
 Mesh *createMesh();
@@ -326,6 +333,10 @@ MeshLayout *createMeshLayout();
 Program *createProgram();
 FrameBuffer *createFramebuffer();
 Material *createMaterial();
+ModelList *createModelList();
+
+ModelList *getWorkingModelList();
+void setWorkingModelList(ModelList *modelList);
 
 void buildSortPass();
 void renderPass();
@@ -339,6 +350,11 @@ MemoryResource *ioMemoryFile(const char *path);
 TextureResource *stbiTextureMemory(MemoryResource *memoryResource);
 TextureResource *stbiTextureFile(const char *path, int desiredChannels);
 } // namespace resource
+
+namespace util {
+simple_vector<uint8_t> createCube();
+Mesh *meshCreateCube();
+} // namespace util
 } // namespace shambhala
 
 #undef ENUM_OPERATORS

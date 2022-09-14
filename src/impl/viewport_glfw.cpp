@@ -1,5 +1,8 @@
+#define GLFW_STATIC
 #include "viewport_glfw.hpp"
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <iostream>
 #include <unordered_map>
 
 using namespace shambhala;
@@ -90,7 +93,6 @@ void ViewportGLFW::restoreViewport() {
 
 bool ViewportGLFW::isMousePressed() { return mousePressed; }
 
-#include <iostream>
 using namespace std;
 void *ViewportGLFW::createWindow(const WindowConfiguration &configuration) {
 

@@ -248,7 +248,7 @@ GLuint device::createCubemap() {
 //-------------------------[BEGIN BIND]
 
 struct BindState {};
-static BindState g_bindState;
+static BindState gBindState;
 
 void device::bindVao(GLuint vao) { glBindVertexArray(vao); }
 void device::bindVbo(GLuint vbo) { glBindBuffer(GL_ARRAY_BUFFER, vbo); }
