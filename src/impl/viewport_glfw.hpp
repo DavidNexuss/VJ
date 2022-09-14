@@ -6,7 +6,7 @@ namespace shambhala {
 struct ViewportGLFW : public IViewport {
   ViewportGLFW();
 
-  virtual void initCallbacks(void *window) override;
+  virtual void setActiveWindow(void *window) override;
   virtual bool isKeyPressed(int keyCode) override;
   virtual bool isKeyJustPressed(int keyCode) override;
   virtual void hideMouse(bool hide) override;

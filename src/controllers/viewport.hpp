@@ -15,7 +15,7 @@ struct IViewport {
   double scrollX, scrollY;
   double deltaTime;
 
-  virtual void initCallbacks(void *window) = 0;
+  virtual void setActiveWindow(void *window) = 0;
   virtual bool isKeyPressed(int keyCode) = 0;
   virtual bool isKeyJustPressed(int keyCode) = 0;
   virtual void hideMouse(bool hide) = 0;

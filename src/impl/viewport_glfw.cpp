@@ -53,7 +53,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
     currentViewport->mousePressed = false;
 }
 
-void ViewportGLFW::initCallbacks(void *udata) {
+void ViewportGLFW::setActiveWindow(void *udata) {
   GLFWwindow *window = (GLFWwindow *)udata;
   glfwSetCursorPosCallback(window, cursor_position_callback);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);

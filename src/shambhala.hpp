@@ -5,6 +5,8 @@
 #include "simple_vector.hpp"
 #include <glm/glm.hpp>
 #include <unordered_map>
+#include <vector>
+
 #pragma once
 #define ENUM_OPERATORS(T)                                                      \
   inline T operator~(T a) { return (T) ~(int)a; }                              \
@@ -143,6 +145,12 @@ struct Material {
   std::unordered_map<std::string, Uniform> uniforms;
 };
 
+struct WorldMaterial {
+  virtual void update(float deltatime) {}
+  virtual void bind(Program *activeProgram) = 0;
+  bool needsFrameUpdate;
+};
+
 #undef UNIFORMS_LIST
 
 struct MeshLayout {
@@ -197,8 +205,13 @@ struct Model : public ModelConfiguration {
 
 struct ModelList {
   simple_vector<Model *> models;
-
   void add(Model *model);
+  void forceSorting();
+  const std::vector<int> &getRenderOrder();
+
+private:
+  std::vector<int> modelindices;
+  bool shouldSort;
 };
 
 struct TextureResource : public IResource {
@@ -289,6 +302,7 @@ GLuint createTexture(bool filter);
 GLuint createCubemap();
 GLuint createRenderBuffer();
 GLuint createFramebuffer();
+GLuint createRenderBuffer();
 GLuint getShaderType(int shaderType);
 GLuint getUniform(GLuint program, const char *name);
 
@@ -333,16 +347,22 @@ FrameBuffer *createFramebuffer();
 Material *createMaterial();
 ModelList *createModelList();
 
+// DeclarativeRenderer
+void setWorldMaterial(int clas, WorldMaterial *worldMaterial);
 ModelList *getWorkingModelList();
 void setWorkingModelList(ModelList *modelList);
+void addModel(Model *model);
 
 void buildSortPass();
 void renderPass();
 
+// Controllers
 IViewport *viewport();
 IIO *io();
 
 void createEngine(EngineParameters parameters);
+void *createWindow(const WindowConfiguration &configuration);
+void setActiveWindow(void *window);
 void destroyEngine();
 
 void loop_beginRenderContext();

@@ -128,6 +128,10 @@ void device::uploadStencilTexture(GLuint texture, int width, int height) {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
                GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 }
+void device::uploadDepthStencilTexture(GLuint texture, int width, int height) {
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0,
+               GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+}
 //--------------------------[END UPLOAD]
 void device::configureRenderBuffer(GLenum mode, int width, int height) {
   glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
@@ -256,15 +260,15 @@ GLuint device::createCubemap() {
 struct BindState {
   GLuint boundTextures[Standard::maxTextureUnits] = {0};
   int activeTextureUnit = -1;
-  void clearState();
+  void clearState() {}
 };
 static BindState gBindState;
 
 void device::bindVao(GLuint vao) { glBindVertexArray(vao); }
 void device::bindVbo(GLuint vbo) { glBindBuffer(GL_ARRAY_BUFFER, vbo); }
 void device::bindEbo(GLuint ebo) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo); }
-void device::bindRenderBuffer(GLuint fbo) {
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+void device::bindRenderBuffer(GLuint rbo) {
+  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 }
 
 void device::bindTexture(GLuint textureId, GLenum mode) {
@@ -310,12 +314,9 @@ struct UseState {
   bool lastcullFrontFace = false;
   bool invertedFaces = false;
 
-  void bindUniforms(Material *material) {
-    for (auto &uniform : material->uniforms) {
-      uniform.second.bind(device::getUniform(currentProgram->shaderProgram,
-                                             uniform.first.c_str()));
-    }
-  }
+  std::unordered_map<int, WorldMaterial *> worldMaterials;
+  void bindUniforms(Material *material) {}
+  void clearState() {}
 };
 static UseState guseState;
 
@@ -323,6 +324,7 @@ void device::useProgram(Program *program) {
   if (guseState.currentProgram == program)
     return;
 
+  // Check program compilation with shaders
   bool programUpdate = program->shaderProgram == -1;
   GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
   int currentShader = 0;
@@ -345,6 +347,11 @@ void device::useProgram(Program *program) {
   }
 
   device::useProgram(program);
+
+  // Bind worldMaterials
+  for (auto &worldmat : guseState.worldMaterials) {
+    worldmat.second->bind(program);
+  }
   guseState.currentProgram = program;
 }
 void device::useMeshLayout(MeshLayout *layout) {
@@ -414,11 +421,22 @@ void device::useModelConfiguration(ModelConfiguration *configuration) {
 }
 
 void device::useMaterial(Material *material) {
-  guseState.bindUniforms(material);
+  for (auto &uniform : material->uniforms) {
+    uniform.second.bind(device::getUniform(
+        guseState.currentProgram->shaderProgram, uniform.first.c_str()));
+  }
 }
 //---------------------[END DEVICE USE]
 
 // --------------------[BEGIN FRAMEBUFFER]
+
+GLuint FrameBuffer::createDepthStencilBuffer() {
+  GLuint rbo = device::createRenderBuffer();
+  device::bindRenderBuffer(rbo);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, bufferWidth,
+                        bufferHeight);
+  return rbo;
+}
 
 void FrameBuffer::initialize() {
   _framebuffer = device::createFramebuffer();
@@ -552,29 +570,33 @@ void Model::draw() {
     device::useMaterial(material);
 }
 //---------------------[MODEL END]
+//---------------------[MODELLIST BEGIN]
+
+const std::vector<int> &ModelList::getRenderOrder() {
+  if (shouldSort) {
+    modelindices.resize(models.size());
+    for (int i = 0; i < modelindices.size(); i++)
+      modelindices[i] = i;
+    std::sort(modelindices.begin(), modelindices.end(),
+              [&](int lhs, int rhs) { return *models[lhs] < *models[rhs]; });
+  }
+  return modelindices;
+}
+
+void ModelList::forceSorting() { shouldSort = true; }
+//---------------------[MODELLIST END]
 //---------------------[BEGIN ENGINE]
 
 struct Engine {
   EngineControllers controllers;
-  std::vector<int> modelindices;
-  simple_vector<Model *> models;
-  bool shouldSort = false;
-
-  const std::vector<int> &getRenderOrder() {
-    if (shouldSort) {
-      modelindices.resize(models.size());
-      for (int i = 0; i < modelindices.size(); i++)
-        modelindices[i] = i;
-      std::sort(modelindices.begin(), modelindices.end(),
-                [&](int lhs, int rhs) { return *models[lhs] < *models[rhs]; });
-    }
-    return modelindices;
-  }
+  ModelList *workingModelList;
 };
 
 static Engine engine;
 
 void shambhala::loop_beginRenderContext() {
+  guseState.clearState();
+  gBindState.clearState();
   glViewport(0, 0, viewport()->screenWidth, viewport()->screenHeight);
 }
 void shambhala::loop_beginUIContext() {}
@@ -591,6 +613,13 @@ void shambhala::destroyEngine() {}
 //---------------------[BEGIN ENGINECONFIGURATION]
 void shambhala::createEngine(EngineParameters parameters) {
   engine.controllers = parameters;
+}
+
+void *shambhala::createWindow(const WindowConfiguration &configuration) {
+  return viewport()->createWindow(configuration);
+}
+void shambhala::setActiveWindow(void *window) {
+  viewport()->setActiveWindow(window);
 }
 
 IViewport *shambhala::viewport() { return engine.controllers.viewport; }
@@ -612,11 +641,12 @@ Material *shambhala::createMaterial() { return new Material; }
 
 //---------------------[BEGIN ENGINEUPDATE]
 
-void shambhala::buildSortPass() { engine.shouldSort = true; }
+void shambhala::buildSortPass() { engine.workingModelList->forceSorting(); }
 void shambhala::renderPass() {
-  const std::vector<int> &renderOrder = engine.getRenderOrder();
+  const std::vector<int> &renderOrder =
+      engine.workingModelList->getRenderOrder();
   for (int i = 0; i < renderOrder.size(); i++) {
-    Model *model = engine.models[renderOrder[i]];
+    Model *model = engine.workingModelList->models[renderOrder[i]];
     if (model->enabled) {
       model->draw();
     }
