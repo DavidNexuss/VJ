@@ -1,0 +1,2 @@
+/usr/bin/ar qc liblightmapper.a CMakeFiles/lightmapper.dir/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp.o CMakeFiles/lightmapper.dir/lightmapper.cpp.o
+/usr/bin/ranlib liblightmapper.a

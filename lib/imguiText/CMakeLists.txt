@@ -1,0 +1,5 @@
+project(imguiText)
+file(GLOB_RECURSE SRCS *.cpp *.h)
+include_directories(../)
+include_directories(../../src)
+add_library(imguiText ${SRCS})

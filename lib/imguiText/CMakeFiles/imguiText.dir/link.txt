@@ -1,0 +1,2 @@
+/usr/bin/ar qc libimguiText.a CMakeFiles/imguiText.dir/TextEditor.cpp.o
+/usr/bin/ranlib libimguiText.a

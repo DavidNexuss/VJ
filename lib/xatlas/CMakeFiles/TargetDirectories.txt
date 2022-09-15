@@ -1,0 +1,3 @@
+/home/david/shared/Projects/Shambhala/lib/xatlas/CMakeFiles/xatlas.dir
+/home/david/shared/Projects/Shambhala/lib/xatlas/CMakeFiles/edit_cache.dir
+/home/david/shared/Projects/Shambhala/lib/xatlas/CMakeFiles/rebuild_cache.dir

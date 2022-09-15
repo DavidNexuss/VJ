@@ -1,0 +1,2 @@
+/usr/bin/ar qc libxatlas.a CMakeFiles/xatlas.dir/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp.o CMakeFiles/xatlas.dir/xatlas.cpp.o
+/usr/bin/ranlib libxatlas.a
