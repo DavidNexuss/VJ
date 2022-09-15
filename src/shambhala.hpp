@@ -67,6 +67,8 @@ enum ShaderType {
 struct Program {
   Shader shaders[SHADER_TYPE_COUNT];
   GLuint shaderProgram = -1;
+
+  bool hint_skybox = false;
 };
 
 struct UTexture {
@@ -80,7 +82,7 @@ struct UTexture {
 
 struct Texture;
 struct DynamicTexture {
-  Texture *sourceTexture;
+  Texture *sourceTexture = nullptr;
   int unit;
   GLenum mode = GL_TEXTURE_2D;
 

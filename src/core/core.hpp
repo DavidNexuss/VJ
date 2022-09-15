@@ -1,9 +1,8 @@
 #pragma once
 #include <array>
-#include <misc/glfw.hpp>
+#include <misc/gl.hpp>
 #include <simple_vector.hpp>
 
-using Window = GLFWwindow;
 using buffer = simple_vector<unsigned char>;
 template <typename T> using vector = simple_vector<T>;
 using std::array;

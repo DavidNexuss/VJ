@@ -51,6 +51,8 @@ public:
 
   inline glm::mat4 getViewMatrix() const { return viewMatrix; }
   inline glm::mat4 getCombined() const { return combinedMatrix; }
+
+  Camera();
 };
 
 struct DebugCamera : public Camera {

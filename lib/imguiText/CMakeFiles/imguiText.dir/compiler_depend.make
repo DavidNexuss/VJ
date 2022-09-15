@@ -293,12 +293,11 @@ lib/imguiText/CMakeFiles/imguiText.dir/TextEditor.cpp.o: lib/imguiText/TextEdito
   lib/imgui/imconfig.h \
   src/misc/debug.hpp \
   src/core/core.hpp \
-  src/misc/glfw.hpp \
+  src/misc/gl.hpp \
   /usr/include/GL/glew.h \
   /usr/include/c++/12.2.0/cstddef \
   /usr/include/GL/glu.h \
   /usr/include/GL/gl.h \
-  /usr/include/GLFW/glfw3.h \
   src/simple_vector.hpp \
   /usr/include/c++/12.2.0/iostream \
   /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/float.h \
@@ -314,13 +313,13 @@ lib/imguiText/CMakeFiles/imguiText.dir/TextEditor.cpp.o: lib/imguiText/TextEdito
 
 /usr/include/c++/12.2.0/iostream:
 
-/usr/include/GLFW/glfw3.h:
-
 /usr/include/GL/gl.h:
 
 /usr/include/c++/12.2.0/cstddef:
 
 /usr/include/GL/glew.h:
+
+src/misc/gl.hpp:
 
 src/core/core.hpp:
 
@@ -867,8 +866,6 @@ src/simple_vector.hpp:
 /usr/include/bits/types/struct_tm.h:
 
 /usr/include/c++/12.2.0/bits/stl_bvector.h:
-
-src/misc/glfw.hpp:
 
 /usr/include/c++/12.2.0/bits/vector.tcc:
 

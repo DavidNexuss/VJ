@@ -46,7 +46,7 @@ glm::mat4 Camera::createOrthoMatrix() {
 
 void Camera::defaultViewMatrix() {
   glm::vec3 computeOrigin = origin;
-  if (parentNode.valid())
+  if (parentNode != nullptr)
     computeOrigin =
         parentNode->getTransformMatrix() * glm::vec4(computeOrigin, 1.0);
   glm::mat4 viewMatrix = glm::lookAt(computeOrigin, target, glm::vec3(0, 1, 0));
@@ -58,7 +58,7 @@ void Camera::defaultProjectionMatrix() {
                                       : createProjectionMatrix());
 }
 
-void Camera::setParentNode(NodeID parentNode) { this->parentNode = parentNode; }
+void Camera::setParentNode(Node *parentNode) { this->parentNode = parentNode; }
 void Camera::updateMatrices() {
   combinedMatrix = projectionMatrix * viewMatrix;
   invViewMatrix = glm::inverse(viewMatrix);
@@ -81,12 +81,11 @@ void Camera::bind(Program *current) {
     defaultViewMatrix();
   }
   device::useUniform(Standard::uProjectionMatrix, Uniform(projectionMatrix));
-  current.bindUniform(Standard::uProjectionMatrix, Uniform(projectionMatrix));
-  current.bindUniform(Standard::uViewPos, Uniform(glm::vec3(invViewMatrix[3])));
+  device::useUniform(Standard::uViewPos, Uniform(glm::vec3(invViewMatrix[3])));
 
-  if (current.getMaterial()->isSkyBoxMaterial) {
+  if (current->hint_skybox) {
     mat4 skyView = mat4(mat3(viewMatrix));
-    current.bindUniform(Standard::uViewMatrix, Uniform(skyView));
+    device::useUniform(Standard::uViewMatrix, Uniform(skyView));
   } else
-    current.bindUniform(Standard::uViewMatrix, Uniform(viewMatrix));
+    device::useUniform(Standard::uViewMatrix, Uniform(viewMatrix));
 }

@@ -609,9 +609,7 @@ void shambhala::loop_declarativeRender() {}
 void shambhala::loop_endUIContext() {}
 
 // TODO FIX: glfw header incluse
-bool shambhala::loop_shouldClose() {
-  return viewport()->shouldClose() || viewport()->isKeyPressed(GLFW_KEY_ESCAPE);
-}
+bool shambhala::loop_shouldClose() { return viewport()->shouldClose(); }
 
 void shambhala::destroyEngine() {}
 //---------------------[BEGIN ENGINECONFIGURATION]

@@ -294,12 +294,11 @@ lib/imguiText/CMakeFiles/imguiText.dir/TextEditor.cpp.o
  /home/david/shared/Projects/ShambhalaMini/lib/imgui/imconfig.h
  /home/david/shared/Projects/ShambhalaMini/src/misc/debug.hpp
  /home/david/shared/Projects/ShambhalaMini/src/core/core.hpp
- /home/david/shared/Projects/ShambhalaMini/src/misc/glfw.hpp
+ /home/david/shared/Projects/ShambhalaMini/src/misc/gl.hpp
  /usr/include/GL/glew.h
  /usr/include/c++/12.2.0/cstddef
  /usr/include/GL/glu.h
  /usr/include/GL/gl.h
- /usr/include/GLFW/glfw3.h
  /home/david/shared/Projects/ShambhalaMini/src/simple_vector.hpp
  /usr/include/c++/12.2.0/iostream
  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/float.h

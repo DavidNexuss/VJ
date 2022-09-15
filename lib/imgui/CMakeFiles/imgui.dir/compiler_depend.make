@@ -41,7 +41,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui.cpp.o: lib/imgui/imgui.cpp \
   /usr/include/c++/12.2.0/debug/debug.h \
   /usr/include/c++/12.2.0/bits/predefined_ops.h \
   /usr/include/c++/12.2.0/bits/range_access.h \
-  src/misc/glfw.hpp \
+  src/misc/gl.hpp \
   /usr/include/GL/glew.h \
   /usr/include/c++/12.2.0/cstddef \
   /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h \
@@ -57,7 +57,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui.cpp.o: lib/imgui/imgui.cpp \
   /usr/include/bits/stdint-uintn.h \
   /usr/include/GL/glu.h \
   /usr/include/GL/gl.h \
-  /usr/include/GLFW/glfw3.h \
   src/simple_vector.hpp \
   /usr/include/c++/12.2.0/cmath \
   /usr/include/math.h \
@@ -365,7 +364,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_demo.cpp.o: lib/imgui/imgui_demo.cpp \
   /usr/include/c++/12.2.0/debug/debug.h \
   /usr/include/c++/12.2.0/bits/predefined_ops.h \
   /usr/include/c++/12.2.0/bits/range_access.h \
-  src/misc/glfw.hpp \
+  src/misc/gl.hpp \
   /usr/include/GL/glew.h \
   /usr/include/c++/12.2.0/cstddef \
   /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h \
@@ -381,7 +380,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_demo.cpp.o: lib/imgui/imgui_demo.cpp \
   /usr/include/bits/stdint-uintn.h \
   /usr/include/GL/glu.h \
   /usr/include/GL/gl.h \
-  /usr/include/GLFW/glfw3.h \
   src/simple_vector.hpp \
   /usr/include/c++/12.2.0/cmath \
   /usr/include/math.h \
@@ -601,7 +599,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_draw.cpp.o: lib/imgui/imgui_draw.cpp \
   /usr/include/c++/12.2.0/debug/debug.h \
   /usr/include/c++/12.2.0/bits/predefined_ops.h \
   /usr/include/c++/12.2.0/bits/range_access.h \
-  src/misc/glfw.hpp \
+  src/misc/gl.hpp \
   /usr/include/GL/glew.h \
   /usr/include/c++/12.2.0/cstddef \
   /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h \
@@ -617,7 +615,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_draw.cpp.o: lib/imgui/imgui_draw.cpp \
   /usr/include/bits/stdint-uintn.h \
   /usr/include/GL/glu.h \
   /usr/include/GL/gl.h \
-  /usr/include/GLFW/glfw3.h \
   src/simple_vector.hpp \
   /usr/include/c++/12.2.0/cmath \
   /usr/include/math.h \
@@ -927,7 +924,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_glfw.cpp.o: lib/imgui/imgui_impl_glfw.
   /usr/include/c++/12.2.0/debug/debug.h \
   /usr/include/c++/12.2.0/bits/predefined_ops.h \
   /usr/include/c++/12.2.0/bits/range_access.h \
-  src/misc/glfw.hpp \
+  src/misc/gl.hpp \
   /usr/include/GL/glew.h \
   /usr/include/c++/12.2.0/cstddef \
   /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h \
@@ -943,7 +940,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_glfw.cpp.o: lib/imgui/imgui_impl_glfw.
   /usr/include/bits/stdint-uintn.h \
   /usr/include/GL/glu.h \
   /usr/include/GL/gl.h \
-  /usr/include/GLFW/glfw3.h \
   src/simple_vector.hpp \
   /usr/include/c++/12.2.0/cmath \
   /usr/include/math.h \
@@ -1111,7 +1107,8 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_glfw.cpp.o: lib/imgui/imgui_impl_glfw.
   /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/float.h \
   /usr/include/string.h \
   /usr/include/strings.h \
-  lib/imgui/imgui_impl_glfw.h
+  lib/imgui/imgui_impl_glfw.h \
+  /usr/include/GLFW/glfw3.h
 
 lib/imgui/CMakeFiles/imgui.dir/imgui_impl_opengl3.cpp.o: lib/imgui/imgui_impl_opengl3.cpp \
   /usr/include/stdc-predef.h \
@@ -1153,7 +1150,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_opengl3.cpp.o: lib/imgui/imgui_impl_op
   /usr/include/c++/12.2.0/debug/debug.h \
   /usr/include/c++/12.2.0/bits/predefined_ops.h \
   /usr/include/c++/12.2.0/bits/range_access.h \
-  src/misc/glfw.hpp \
+  src/misc/gl.hpp \
   /usr/include/GL/glew.h \
   /usr/include/c++/12.2.0/cstddef \
   /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h \
@@ -1169,7 +1166,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_opengl3.cpp.o: lib/imgui/imgui_impl_op
   /usr/include/bits/stdint-uintn.h \
   /usr/include/GL/glu.h \
   /usr/include/GL/gl.h \
-  /usr/include/GLFW/glfw3.h \
   src/simple_vector.hpp \
   /usr/include/c++/12.2.0/cmath \
   /usr/include/math.h \
@@ -1379,7 +1375,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_tables.cpp.o: lib/imgui/imgui_tables.cpp \
   /usr/include/c++/12.2.0/debug/debug.h \
   /usr/include/c++/12.2.0/bits/predefined_ops.h \
   /usr/include/c++/12.2.0/bits/range_access.h \
-  src/misc/glfw.hpp \
+  src/misc/gl.hpp \
   /usr/include/GL/glew.h \
   /usr/include/c++/12.2.0/cstddef \
   /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h \
@@ -1395,7 +1391,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_tables.cpp.o: lib/imgui/imgui_tables.cpp \
   /usr/include/bits/stdint-uintn.h \
   /usr/include/GL/glu.h \
   /usr/include/GL/gl.h \
-  /usr/include/GLFW/glfw3.h \
   src/simple_vector.hpp \
   /usr/include/c++/12.2.0/cmath \
   /usr/include/math.h \
@@ -1703,7 +1698,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_widgets.cpp.o: lib/imgui/imgui_widgets.cpp 
   /usr/include/c++/12.2.0/debug/debug.h \
   /usr/include/c++/12.2.0/bits/predefined_ops.h \
   /usr/include/c++/12.2.0/bits/range_access.h \
-  src/misc/glfw.hpp \
+  src/misc/gl.hpp \
   /usr/include/GL/glew.h \
   /usr/include/c++/12.2.0/cstddef \
   /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h \
@@ -1719,7 +1714,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_widgets.cpp.o: lib/imgui/imgui_widgets.cpp 
   /usr/include/bits/stdint-uintn.h \
   /usr/include/GL/glu.h \
   /usr/include/GL/gl.h \
-  /usr/include/GLFW/glfw3.h \
   src/simple_vector.hpp \
   /usr/include/c++/12.2.0/cmath \
   /usr/include/math.h \
@@ -1990,6 +1984,8 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_widgets.cpp.o: lib/imgui/imgui_widgets.cpp 
 
 lib/imgui/imgui_widgets.cpp:
 
+/usr/include/GLFW/glfw3.h:
+
 lib/imgui/imgui_impl_glfw.h:
 
 lib/imgui/imstb_textedit.h:
@@ -2071,10 +2067,6 @@ lib/imgui/imgui_tables.cpp:
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/uintrintrin.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/rtmintrin.h:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/avx512vpopcntdqvlintrin.h:
-
-/usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/rdseedintrin.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stdarg.h:
 
@@ -2188,10 +2180,6 @@ lib/imgui/imgui_impl_glfw.cpp:
 
 /usr/include/c++/12.2.0/bits/basic_ios.h:
 
-src/misc/glfw.hpp:
-
-/usr/include/c++/12.2.0/bits/ptr_traits.h:
-
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/tmmintrin.h:
 
 /usr/include/bits/select.h:
@@ -2201,12 +2189,6 @@ lib/imgui/imstb_truetype.h:
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/mm_malloc.h:
 
 /usr/include/c++/12.2.0/bits/postypes.h:
-
-/usr/include/bits/floatn.h:
-
-/usr/include/c++/12.2.0/pstl/pstl_config.h:
-
-/usr/include/features-time64.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/avx512bitalgintrin.h:
 
@@ -2219,14 +2201,6 @@ lib/imgui/imstb_truetype.h:
 /usr/include/GL/glu.h:
 
 /usr/include/c++/12.2.0/tr1/ell_integral.tcc:
-
-/usr/include/bits/iscanonical.h:
-
-/usr/include/c++/12.2.0/tr1/poly_laguerre.tcc:
-
-/usr/include/math.h:
-
-/usr/include/bits/pthreadtypes-arch.h:
 
 /usr/include/linux/limits.h:
 
@@ -2246,9 +2220,9 @@ lib/imgui/imstb_truetype.h:
 
 /usr/include/sys/cdefs.h:
 
-/usr/include/GLFW/glfw3.h:
-
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/enqcmdintrin.h:
+
+/usr/include/bits/pthreadtypes-arch.h:
 
 /usr/include/stdc-predef.h:
 
@@ -2336,6 +2310,10 @@ lib/imgui/imgui.h:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/lwpintrin.h:
 
+/usr/include/features-time64.h:
+
+/usr/include/c++/12.2.0/pstl/pstl_config.h:
+
 /usr/include/c++/12.2.0/x86_64-pc-linux-gnu/bits/c++config.h:
 
 /usr/include/bits/struct_rwlock.h:
@@ -2360,6 +2338,8 @@ src/simple_vector.hpp:
 
 /usr/include/alloca.h:
 
+/usr/include/c++/12.2.0/bits/ptr_traits.h:
+
 /usr/include/c++/12.2.0/bits/predefined_ops.h:
 
 /usr/include/bits/byteswap.h:
@@ -2371,6 +2351,10 @@ src/simple_vector.hpp:
 /usr/include/c++/12.2.0/bits/locale_classes.h:
 
 /usr/include/c++/12.2.0/cstdint:
+
+/usr/include/bits/floatn.h:
+
+src/misc/gl.hpp:
 
 /usr/include/GL/glew.h:
 
@@ -2397,6 +2381,12 @@ src/simple_vector.hpp:
 /usr/include/c++/12.2.0/cstdio:
 
 /usr/include/c++/12.2.0/bits/streambuf.tcc:
+
+/usr/include/bits/iscanonical.h:
+
+/usr/include/c++/12.2.0/tr1/poly_laguerre.tcc:
+
+/usr/include/math.h:
 
 /usr/include/c++/12.2.0/exception:
 
@@ -2619,6 +2609,10 @@ lib/imgui/imgui_impl_opengl3.cpp:
 /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/float.h:
 
 /usr/include/strings.h:
+
+/usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/avx512vpopcntdqvlintrin.h:
+
+/usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/rdseedintrin.h:
 
 lib/imgui/imgui_internal.h:
 

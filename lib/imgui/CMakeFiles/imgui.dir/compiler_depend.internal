@@ -42,7 +42,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui.cpp.o
  /usr/include/c++/12.2.0/debug/debug.h
  /usr/include/c++/12.2.0/bits/predefined_ops.h
  /usr/include/c++/12.2.0/bits/range_access.h
- /home/david/shared/Projects/ShambhalaMini/src/misc/glfw.hpp
+ /home/david/shared/Projects/ShambhalaMini/src/misc/gl.hpp
  /usr/include/GL/glew.h
  /usr/include/c++/12.2.0/cstddef
  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h
@@ -58,7 +58,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui.cpp.o
  /usr/include/bits/stdint-uintn.h
  /usr/include/GL/glu.h
  /usr/include/GL/gl.h
- /usr/include/GLFW/glfw3.h
  /home/david/shared/Projects/ShambhalaMini/src/simple_vector.hpp
  /usr/include/c++/12.2.0/cmath
  /usr/include/math.h
@@ -367,7 +366,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_demo.cpp.o
  /usr/include/c++/12.2.0/debug/debug.h
  /usr/include/c++/12.2.0/bits/predefined_ops.h
  /usr/include/c++/12.2.0/bits/range_access.h
- /home/david/shared/Projects/ShambhalaMini/src/misc/glfw.hpp
+ /home/david/shared/Projects/ShambhalaMini/src/misc/gl.hpp
  /usr/include/GL/glew.h
  /usr/include/c++/12.2.0/cstddef
  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h
@@ -383,7 +382,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_demo.cpp.o
  /usr/include/bits/stdint-uintn.h
  /usr/include/GL/glu.h
  /usr/include/GL/gl.h
- /usr/include/GLFW/glfw3.h
  /home/david/shared/Projects/ShambhalaMini/src/simple_vector.hpp
  /usr/include/c++/12.2.0/cmath
  /usr/include/math.h
@@ -604,7 +602,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_draw.cpp.o
  /usr/include/c++/12.2.0/debug/debug.h
  /usr/include/c++/12.2.0/bits/predefined_ops.h
  /usr/include/c++/12.2.0/bits/range_access.h
- /home/david/shared/Projects/ShambhalaMini/src/misc/glfw.hpp
+ /home/david/shared/Projects/ShambhalaMini/src/misc/gl.hpp
  /usr/include/GL/glew.h
  /usr/include/c++/12.2.0/cstddef
  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h
@@ -620,7 +618,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_draw.cpp.o
  /usr/include/bits/stdint-uintn.h
  /usr/include/GL/glu.h
  /usr/include/GL/gl.h
- /usr/include/GLFW/glfw3.h
  /home/david/shared/Projects/ShambhalaMini/src/simple_vector.hpp
  /usr/include/c++/12.2.0/cmath
  /usr/include/math.h
@@ -931,7 +928,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_glfw.cpp.o
  /usr/include/c++/12.2.0/debug/debug.h
  /usr/include/c++/12.2.0/bits/predefined_ops.h
  /usr/include/c++/12.2.0/bits/range_access.h
- /home/david/shared/Projects/ShambhalaMini/src/misc/glfw.hpp
+ /home/david/shared/Projects/ShambhalaMini/src/misc/gl.hpp
  /usr/include/GL/glew.h
  /usr/include/c++/12.2.0/cstddef
  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h
@@ -947,7 +944,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_glfw.cpp.o
  /usr/include/bits/stdint-uintn.h
  /usr/include/GL/glu.h
  /usr/include/GL/gl.h
- /usr/include/GLFW/glfw3.h
  /home/david/shared/Projects/ShambhalaMini/src/simple_vector.hpp
  /usr/include/c++/12.2.0/cmath
  /usr/include/math.h
@@ -1116,6 +1112,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_glfw.cpp.o
  /usr/include/string.h
  /usr/include/strings.h
  /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_impl_glfw.h
+ /usr/include/GLFW/glfw3.h
 
 lib/imgui/CMakeFiles/imgui.dir/imgui_impl_opengl3.cpp.o
  /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_impl_opengl3.cpp
@@ -1158,7 +1155,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_opengl3.cpp.o
  /usr/include/c++/12.2.0/debug/debug.h
  /usr/include/c++/12.2.0/bits/predefined_ops.h
  /usr/include/c++/12.2.0/bits/range_access.h
- /home/david/shared/Projects/ShambhalaMini/src/misc/glfw.hpp
+ /home/david/shared/Projects/ShambhalaMini/src/misc/gl.hpp
  /usr/include/GL/glew.h
  /usr/include/c++/12.2.0/cstddef
  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h
@@ -1174,7 +1171,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_impl_opengl3.cpp.o
  /usr/include/bits/stdint-uintn.h
  /usr/include/GL/glu.h
  /usr/include/GL/gl.h
- /usr/include/GLFW/glfw3.h
  /home/david/shared/Projects/ShambhalaMini/src/simple_vector.hpp
  /usr/include/c++/12.2.0/cmath
  /usr/include/math.h
@@ -1385,7 +1381,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_tables.cpp.o
  /usr/include/c++/12.2.0/debug/debug.h
  /usr/include/c++/12.2.0/bits/predefined_ops.h
  /usr/include/c++/12.2.0/bits/range_access.h
- /home/david/shared/Projects/ShambhalaMini/src/misc/glfw.hpp
+ /home/david/shared/Projects/ShambhalaMini/src/misc/gl.hpp
  /usr/include/GL/glew.h
  /usr/include/c++/12.2.0/cstddef
  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h
@@ -1401,7 +1397,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_tables.cpp.o
  /usr/include/bits/stdint-uintn.h
  /usr/include/GL/glu.h
  /usr/include/GL/gl.h
- /usr/include/GLFW/glfw3.h
  /home/david/shared/Projects/ShambhalaMini/src/simple_vector.hpp
  /usr/include/c++/12.2.0/cmath
  /usr/include/math.h
@@ -1710,7 +1705,7 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_widgets.cpp.o
  /usr/include/c++/12.2.0/debug/debug.h
  /usr/include/c++/12.2.0/bits/predefined_ops.h
  /usr/include/c++/12.2.0/bits/range_access.h
- /home/david/shared/Projects/ShambhalaMini/src/misc/glfw.hpp
+ /home/david/shared/Projects/ShambhalaMini/src/misc/gl.hpp
  /usr/include/GL/glew.h
  /usr/include/c++/12.2.0/cstddef
  /usr/lib/gcc/x86_64-pc-linux-gnu/12.2.0/include/stddef.h
@@ -1726,7 +1721,6 @@ lib/imgui/CMakeFiles/imgui.dir/imgui_widgets.cpp.o
  /usr/include/bits/stdint-uintn.h
  /usr/include/GL/glu.h
  /usr/include/GL/gl.h
- /usr/include/GLFW/glfw3.h
  /home/david/shared/Projects/ShambhalaMini/src/simple_vector.hpp
  /usr/include/c++/12.2.0/cmath
  /usr/include/math.h

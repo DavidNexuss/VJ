@@ -6,6 +6,11 @@
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/ext/worldmat.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/ext/worldmat.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/src/ext/worldmat.cpp"
+},
+{
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
   "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/impl/io_linux.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/io_linux.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/src/impl/io_linux.cpp"
 },
@@ -13,6 +18,11 @@
   "directory": "/home/david/shared/Projects/ShambhalaMini",
   "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/impl/viewport_glfw.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glfw.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glfw.cpp"
+},
+{
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/impl/viewport_glut.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glut.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glut.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",

@@ -69,30 +69,6 @@ void ViewportGLFW::hideMouse(bool hide) {
                    hide ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
 
-bool ViewportGLFW::isKeyPressed(int keyCode) {
-  return currentViewport->pressed[keyCode];
-}
-
-bool ViewportGLFW::isKeyJustPressed(int keyCode) {
-  return currentViewport->justPressed[keyCode];
-}
-
-static int backedWidth;
-static int backedHeight;
-void ViewportGLFW::fakeViewportSize(int width, int height) {
-  backedWidth = currentViewport->screenWidth;
-  backedHeight = currentViewport->screenHeight;
-  currentViewport->screenWidth = width;
-  currentViewport->screenHeight = height;
-}
-
-void ViewportGLFW::restoreViewport() {
-  currentViewport->screenWidth = backedWidth;
-  currentViewport->screenHeight = backedHeight;
-}
-
-bool ViewportGLFW::isMousePressed() { return mousePressed; }
-
 void ViewportGLFW::dispatchRenderEvents() {
   glfwSwapBuffers(currentWindow);
   glfwPollEvents();
