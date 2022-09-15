@@ -1,11 +1,8 @@
-#pragma once
 #include <adapters/viewport.hpp>
-#include <unordered_map>
 
 namespace shambhala {
-struct ViewportGLFW : public IViewport {
-  ViewportGLFW();
 
+struct viewportGLUT : public IViewport {
   virtual void setActiveWindow(void *window) override;
   virtual bool isKeyPressed(int keyCode) override;
   virtual bool isKeyJustPressed(int keyCode) override;
@@ -13,14 +10,9 @@ struct ViewportGLFW : public IViewport {
   virtual void fakeViewportSize(int width, int height) override;
   virtual void restoreViewport() override;
   virtual bool isMousePressed() override;
+
+  virtual void *createWindow(const WindowConfiguration &configuration) override;
   virtual void dispatchRenderEvents() override;
   virtual bool shouldClose() override;
-
-  bool mousePressed;
-
-  std::unordered_map<int, bool> pressed;
-  std::unordered_map<int, bool> justPressed;
-
-  void *createWindow(const WindowConfiguration &configuration) override;
 };
 } // namespace shambhala

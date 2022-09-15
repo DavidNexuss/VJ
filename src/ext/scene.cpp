@@ -1,11 +1,11 @@
-
-#include "ext.hpp"
-#include "shambhala.hpp"
-#include "standard.hpp"
+#include "scene.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-
+#include <modules/resource.hpp>
+#include <shambhala.hpp>
+#include <standard.hpp>
+using namespace shambhala;
 glm::mat4 getTransformMatrix(const aiMatrix4x4 &from) {
   glm::mat4 to;
 

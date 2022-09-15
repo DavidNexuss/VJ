@@ -1,6 +1,6 @@
 #pragma once
-#include "controllers/io.hpp"
-#include "controllers/viewport.hpp"
+#include "adapters/io.hpp"
+#include "adapters/viewport.hpp"
 #include "core/core.hpp"
 #include "simple_vector.hpp"
 #include <glm/glm.hpp>
@@ -20,6 +20,7 @@
 using uint32_t = unsigned int;
 using uint8_t = unsigned char;
 
+namespace shambhala {
 struct IResource {
   virtual io_buffer read();
   bool needsUpdate;
@@ -287,7 +288,7 @@ struct EngineControllers {
 };
 
 struct EngineParameters : public EngineControllers {};
-
+} // namespace shambhala
 namespace shambhala {
 
 namespace device {
@@ -334,6 +335,7 @@ void useTexture(Texture *texture);
 void useMeshLayout(MeshLayout *layout);
 void useMesh(Mesh *mesh);
 void useMaterial(Material *material);
+void useUniform(const char *name, const Uniform &value);
 void clear(int flags);
 } // namespace device
 
@@ -371,12 +373,6 @@ void loop_beginUIContext();
 void loop_endUIContext();
 void loop_declarativeRender();
 bool loop_shouldClose();
-
-namespace resource {
-MemoryResource *ioMemoryFile(const char *path);
-TextureResource *stbiTextureMemory(MemoryResource *memoryResource);
-TextureResource *stbiTextureFile(const char *path, int desiredChannels);
-} // namespace resource
 
 namespace util {
 simple_vector<uint8_t> createCube();

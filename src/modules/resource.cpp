@@ -1,4 +1,4 @@
-#include "shambhala.hpp"
+#include <modules/resource.hpp>
 #include <stbimage/stb_image.h>
 using namespace shambhala;
 

@@ -44,7 +44,7 @@ enum WorldMaterialAspect { wGlobal = 0, wCamera, wSky, wCount };
       f(uShadowMap)        /* sampler2D  ShadowMap depth information */        \
       f(uLightSpaceMatrix) /* mat4 Light space matrix */
 
-#define CHARACTER_LIST(O) const static std::string O = #O;
+#define CHARACTER_LIST(O) static const char *O = #O;
 
 UNIFORM_LIST(CHARACTER_LIST)
 

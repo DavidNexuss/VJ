@@ -1,4 +1,4 @@
-#include <controllers/io.hpp>
+#include <adapters/io.hpp>
 
 namespace shambhala {
 struct LinuxIO : public shambhala::IIO {

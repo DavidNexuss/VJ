@@ -420,12 +420,16 @@ void device::useModelConfiguration(ModelConfiguration *configuration) {
   guseState.hasModelConfiguration = true;
 }
 
+void device::useUniform(const char *name, const Uniform &value) {
+  value.bind(device::getUniform(guseState.currentProgram->shaderProgram, name));
+}
+
 void device::useMaterial(Material *material) {
   for (auto &uniform : material->uniforms) {
-    uniform.second.bind(device::getUniform(
-        guseState.currentProgram->shaderProgram, uniform.first.c_str()));
+    useUniform(uniform.first.c_str(), uniform.second);
   }
 }
+
 //---------------------[END DEVICE USE]
 
 // --------------------[BEGIN FRAMEBUFFER]
