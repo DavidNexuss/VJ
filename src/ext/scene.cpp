@@ -2,7 +2,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-#include <modules/resource.hpp>
+#include <ext/resource.hpp>
 #include <shambhala.hpp>
 #include <standard.hpp>
 using namespace shambhala;
@@ -68,8 +68,10 @@ createMaterialInstance(const aiScene *scene, aiMaterial *material,
 
     // Sets glTexture unit!!!
     // TODO: Fix
-    minstance->set(configuration.textureNames[i],
-                   DynamicTexture(materialtextures[0], i));
+    DynamicTexture dtex;
+    dtex.sourceTexture = materialtextures[0];
+    dtex.unit = i;
+    minstance->set(configuration.textureNames[i], dtex);
   }
   if (configuration.materialInstanceAmbientCoef) {
     aiColor3D ka;

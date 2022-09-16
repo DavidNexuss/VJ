@@ -3,13 +3,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-inline int getFileSize(const char *path) {
+static int getFileSize(const char *path) {
   struct stat st;
   stat(path, &st);
   return st.st_size;
 }
 
-io_buffer shambhala::LinuxIO::readFile(const char *path) {
+io_buffer shambhala::LinuxIO::internal_readFile(const char *path) {
 
   int fileSize = getFileSize(path);
   uint8_t *fileBuffer = new uint8_t[fileSize + 1];
@@ -23,4 +23,4 @@ io_buffer shambhala::LinuxIO::readFile(const char *path) {
   return {fileBuffer, fileSize};
 }
 
-void shambhala::LinuxIO::freeFile(uint8_t *buffer) { delete[] buffer; }
+void shambhala::LinuxIO::internal_freeFile(uint8_t *buffer) { delete[] buffer; }

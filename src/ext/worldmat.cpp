@@ -89,3 +89,120 @@ void Camera::bind(Program *current) {
   } else
     device::useUniform(Standard::uViewMatrix, Uniform(viewMatrix));
 }
+
+void Camera::setViewMatrix(const glm::mat4 &_viewMatrix) {
+  viewMatrix = _viewMatrix;
+}
+void Camera::setProjectionMatrix(const glm::mat4 &_projectionMatrix) {
+  projectionMatrix = _projectionMatrix;
+}
+
+DebugCamera::DebugCamera() {
+  distance = 10.0f;
+  time = 0.0;
+  currentTarget = glm::vec3(0.0);
+  currentAlpha = 1.0;
+  currentBeta = 0.0;
+  nextTarget = currentTarget;
+  nextAlpha = 1.0;
+  nextBeta = 0.0;
+  pressed = false;
+  needsFrameUpdate = true;
+}
+
+glm::vec3 createViewDir(float a, float b) {
+  glm::vec3 viewDir;
+  viewDir.x = cos(a) * cos(b);
+  viewDir.y = sin(b);
+  viewDir.z = sin(a) * cos(b);
+  return viewDir;
+}
+
+void DebugCamera::update(float deltatime) {
+  time += deltatime;
+  if (time >= aproxTime) {
+    time = 0.0f;
+    currentTarget = nextTarget;
+    currentBeta = nextBeta;
+    currentAlpha = nextAlpha;
+  }
+
+  auto setDir = [&](float a, float b) {
+    time = 0.0f;
+    currentAlpha += lastAlpha;
+    currentBeta += lastBeta;
+    nextAlpha = a;
+    nextBeta = b;
+    lastAlpha = 0.0f;
+    lastBeta = 0.0f;
+  };
+
+  if (viewport()->isKeyJustPressed(KEY_KP_1)) {
+    setDir(0.0f, 0.0f);
+  }
+
+  if (viewport()->isKeyJustPressed(KEY_KP_3)) {
+    setDir(M_PI, 0.0f);
+  }
+
+  if (viewport()->isKeyJustPressed(KEY_KP_4)) {
+    setDir(M_PI * 0.5f, 0.0f);
+  }
+
+  if (viewport()->isKeyJustPressed(KEY_KP_6)) {
+    setDir(-M_PI * 0.5f, 0.0f);
+  }
+
+  if (viewport()->isKeyJustPressed(KEY_KP_7)) {
+    setDir(M_PI * 0.5f, -M_PI * 0.5f);
+  }
+
+  if (viewport()->isKeyJustPressed(KEY_KP_9)) {
+    setDir(M_PI * 0.5f, M_PI * 0.5f);
+  }
+
+  bool mousePressed = viewport()->isMousePressed();
+  distance += viewport()->scrollY * std::max(std::abs(distance * 0.05), 0.1);
+  viewport()->scrollY = 0.0f;
+
+  if (mousePressed) {
+    if (!pressed) {
+      pressed = true;
+      cursorStartx = viewport()->xpos;
+      cursorStarty = viewport()->ypos;
+    }
+
+    lastAlpha = ((viewport()->xpos - cursorStartx) / viewport()->screenWidth) *
+                M_PI * 2.0;
+    lastBeta = ((viewport()->ypos - cursorStarty) / viewport()->screenHeight) *
+               M_PI * 2.0;
+  }
+  if (!mousePressed && pressed) {
+    pressed = false;
+    currentAlpha += lastAlpha;
+    nextAlpha += lastAlpha;
+
+    currentBeta += lastBeta;
+    nextBeta += lastBeta;
+
+    lastAlpha = 0.0f;
+    lastBeta = 0.0f;
+  }
+
+  glm::vec3 currentDirection =
+      createViewDir(currentAlpha + lastAlpha, currentBeta + lastBeta);
+  glm::vec3 nextDirection =
+      createViewDir(nextAlpha + lastAlpha, nextBeta + lastBeta);
+
+  // Interpolation
+  float p = time / aproxTime;
+  glm::vec3 interpDirection =
+      createViewDir(currentAlpha * (1.0f - p) + nextAlpha * p + lastAlpha,
+                    currentBeta * (1.0f - p) + nextBeta * p + lastBeta);
+  glm::vec3 target = currentTarget * (1.0f - p) + nextTarget * p;
+  glm::vec3 viewpos = target - interpDirection * distance;
+  // target - (currentDirection * (1.0f - p) + nextDirection * p) * distance;
+
+  lookAt(viewpos, target);
+  Camera::update(deltatime);
+}

@@ -1,5 +1,6 @@
 #pragma once
 #include "adapters/io.hpp"
+#include "adapters/log.hpp"
 #include "adapters/viewport.hpp"
 #include "core/core.hpp"
 #include "simple_vector.hpp"
@@ -22,13 +23,17 @@ using uint8_t = unsigned char;
 
 namespace shambhala {
 struct IResource {
-  virtual io_buffer read();
-  bool needsUpdate;
+  virtual io_buffer read() = 0;
+  const char *resourcename = nullptr;
+  bool claim();
+
+private:
+  bool needsUpdate = true;
 };
 
 struct MemoryResource : public IResource {
   io_buffer buffer;
-  virtual io_buffer read();
+  virtual io_buffer read() override;
 };
 
 struct Node {
@@ -69,6 +74,7 @@ struct Program {
   GLuint shaderProgram = -1;
 
   bool hint_skybox = false;
+  bool errored = false;
 };
 
 struct UTexture {
@@ -86,9 +92,7 @@ struct DynamicTexture {
   int unit;
   GLenum mode = GL_TEXTURE_2D;
 
-  DynamicTexture();
-  DynamicTexture(Texture *sourceTexture, int unit);
-  DynamicTexture(Texture *sourceTexture, int unit, GLenum mode);
+  DynamicTexture() {}
 };
 
 #define UNIFORMS_LIST(o)                                                       \
@@ -178,6 +182,8 @@ struct Mesh {
   GLuint ebo = -1;
   bool needsVBOUpdate = false;
   bool needsEBOUpdate = false;
+
+  int vertexCount();
 };
 
 struct ModelConfiguration {
@@ -222,6 +228,7 @@ struct TextureResource : public IResource {
   int width;
   int height;
   int components;
+  virtual io_buffer read() override;
 };
 struct Texture {
   simple_vector<TextureResource *> textureData;
@@ -287,6 +294,7 @@ public:
 struct EngineControllers {
   shambhala::IViewport *viewport;
   shambhala::IIO *io;
+  shambhala::ILogger *logger;
 };
 
 struct EngineParameters : public EngineControllers {};
@@ -295,8 +303,8 @@ namespace shambhala {
 
 namespace device {
 
-GLuint compileShader(const char *data, GLenum type);
-GLuint compileProgram(GLuint *shaders);
+GLuint compileShader(const char *data, GLenum type, const char *resourcename);
+GLuint compileProgram(GLuint *shaders, GLint *status);
 GLuint
 createVAO(const simple_vector<MeshLayout::MeshLayoutAttribute> &attributes);
 GLuint createVBO(const simple_vector<uint8_t> &vertexBuffer, GLuint *vbo);
@@ -322,6 +330,7 @@ void disposeProgram(GLuint program);
 void disposeTexture(GLuint texture);
 void disposeVao(GLuint vao);
 void disposeVbo(GLuint vbo);
+void bindProgram(GLuint program);
 void bindVao(GLuint vao);
 void bindVbo(GLuint vbo);
 void bindEbo(GLuint ebo);
@@ -338,7 +347,8 @@ void useMeshLayout(MeshLayout *layout);
 void useMesh(Mesh *mesh);
 void useMaterial(Material *material);
 void useUniform(const char *name, const Uniform &value);
-void clear(int flags);
+
+void drawCall();
 } // namespace device
 
 Node *createNode();
@@ -363,6 +373,7 @@ void renderPass();
 // Controllers
 IViewport *viewport();
 IIO *io();
+ILogger *log();
 
 void createEngine(EngineParameters parameters);
 void *createWindow(const WindowConfiguration &configuration);
@@ -376,10 +387,25 @@ void loop_endUIContext();
 void loop_declarativeRender();
 bool loop_shouldClose();
 
-namespace util {
-simple_vector<uint8_t> createCube();
-Mesh *meshCreateCube();
-} // namespace util
 } // namespace shambhala
 
+namespace shambhala {
+namespace helper {
+
+struct ProgramOpts {
+  const char *fragmentShader;
+  const char *vertexShader;
+};
+
+Program *program(ProgramOpts opts);
+
+struct ModelOpts {
+  Mesh *mesh;
+  Program *program;
+  Material *material;
+};
+
+Model *model(ModelOpts opts);
+} // namespace helper
+} // namespace shambhala
 #undef ENUM_OPERATORS
