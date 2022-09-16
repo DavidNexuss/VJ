@@ -6,6 +6,8 @@ struct ILogger {
   virtual void clearEvents() = 0;
   virtual void printEvents() = 0;
 };
+
+ILogger *log();
 } // namespace shambhala
 
 #define LOGS(severity, fmt, ...)                                               \

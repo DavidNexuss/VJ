@@ -1,7 +1,9 @@
 #include "util.hpp"
+#include "ext/resource.hpp"
 #include "shambhala.hpp"
 #include "simple_vector.hpp"
 #include "standard.hpp"
+
 static const GLfloat cube_mesh[] = {
 
     // -Z
@@ -71,23 +73,16 @@ MeshLayout *getPrimitiveLayout() {
 }
 
 Mesh *util::meshCreateCube() {
-  Mesh *result = shambhala::createMesh();
-  result->meshLayout = getPrimitiveLayout();
-  result->vertexBuffer = util::createCube();
+  static Mesh *result = nullptr;
+  if (result == nullptr) {
+    result = shambhala::createMesh();
+    result->meshLayout = getPrimitiveLayout();
+    result->vertexBuffer = util::createCube();
+  }
   return result;
 }
 
-static Mesh *skyboxMesh = nullptr;
 static Program *skyboxProgram = nullptr;
-
-static MeshLayout *getSkyboxLayout() {
-  static MeshLayout *skyboxLayout = nullptr;
-  return skyboxLayout;
-}
-static Mesh *getSkyboxMesh() {
-  static Mesh *skyboxMesh = nullptr;
-  return skyboxMesh;
-}
 static Program *getSkyboxProgram() {
   static Program *skyProgram = nullptr;
   if (skyProgram != nullptr)
@@ -95,25 +90,36 @@ static Program *getSkyboxProgram() {
 
   skyProgram = createProgram();
   skyProgram->shaders[FRAGMENT_SHADER].file =
-      resource::ioMemoryFile("assets/materials");
+      resource::ioMemoryFile("materials/cubemap.frag");
+  skyProgram->shaders[VERTEX_SHADER].file =
+      resource::ioMemoryFile("materials/cubemap.vert");
+
+  skyProgram->hint_skybox = true;
+
   return skyProgram;
 }
 
 Model *util::modelCreateSkyBox(
     const simple_vector<shambhala::TextureResource *> &textures) {
   Model *result = shambhala::createModel();
-  result->mesh = getSkyboxMesh();
+  result->mesh = meshCreateCube();
   result->program = getSkyboxProgram();
   result->material = shambhala::createMaterial();
+  result->depthMask = true;
+  result->cullFrontFace = true;
+  result->zIndex = -1;
+
   Texture *skyCubemap = shambhala::createTexture();
   for (int i = 0; i < textures.size(); i++) {
     skyCubemap->addTextureResource(textures[i]);
   }
+  skyCubemap->textureMode = GL_TEXTURE_CUBE_MAP;
+
   DynamicTexture dyn;
   dyn.sourceTexture = skyCubemap;
-  dyn.mode = GL_TEXTURE_CUBE_MAP;
   dyn.unit = Standard::tSkyBox;
-  result->material->set("skyTexture", dyn);
+  result->material->set(Standard::uSkyBox, dyn);
+
   return result;
 }
 

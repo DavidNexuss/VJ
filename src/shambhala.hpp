@@ -23,17 +23,18 @@ using uint8_t = unsigned char;
 
 namespace shambhala {
 struct IResource {
-  virtual io_buffer read() = 0;
+  virtual io_buffer *read() = 0;
   const char *resourcename = nullptr;
   bool claim();
+  bool needsUpdate();
 
 private:
-  bool needsUpdate = true;
+  bool _needsUpdate = true;
 };
 
 struct MemoryResource : public IResource {
-  io_buffer buffer;
-  virtual io_buffer read() override;
+  io_buffer *buffer;
+  virtual io_buffer *read() override;
 };
 
 struct Node {
@@ -81,6 +82,7 @@ struct UTexture {
   GLuint texID;
   int unit;
   GLenum mode = GL_TEXTURE_2D;
+  UTexture() {}
   UTexture(GLuint _texID, int _unit) : texID(_texID), unit(_unit) {}
   UTexture(GLuint _texID, int _unit, GLenum _mode)
       : texID(_texID), unit(_unit), mode(_mode) {}
@@ -90,7 +92,6 @@ struct Texture;
 struct DynamicTexture {
   Texture *sourceTexture = nullptr;
   int unit;
-  GLenum mode = GL_TEXTURE_2D;
 
   DynamicTexture() {}
 };
@@ -150,12 +151,11 @@ struct Material {
 #undef UNIFORMS_FUNC_DECLARATION
 
   std::unordered_map<std::string, Uniform> uniforms;
-};
 
-struct WorldMaterial {
   virtual void update(float deltatime) {}
-  virtual void bind(Program *activeProgram) = 0;
+  virtual void bind(Program *activeProgram) {}
   bool needsFrameUpdate;
+  bool hasCustomBindFunction;
 };
 
 #undef UNIFORMS_LIST
@@ -206,6 +206,7 @@ struct Model : public ModelConfiguration {
   Mesh *mesh = nullptr;
   Material *material = nullptr;
   Node *node = nullptr;
+  glm::mat4 transformMatrix = glm::mat4(1.0f);
 
   bool operator<(const Model &model) const;
   void draw();
@@ -228,18 +229,15 @@ struct TextureResource : public IResource {
   int width;
   int height;
   int components;
-  virtual io_buffer read() override;
+  virtual io_buffer *read() override;
 };
 struct Texture {
   simple_vector<TextureResource *> textureData;
 
-  bool isCubemap = false;
-  GLuint textureUnit = 0;
   GLenum textureMode = GL_TEXTURE_2D;
-  bool needsTextureUpdate = true;
-
   GLuint _textureID = -1;
 
+  bool needsUpdate();
   void addTextureResource(TextureResource *textureData);
 };
 
@@ -341,8 +339,9 @@ void bindFrameBuffer(GLuint frameBuffer);
 
 void useModelConfiguration(ModelConfiguration *configuration);
 void useTexture(UTexture texture);
-void useProgram(Program *program);
+void useTexture(DynamicTexture texture);
 void useTexture(Texture *texture);
+void useProgram(Program *program);
 void useMeshLayout(MeshLayout *layout);
 void useMesh(Mesh *mesh);
 void useMaterial(Material *material);
@@ -362,7 +361,10 @@ Material *createMaterial();
 ModelList *createModelList();
 
 // DeclarativeRenderer
-void setWorldMaterial(int clas, WorldMaterial *worldMaterial);
+void setWorldMaterial(int clas, Material *worldMaterial);
+void addWorldMaterial(Material *worldMaterial);
+void removeWorldMaterial(Material *worldMaterial);
+
 ModelList *getWorkingModelList();
 void setWorkingModelList(ModelList *modelList);
 void addModel(Model *model);
@@ -373,13 +375,13 @@ void renderPass();
 // Controllers
 IViewport *viewport();
 IIO *io();
-ILogger *log();
 
 void createEngine(EngineParameters parameters);
 void *createWindow(const WindowConfiguration &configuration);
 void setActiveWindow(void *window);
 void destroyEngine();
 
+void loop_step();
 void loop_beginRenderContext();
 void loop_endRenderContext();
 void loop_beginUIContext();

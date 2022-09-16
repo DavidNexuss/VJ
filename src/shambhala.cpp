@@ -83,7 +83,7 @@ bool Uniform::bind(GLuint glUniformID) const {
     glUniform1i(glUniformID, SAMPLER2D.unit);
     break;
   case UniformType::DYNAMIC_TEXTURE:
-    device::useTexture(DYNAMIC_TEXTURE.sourceTexture);
+    device::useTexture(DYNAMIC_TEXTURE);
     glUniform1d(glUniformID, DYNAMIC_TEXTURE.unit);
     break;
   case UniformType::BINDLESS_TEXTURE:
@@ -114,9 +114,8 @@ void device::uploadTexture(GLenum target, unsigned char *texturebuffer,
 
   const static int internalFormat[] = {GL_RED, GL_RG8, GL_RGB8, GL_RGBA8};
   const static int externalFormat[] = {GL_RED, GL_RG, GL_RGB, GL_RGBA};
-  glTexImage2D(GL_TEXTURE_2D, 0, internalFormat[components - 1], width, height,
-               0, externalFormat[components - 1], GL_UNSIGNED_BYTE,
-               texturebuffer);
+  glTexImage2D(target, 0, internalFormat[components - 1], width, height, 0,
+               externalFormat[components - 1], GL_UNSIGNED_BYTE, texturebuffer);
 
   glGenerateMipmap(GL_TEXTURE_2D);
 }
@@ -342,7 +341,7 @@ struct UseState {
   bool lastcullFrontFace = false;
   bool invertedFaces = false;
 
-  std::unordered_map<int, WorldMaterial *> worldMaterials;
+  std::unordered_map<int, Material *> worldMaterials;
   void bindUniforms(Material *material) {}
   void clearState() {
     currentProgram = nullptr;
@@ -367,7 +366,7 @@ void device::useProgram(Program *program) {
       programUpdate |= shaderUpdate;
       if (shaderUpdate) {
         program->shaders[i].shader = device::compileShader(
-            (const char *)program->shaders[i].file->read().data,
+            (const char *)program->shaders[i].file->read()->data,
             device::getShaderType(i), program->shaders[i].file->resourcename);
       }
 
@@ -432,19 +431,36 @@ void device::useTexture(UTexture texture) {
 void device::useTexture(Texture *texture) {
 
   if (texture->_textureID == -1)
-    texture->_textureID = texture->isCubemap ? device::createCubemap()
-                                             : device::createTexture(true);
+    texture->_textureID = texture->textureMode == GL_TEXTURE_CUBE_MAP
+                              ? device::createCubemap()
+                              : device::createTexture(true);
 
-  if (texture->needsTextureUpdate) {
-    GLenum target = texture->isCubemap ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D;
+  if (texture->needsUpdate()) {
+    GLenum target = texture->textureMode == GL_TEXTURE_CUBE_MAP
+                        ? GL_TEXTURE_CUBE_MAP
+                        : GL_TEXTURE_2D;
     device::bindTexture(texture->_textureID, target);
     for (int i = 0; i < texture->textureData.size(); i++) {
-      device::uploadTexture(target, texture->textureData[i]->textureBuffer,
-                            texture->textureData[i]->width,
-                            texture->textureData[i]->height,
-                            texture->textureData[i]->components);
+      if (texture->textureData[i]->claim()) {
+        GLenum target = texture->textureMode == GL_TEXTURE_CUBE_MAP
+                            ? (GL_TEXTURE_CUBE_MAP_POSITIVE_X + i)
+                            : GL_TEXTURE_2D;
+        device::uploadTexture(target, texture->textureData[i]->textureBuffer,
+                              texture->textureData[i]->width,
+                              texture->textureData[i]->height,
+                              texture->textureData[i]->components);
+      }
     }
   }
+}
+
+void device::useTexture(DynamicTexture texture) {
+  device::useTexture(texture.sourceTexture);
+  UTexture text{};
+  text.mode = texture.sourceTexture->textureMode;
+  text.texID = texture.sourceTexture->_textureID;
+  text.unit = texture.unit;
+  device::useTexture(text);
 }
 
 // TODO:Improve quality, also check if caching is any useful
@@ -477,6 +493,9 @@ void device::useUniform(const char *name, const Uniform &value) {
 void device::useMaterial(Material *material) {
   for (auto &uniform : material->uniforms) {
     useUniform(uniform.first.c_str(), uniform.second);
+  }
+  if (material->hasCustomBindFunction) {
+    material->bind(guseState.currentProgram);
   }
 }
 
@@ -634,6 +653,8 @@ void Model::draw() {
   device::useProgram(program);
   if (material != nullptr)
     device::useMaterial(material);
+
+  device::useUniform(Standard::uTransformMatrix, Uniform{transformMatrix});
   device::drawCall();
 }
 //---------------------[MODEL END]
@@ -666,6 +687,14 @@ void ModelList::add(Model *model) {
   this->models.push(model);
   forceSorting();
 }
+
+bool Texture::needsUpdate() {
+  for (int i = 0; i < textureData.size(); i++) {
+    if (textureData[i]->needsUpdate())
+      return true;
+  }
+  return false;
+}
 //---------------------[END COMPONENT METHODS]
 //---------------------[BEGIN ENGINE]
 
@@ -673,7 +702,12 @@ struct Engine {
   EngineControllers controllers;
   ModelList *workingModelList;
 
-  void init() { workingModelList = shambhala::createModelList(); }
+  void init() {
+    workingModelList = shambhala::createModelList();
+    glClearColor(0.5, 0.5, 0.5, 1.0);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+  }
   void cleanup() {}
 };
 
@@ -689,6 +723,13 @@ void shambhala::loop_beginUIContext() {}
 void shambhala::loop_endRenderContext() { viewport()->dispatchRenderEvents(); }
 void shambhala::loop_declarativeRender() { renderPass(); }
 void shambhala::loop_endUIContext() {}
+void shambhala::loop_step() {
+  for (auto &ent : guseState.worldMaterials) {
+    if (ent.second->needsFrameUpdate) {
+      ent.second->update(viewport()->deltaTime);
+    }
+  }
+}
 
 // TODO FIX: glfw header incluse
 bool shambhala::loop_shouldClose() { return viewport()->shouldClose(); }
@@ -707,11 +748,17 @@ void shambhala::setActiveWindow(void *window) {
   viewport()->setActiveWindow(window);
 }
 
-void shambhala::setWorldMaterial(int clas, WorldMaterial *worldMaterial) {
+void shambhala::setWorldMaterial(int clas, Material *worldMaterial) {
   guseState.worldMaterials[clas] = worldMaterial;
 }
 
-void shambhala::addModel(Model *model) { engine.workingModelList->add(model); }
+void shambhala::addModel(Model *model) {
+  engine.workingModelList->add(model);
+
+  if (model->mesh == nullptr) {
+    LOG("Warning, model %p does not have a mesh! ", model);
+  }
+}
 
 IViewport *shambhala::viewport() { return engine.controllers.viewport; }
 IIO *shambhala::io() { return engine.controllers.io; }

@@ -2,7 +2,7 @@
 #include <shambhala.hpp>
 namespace shambhala {
 namespace worldmats {
-struct Camera : public WorldMaterial {
+struct Camera : public Material {
 
   glm::vec3 origin;
   glm::vec3 target;
