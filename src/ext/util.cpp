@@ -73,6 +73,22 @@ void main() { \
   uv = aPosition * 0.5 + 0.5; \
 } ";
 
+static const char *regularVertexShader = " \
+#version 330 core\n \
+layout(location = 0) in vec3 aVertex; \
+uniform mat4 uProjectionMatrix; \
+uniform mat4 uViewMatrix; \
+uniform mat4 uTransformMatrix; \
+ \
+void main() { \
+  gl_Position = uProjectionMatrix * uViewMatrix * uTransformMatrix * vec4(aVertex, 1.0); \
+}";
+
+static const char *emptyFragShader = " \
+#version 330 core\n \
+void main() { } \
+";
+
 using namespace shambhala;
 
 simple_vector<uint8_t> util::createCube() {
@@ -125,6 +141,14 @@ struct StaticMemoryResource : public IResource {
   io_buffer *read() override { return &buffer; }
 };
 
+StaticMemoryResource *createFromNullTerminatedString(const char *data,
+                                                     const char *resourcename) {
+  StaticMemoryResource *resource = new StaticMemoryResource;
+  resource->buffer = {(uint8_t *)data, Standard::resourceNullTerminated};
+  resource->resourcename = resourcename;
+  return resource;
+}
+
 Shader util::createScreenVertexShader() {
   Shader shader;
   StaticMemoryResource *res = new StaticMemoryResource;
@@ -134,10 +158,37 @@ Shader util::createScreenVertexShader() {
   shader.file = res;
   return shader;
 }
+Shader util::createEmptyFragmentShader() {
+  Shader shader;
+  shader.file = createFromNullTerminatedString(emptyFragShader,
+                                               "internal:empty_frag_shader");
+  return shader;
+}
+Shader util::createRegularVertexShader() {
+  Shader shader;
+  shader.file = createFromNullTerminatedString(regularVertexShader,
+                                               "internal:regular_vert_shader");
+  return shader;
+}
+
 Program *util::createScreenProgram(IResource *resource) {
   Program *result = shambhala::createProgram();
   result->shaders[VERTEX_SHADER] = createScreenVertexShader();
   result->shaders[FRAGMENT_SHADER].file = resource;
+  return result;
+}
+
+Program *util::createDepthOnlyProgram() {
+  Program *result = shambhala::createProgram();
+  result->shaders[VERTEX_SHADER] = util::createRegularVertexShader();
+  result->shaders[FRAGMENT_SHADER] = util::createEmptyFragmentShader();
+  return result;
+}
+
+Program *util::createRegularShaderProgram(IResource *fragmentShader) {
+  Program *result = shambhala::createProgram();
+  result->shaders[VERTEX_SHADER] = util::createRegularVertexShader();
+  result->shaders[FRAGMENT_SHADER].file = fragmentShader;
   return result;
 }
 
