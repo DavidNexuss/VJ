@@ -70,10 +70,7 @@ int main() {
 
     shambhala::loop_step();
     shambhala::loop_beginRenderContext();
-    // shambhala::loop_declarativeRender();
-    shambhala::device::useProgram(blur);
-    shambhala::device::useMesh(screenMesh);
-    device::drawCall();
+    shambhala::loop_declarativeRender();
     shambhala::loop_beginUIContext();
     shambhala::loop_endUIContext();
     shambhala::loop_endRenderContext();
