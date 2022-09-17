@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include
 
-CXX_FLAGS = 
+CXX_FLAGS = -g
 
