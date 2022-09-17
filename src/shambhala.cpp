@@ -3,7 +3,7 @@
 #include "standard.hpp"
 #include <algorithm>
 #include <ext/util.hpp>
-#include <stb_image.h>
+#include <stbimage/stb_image.h>
 #include <unordered_map>
 #include <vector>
 
@@ -28,6 +28,10 @@ void Node::addChildNode(Node *childNode) {
   children.push(childNode);
   childNode->setDirty();
 }
+void Node::setParentNode(Node *parent) {
+  parentNode = parent;
+  setDirty();
+}
 
 void Node::setTransformMatrix(const glm::mat4 &newVal) {
   transformMatrix = newVal;
@@ -43,6 +47,10 @@ const glm::mat4 &Node::getCombinedMatrix() const {
     return combinedMatrix = parentNode->getCombinedMatrix() * transformMatrix;
   else
     return combinedMatrix = transformMatrix;
+}
+
+void Node::bind(Program *activeProgram) {
+  device::useUniform(Standard::uTransformMatrix, Uniform(getCombinedMatrix()));
 }
 
 //---------------------[END NODE]
@@ -116,8 +124,6 @@ void device::uploadTexture(GLenum target, unsigned char *texturebuffer,
   const static int externalFormat[] = {GL_RED, GL_RG, GL_RGB, GL_RGBA};
   glTexImage2D(target, 0, internalFormat[components - 1], width, height, 0,
                externalFormat[components - 1], GL_UNSIGNED_BYTE, texturebuffer);
-
-  glGenerateMipmap(GL_TEXTURE_2D);
 }
 
 void device::uploadDepthTexture(GLuint texture, int width, int height) {
@@ -436,9 +442,7 @@ void device::useTexture(Texture *texture) {
                               : device::createTexture(true);
 
   if (texture->needsUpdate()) {
-    GLenum target = texture->textureMode == GL_TEXTURE_CUBE_MAP
-                        ? GL_TEXTURE_CUBE_MAP
-                        : GL_TEXTURE_2D;
+    GLenum target = texture->textureMode;
     device::bindTexture(texture->_textureID, target);
     for (int i = 0; i < texture->textureData.size(); i++) {
       if (texture->textureData[i]->claim()) {
@@ -451,6 +455,7 @@ void device::useTexture(Texture *texture) {
                               texture->textureData[i]->components);
       }
     }
+    glGenerateMipmap(target);
   }
 }
 
@@ -654,12 +659,13 @@ void Model::draw() {
   if (material != nullptr)
     device::useMaterial(material);
 
-  device::useUniform(Standard::uTransformMatrix, Uniform{transformMatrix});
+  device::useMaterial(node);
   device::drawCall();
 }
 //---------------------[MODEL END]
 //---------------------[MODELLIST BEGIN]
 
+ModelList::ModelList() { rootnode = shambhala::createNode(); }
 const std::vector<int> &ModelList::getRenderOrder() {
   if (shouldSort) {
     modelindices.resize(models.size());
@@ -685,6 +691,10 @@ void Texture::addTextureResource(TextureResource *textureData) {
 
 void ModelList::add(Model *model) {
   this->models.push(model);
+  if (model->node == nullptr) {
+    model->node = shambhala::createNode();
+  }
+  model->node->setParentNode(rootnode);
   forceSorting();
 }
 
@@ -776,6 +786,7 @@ MeshLayout *shambhala::createMeshLayout() { return new MeshLayout; }
 Program *shambhala::createProgram() { return new Program; }
 FrameBuffer *shambhala::createFramebuffer() { return new FrameBuffer; }
 Material *shambhala::createMaterial() { return new Material; }
+Node *shambhala::createNode() { return new Node; }
 
 //---------------------[END ENGINECREATE]
 

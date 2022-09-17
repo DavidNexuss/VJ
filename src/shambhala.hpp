@@ -37,25 +37,6 @@ struct MemoryResource : public IResource {
   virtual io_buffer *read() override;
 };
 
-struct Node {
-  Node *parentNode = nullptr;
-  simple_vector<Node *> children;
-  glm::mat4 transformMatrix = glm::mat4(1.0);
-
-  mutable glm::mat4 combinedMatrix;
-  mutable bool clean;
-
-  void removeChildNode(Node *childNode);
-
-public:
-  Node();
-  void setDirty();
-  void addChildNode(Node *childNode);
-  void setTransformMatrix(const glm::mat4 &newVal);
-  const glm::mat4 &getTransformMatrix() const;
-  const glm::mat4 &getCombinedMatrix() const;
-};
-
 struct Shader {
   GLuint shader;
   IResource *file = nullptr;
@@ -160,6 +141,27 @@ struct Material {
 
 #undef UNIFORMS_LIST
 
+struct Node : public Material {
+  Node *parentNode = nullptr;
+  simple_vector<Node *> children;
+  glm::mat4 transformMatrix = glm::mat4(1.0);
+
+  mutable glm::mat4 combinedMatrix;
+  mutable bool clean;
+
+  void removeChildNode(Node *childNode);
+
+public:
+  Node();
+  void setDirty();
+  void setParentNode(Node *parent);
+  void addChildNode(Node *childNode);
+  void setTransformMatrix(const glm::mat4 &newVal);
+  const glm::mat4 &getTransformMatrix() const;
+  const glm::mat4 &getCombinedMatrix() const;
+  void bind(Program *activeProgram) override;
+};
+
 struct MeshLayout {
   struct MeshLayoutAttribute {
     int index;
@@ -206,7 +208,6 @@ struct Model : public ModelConfiguration {
   Mesh *mesh = nullptr;
   Material *material = nullptr;
   Node *node = nullptr;
-  glm::mat4 transformMatrix = glm::mat4(1.0f);
 
   bool operator<(const Model &model) const;
   void draw();
@@ -215,9 +216,13 @@ struct Model : public ModelConfiguration {
 
 struct ModelList {
   simple_vector<Model *> models;
+  Node *rootnode;
+
   void add(Model *model);
   void forceSorting();
   const std::vector<int> &getRenderOrder();
+
+  ModelList();
 
 private:
   std::vector<int> modelindices;
