@@ -31,18 +31,6 @@ void createSkyBox() {
 
   shambhala::addModel(skybox);
 }
-void setup() {
-
-  createSkyBox();
-  Model *cube = createModel();
-  cube->program = createProgram();
-  cube->program->shaders[FRAGMENT_SHADER].file =
-      resource::ioMemoryFile("assets/materials/error.frag");
-  cube->program->shaders[VERTEX_SHADER].file =
-      resource::ioMemoryFile("assets/materials/error.vert");
-  cube->mesh = util::meshCreateCube();
-  shambhala::addModel(cube);
-}
 
 int main() {
   EngineParameters parameters;
@@ -61,13 +49,31 @@ int main() {
   configuration.openglMinorVersion = 3;
 
   shambhala::setActiveWindow(shambhala::createWindow(configuration));
+  shambhala::rendertarget_prepareRender();
   setupRender();
-  setup();
+
+  // Init
+  createSkyBox();
+  Model *cube = createModel();
+  cube->program = createProgram();
+  cube->program->shaders[FRAGMENT_SHADER].file =
+      resource::ioMemoryFile("assets/materials/error.frag");
+  cube->program->shaders[VERTEX_SHADER].file =
+      resource::ioMemoryFile("assets/materials/error.vert");
+  cube->mesh = util::meshCreateCube();
+  shambhala::addModel(cube);
+
+  Mesh *screenMesh = util::createScreen();
+  Program *blur =
+      util::createScreenProgram(resource::ioMemoryFile("materials/test.frag"));
   do {
 
     shambhala::loop_step();
     shambhala::loop_beginRenderContext();
-    shambhala::loop_declarativeRender();
+    // shambhala::loop_declarativeRender();
+    shambhala::device::useProgram(blur);
+    shambhala::device::useMesh(screenMesh);
+    device::drawCall();
     shambhala::loop_beginUIContext();
     shambhala::loop_endUIContext();
     shambhala::loop_endRenderContext();

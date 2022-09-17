@@ -3,6 +3,7 @@
 #include "shambhala.hpp"
 #include "simple_vector.hpp"
 #include "standard.hpp"
+#include <unistd.h>
 
 static const GLfloat cube_mesh[] = {
 
@@ -56,6 +57,22 @@ static const GLfloat cube_mesh[] = {
 };
 
 static const int cube_mesh_size = sizeof(cube_mesh) / sizeof(float);
+const static float screen_mesh[] = {-1.0, 1.0, 1.0, 1.0,  -1.0, -1.0,
+                                    1.0,  1.0, 1.0, -1.0, -1.0, -1.0};
+
+static const int screen_mesh_size = sizeof(screen_mesh) / sizeof(float);
+
+static const char *screenVertexShader = " \
+#version 330 core\n \
+    layout(location = 0) in vec2 aPosition; \
+ \
+out vec2 uv; \
+ \
+void main() { \
+  gl_Position = vec4(aPosition.x, aPosition.y, 0.0, 1.0); \
+  uv = aPosition * 0.5 + 0.5; \
+} ";
+
 using namespace shambhala;
 
 simple_vector<uint8_t> util::createCube() {
@@ -72,6 +89,15 @@ MeshLayout *getPrimitiveLayout() {
   return primitiveLayout;
 }
 
+MeshLayout *getScreenLayout() {
+  static MeshLayout *primitiveLayout = nullptr;
+  if (primitiveLayout == nullptr) {
+    primitiveLayout = shambhala::createMeshLayout();
+    primitiveLayout->attributes = {{Standard::aPosition, 2}};
+  }
+  return primitiveLayout;
+}
+
 Mesh *util::meshCreateCube() {
   static Mesh *result = nullptr;
   if (result == nullptr) {
@@ -83,7 +109,38 @@ Mesh *util::meshCreateCube() {
   return result;
 }
 
-static Program *skyboxProgram = nullptr;
+Mesh *util::createScreen() {
+  static Mesh *result = nullptr;
+  if (result == nullptr) {
+    result = shambhala::createMesh();
+    result->meshLayout = getScreenLayout();
+    result->vertexBuffer = {screen_mesh, screen_mesh_size};
+    result->invertedFaces = true;
+  }
+  return result;
+}
+
+struct StaticMemoryResource : public IResource {
+  io_buffer buffer;
+  io_buffer *read() override { return &buffer; }
+};
+
+Shader util::createScreenVertexShader() {
+  Shader shader;
+  StaticMemoryResource *res = new StaticMemoryResource;
+  res->buffer = {(uint8_t *)screenVertexShader,
+                 Standard::resourceNullTerminated};
+  res->resourcename = "internal:screen_vertex_shader";
+  shader.file = res;
+  return shader;
+}
+Program *util::createScreenProgram(IResource *resource) {
+  Program *result = shambhala::createProgram();
+  result->shaders[VERTEX_SHADER] = createScreenVertexShader();
+  result->shaders[FRAGMENT_SHADER].file = resource;
+  return result;
+}
+
 static Program *getSkyboxProgram() {
   static Program *skyProgram = nullptr;
   if (skyProgram != nullptr)

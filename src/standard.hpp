@@ -67,6 +67,7 @@ const static int defaultOpenglMajorVersion = 4;
 const static int defaultOpenglMinorVersion = 5;
 
 const static int defaultMssaLevel = 4;
+const static int resourceNullTerminated = -1;
 
 // Mesh index size
 // Normally a 16bit unsigned int limit for indexes count should be more than
