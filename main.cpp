@@ -64,8 +64,18 @@ int main() {
   shambhala::addModel(cube);
 
   Mesh *screenMesh = util::createScreen();
-  Program *blur =
-      util::createScreenProgram(resource::ioMemoryFile("materials/test.frag"));
+  Program *blur = util::createScreenProgram(
+      resource::ioMemoryFile("materials/renderlayer/gauss.frag"));
+
+  RenderCamera *forward = createRenderCamera();
+  forward->frameBuffer = createFramebuffer();
+  forward->frameBuffer->addChannel({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
+
+  RenderCamera *blurCamera = createRenderCamera();
+  blurCamera->postprocessProgram = blur;
+  blurCamera->addBinding(forward, 0, "image");
+
+  shambhala::setRootRenderCamera(blurCamera);
   do {
 
     shambhala::loop_step();

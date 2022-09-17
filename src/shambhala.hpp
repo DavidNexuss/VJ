@@ -228,7 +228,6 @@ private:
   std::vector<int> modelindices;
   bool shouldSort;
 };
-
 struct TextureResource : public IResource {
   uint8_t *textureBuffer;
   int width;
@@ -282,6 +281,7 @@ class FrameBuffer {
   }
 
 public:
+  void addChannel(const FrameBufferAttachmentDescriptor &fbodef);
   void begin(int width, int height);
   void end();
 
@@ -294,10 +294,38 @@ public:
   vector<FrameBufferAttachmentDescriptor> attachmentsDefinition;
 };
 
+struct RenderCamera;
+struct RenderBinding {
+  RenderCamera *renderCamera = nullptr;
+  int attachmentIndex;
+  const char *uniformAttribute;
+};
+
+struct RenderCamera : public Material {
+  ModelList *modelList = nullptr;
+  FrameBuffer *frameBuffer = nullptr;
+  simple_vector<RenderBinding> renderBindings;
+
+  Program *overrideProgram = nullptr;
+  Program *postprocessProgram = nullptr;
+
+  void render(int frame);
+  void bind(Program *activeProgram) override;
+  void addBinding(RenderCamera *child, int attachmentIndex,
+                  const char *uniformAttribute);
+
+private:
+  int currentFrame = -1;
+};
+
 struct EngineControllers {
   shambhala::IViewport *viewport;
   shambhala::IIO *io;
   shambhala::ILogger *logger;
+};
+
+struct DeviceParameters {
+  int maxTextureUnits;
 };
 
 struct EngineParameters : public EngineControllers {};
@@ -352,8 +380,13 @@ void useMeshLayout(MeshLayout *layout);
 void useMesh(Mesh *mesh);
 void useMaterial(Material *material);
 void useUniform(const char *name, const Uniform &value);
+void useModelList(ModelList *modelList);
+
+void ignoreProgramBinding(bool ignore);
 
 void drawCall();
+void renderPass();
+DeviceParameters queryDeviceParameters();
 } // namespace device
 
 Node *createNode();
@@ -365,6 +398,7 @@ Program *createProgram();
 FrameBuffer *createFramebuffer();
 Material *createMaterial();
 ModelList *createModelList();
+RenderCamera *createRenderCamera();
 
 // DeclarativeRenderer
 void setWorldMaterial(int clas, Material *worldMaterial);
@@ -373,10 +407,10 @@ void removeWorldMaterial(Material *worldMaterial);
 
 ModelList *getWorkingModelList();
 void setWorkingModelList(ModelList *modelList);
+void setRootRenderCamera(RenderCamera *renderCamera);
 void addModel(Model *model);
 
 void buildSortPass();
-void renderPass();
 
 // Controllers
 IViewport *viewport();

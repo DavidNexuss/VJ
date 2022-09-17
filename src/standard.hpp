@@ -52,7 +52,16 @@ UNIFORM_LIST(CHARACTER_LIST)
 #undef CHARACTER_LIST
 
 // Engine reserved textureUnits
-enum TextureUnits { tShadowMap = 13, tCreation = 14, tSkyBox = 15 };
+enum TextureUnits {
+  tShadowMap = 13,
+  tCreation = 14,
+  tSkyBox = 15,
+  tAttachmentTexture = 16
+};
+
+enum SpecialWorldMaterials {
+  worldMatRenderCamera = -1,
+};
 
 const static size_t maxTextureUnits = 16;
 const static size_t maxUserTextureUnits = tSkyBox;

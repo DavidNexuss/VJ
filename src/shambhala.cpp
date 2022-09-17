@@ -13,6 +13,29 @@
 
 using namespace shambhala;
 
+struct Engine {
+  EngineControllers controllers;
+  ModelList *workingModelList;
+  RenderCamera *rootRenderCamera;
+  DeviceParameters gpu_params;
+  int frameCounter = 0;
+
+  void init() {
+    workingModelList = shambhala::createModelList();
+    rootRenderCamera = shambhala::createRenderCamera();
+    gpu_params = device::queryDeviceParameters();
+  }
+
+  void prepareRender() {
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+  }
+
+  void cleanup() {}
+};
+
+static Engine engine;
 //---------------------[BEGIN NODE]
 
 Node::Node() { clean = false; }
@@ -348,15 +371,18 @@ struct UseState {
   Program *currentProgram = nullptr;
   Mesh *currentMesh = nullptr;
   MeshLayout *currentMeshLayout = nullptr;
+  ModelList *currentModelList = nullptr;
   ModelConfiguration currentModelConfiguration;
+
   bool hasModelConfiguration = false;
+  bool ignoreProgramUse = false;
 
   // Culling information
   bool modelCullFrontFace = false;
   bool meshCullFrontFace = false;
 
   std::unordered_map<int, Material *> worldMaterials;
-  void bindUniforms(Material *material) {}
+
   void clearState() {
     currentProgram = nullptr;
     currentMesh = nullptr;
@@ -369,7 +395,7 @@ struct UseState {
 static UseState guseState;
 
 void device::useProgram(Program *program) {
-  if (guseState.currentProgram == program)
+  if (guseState.currentProgram == program || guseState.ignoreProgramUse)
     return;
 
   // Check program compilation with shaders
@@ -403,6 +429,10 @@ void device::useProgram(Program *program) {
   for (auto &worldmat : guseState.worldMaterials) {
     worldmat.second->bind(program);
   }
+}
+
+void device::ignoreProgramBinding(bool ignore) {
+  guseState.ignoreProgramUse = ignore;
 }
 void device::useMeshLayout(MeshLayout *layout) {
   if (layout == guseState.currentMeshLayout)
@@ -500,7 +530,10 @@ void device::useModelConfiguration(ModelConfiguration *configuration) {
 }
 
 void device::useUniform(const char *name, const Uniform &value) {
-  value.bind(device::getUniform(guseState.currentProgram->shaderProgram, name));
+  GLuint uniformId =
+      device::getUniform(guseState.currentProgram->shaderProgram, name);
+  if (uniformId != -1)
+    value.bind(uniformId);
 }
 
 void device::useMaterial(Material *material) {
@@ -509,6 +542,21 @@ void device::useMaterial(Material *material) {
   }
   if (material->hasCustomBindFunction) {
     material->bind(guseState.currentProgram);
+  }
+}
+
+void device::useModelList(ModelList *modelList) {
+  guseState.currentModelList = modelList;
+}
+
+void device::renderPass() {
+  const std::vector<int> &renderOrder =
+      guseState.currentModelList->getRenderOrder();
+  for (int i = 0; i < renderOrder.size(); i++) {
+    Model *model = guseState.currentModelList->models[renderOrder[i]];
+    if (model->enabled) {
+      model->draw();
+    }
   }
 }
 
@@ -521,6 +569,13 @@ void device::drawCall() {
   else
     glDrawArrays(guseState.currentModelConfiguration.renderMode, 0,
                  guseState.currentMesh->vertexCount());
+}
+
+DeviceParameters device::queryDeviceParameters() {
+  DeviceParameters parameters;
+  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS,
+                &parameters.maxTextureUnits);
+  return parameters;
 }
 
 //---------------------[END DEVICE USE]
@@ -647,6 +702,11 @@ void FrameBuffer::begin(int screenWidth, int screenHeight) {
 
 void FrameBuffer::end() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
+void FrameBuffer::addChannel(const FrameBufferAttachmentDescriptor &fbodef) {
+  attachmentsDefinition.push(fbodef);
+  colorAttachments.push(-1);
+}
+
 //---------------------[FRAMEBUFFER END]
 //---------------------[MODEL BEGIN]
 bool Model::operator<(const Model &model) const {
@@ -718,24 +778,72 @@ bool Texture::needsUpdate() {
   return false;
 }
 //---------------------[END COMPONENT METHODS]
-//---------------------[BEGIN ENGINE]
 
-struct Engine {
-  EngineControllers controllers;
-  ModelList *workingModelList;
+//---------------------[BEGIN RENDERCAMERA]
 
-  void init() { workingModelList = shambhala::createModelList(); }
+void RenderCamera::render(int frame) {
+  if (frame == currentFrame)
+    return;
 
-  void prepareRender() {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
+  currentFrame = frame;
+  for (int i = 0; i < renderBindings.size(); i++) {
+    renderBindings[i].renderCamera->render(frame);
   }
 
-  void cleanup() {}
-};
+  device::useModelList(modelList);
 
-static Engine engine;
+  if (frameBuffer != nullptr) {
+    frameBuffer->begin(viewport()->screenWidth, viewport()->screenHeight);
+  }
+
+  if (overrideProgram) {
+    device::useProgram(overrideProgram);
+    device::ignoreProgramBinding(true);
+  }
+
+  if (postprocessProgram) {
+    static Mesh *screenmesh = util::createScreen();
+    device::useMesh(screenmesh);
+    device::useProgram(postprocessProgram);
+  }
+
+  if (postprocessProgram) {
+    device::drawCall();
+  } else {
+    device::renderPass();
+  }
+  if (overrideProgram) {
+    device::ignoreProgramBinding(false);
+  }
+
+  if (frameBuffer != nullptr) {
+    frameBuffer->end();
+  }
+}
+
+void RenderCamera::bind(Program *activeProgram) {
+  for (int i = 0; i < renderBindings.size(); i++) {
+
+    UTexture texture;
+    texture.mode = GL_TEXTURE_2D;
+    texture.texID = renderBindings[i]
+                        .renderCamera->frameBuffer
+                        ->colorAttachments[renderBindings[i].attachmentIndex];
+    texture.unit = Standard::tAttachmentTexture + i;
+    device::useUniform(renderBindings[i].uniformAttribute, texture);
+  }
+}
+
+void RenderCamera::addBinding(RenderCamera *child, int attachmentIndex,
+                              const char *uniformAttribute) {
+  RenderBinding renderBinding;
+  renderBinding.attachmentIndex = attachmentIndex;
+  renderBinding.renderCamera = child;
+  renderBinding.uniformAttribute = uniformAttribute;
+  renderBindings.push(renderBinding);
+}
+//---------------------[END RENDERCAMERA]
+//---------------------[BEGIN ENGINE]
 
 void shambhala::loop_beginRenderContext() {
   guseState.clearState();
@@ -745,7 +853,9 @@ void shambhala::loop_beginRenderContext() {
 }
 void shambhala::loop_beginUIContext() {}
 void shambhala::loop_endRenderContext() { viewport()->dispatchRenderEvents(); }
-void shambhala::loop_declarativeRender() { renderPass(); }
+void shambhala::loop_declarativeRender() {
+  engine.rootRenderCamera->render(engine.frameCounter++);
+}
 void shambhala::loop_endUIContext() {}
 void shambhala::loop_step() {
   for (auto &ent : guseState.worldMaterials) {
@@ -784,6 +894,10 @@ void shambhala::addModel(Model *model) {
   }
 }
 
+void shambhala::setRootRenderCamera(RenderCamera *renderCamera) {
+  engine.rootRenderCamera = renderCamera;
+}
+
 IViewport *shambhala::viewport() { return engine.controllers.viewport; }
 IIO *shambhala::io() { return engine.controllers.io; }
 ILogger *shambhala::log() { return engine.controllers.logger; }
@@ -802,21 +916,16 @@ Program *shambhala::createProgram() { return new Program; }
 FrameBuffer *shambhala::createFramebuffer() { return new FrameBuffer; }
 Material *shambhala::createMaterial() { return new Material; }
 Node *shambhala::createNode() { return new Node; }
+RenderCamera *shambhala::createRenderCamera() {
+  RenderCamera *result = new RenderCamera;
+  result->modelList = engine.workingModelList;
+  return result;
+}
 
 //---------------------[END ENGINECREATE]
 
 //---------------------[BEGIN ENGINEUPDATE]
 
 void shambhala::buildSortPass() { engine.workingModelList->forceSorting(); }
-void shambhala::renderPass() {
-  const std::vector<int> &renderOrder =
-      engine.workingModelList->getRenderOrder();
-  for (int i = 0; i < renderOrder.size(); i++) {
-    Model *model = engine.workingModelList->models[renderOrder[i]];
-    if (model->enabled) {
-      model->draw();
-    }
-  }
-}
 //---------------------[END ENGINEUPDATE]
 //---------------------[END ENGINE]
