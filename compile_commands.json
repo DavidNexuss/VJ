@@ -1,152 +1,177 @@
 [
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/ext/scene.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/ext/scene.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/adapters/io.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/adapters/io.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/src/adapters/io.cpp"
+},
+{
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/adapters/viewport.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/adapters/viewport.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/src/adapters/viewport.cpp"
+},
+{
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/ext/resource.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/ext/resource.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/src/ext/resource.cpp"
+},
+{
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/ext/scene.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/ext/scene.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/src/ext/scene.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/ext/worldmat.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/ext/worldmat.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/ext/util.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/ext/util.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/src/ext/util.cpp"
+},
+{
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/ext/worldmat.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/ext/worldmat.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/src/ext/worldmat.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/impl/io_linux.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/io_linux.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/impl/io_linux.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/io_linux.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/src/impl/io_linux.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/impl/viewport_glfw.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glfw.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/impl/io_std.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/io_std.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/src/impl/io_std.cpp"
+},
+{
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/impl/logger.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/logger.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/src/impl/logger.cpp"
+},
+{
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/impl/viewport_glfw.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glfw.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glfw.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/impl/viewport_glut.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glut.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/impl/viewport_glut.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glut.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/src/impl/viewport_glut.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/modules/resource.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/modules/resource.cpp",
-  "file": "/home/david/shared/Projects/ShambhalaMini/src/modules/resource.cpp"
-},
-{
-  "directory": "/home/david/shared/Projects/ShambhalaMini",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/shambhala.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/shambhala.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/shambhala.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/shambhala.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/src/shambhala.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -O0 -o CMakeFiles/shambhala.dir/src/util.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/util.cpp",
-  "file": "/home/david/shared/Projects/ShambhalaMini/src/util.cpp"
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/main.dir/main.cpp.o -c /home/david/shared/Projects/ShambhalaMini/main.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/main.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src  -o CMakeFiles/imgui.dir/imgui.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src -g -o CMakeFiles/imgui.dir/imgui.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src  -o CMakeFiles/imgui.dir/imgui_demo.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_demo.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src -g -o CMakeFiles/imgui.dir/imgui_demo.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_demo.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_demo.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src  -o CMakeFiles/imgui.dir/imgui_draw.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_draw.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src -g -o CMakeFiles/imgui.dir/imgui_draw.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_draw.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_draw.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src  -o CMakeFiles/imgui.dir/imgui_impl_glfw.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_impl_glfw.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src -g -o CMakeFiles/imgui.dir/imgui_impl_glfw.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_impl_glfw.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_impl_glfw.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src  -o CMakeFiles/imgui.dir/imgui_impl_opengl3.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_impl_opengl3.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src -g -o CMakeFiles/imgui.dir/imgui_impl_opengl3.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_impl_opengl3.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_impl_opengl3.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src  -o CMakeFiles/imgui.dir/imgui_tables.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_tables.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src -g -o CMakeFiles/imgui.dir/imgui_tables.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_tables.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_tables.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src  -o CMakeFiles/imgui.dir/imgui_widgets.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_widgets.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src -g -o CMakeFiles/imgui.dir/imgui_widgets.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_widgets.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui_widgets.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imguiText",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imguiText/.. -I/home/david/shared/Projects/ShambhalaMini/lib/imguiText/../../src  -o CMakeFiles/imguiText.dir/TextEditor.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imguiText/TextEditor.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imguiText/.. -I/home/david/shared/Projects/ShambhalaMini/lib/imguiText/../../src -g -o CMakeFiles/imguiText.dir/TextEditor.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imguiText/TextEditor.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imguiText/TextEditor.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/stbimage",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include  -o CMakeFiles/stbimage.dir/stb_image.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/stbimage/stb_image.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -o CMakeFiles/stbimage.dir/stb_image.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/stbimage/stb_image.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/stbimage/stb_image.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include/notify  -o CMakeFiles/file_watcher.dir/src/fileUtil.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/fileUtil.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include/notify -g -o CMakeFiles/file_watcher.dir/src/fileUtil.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/fileUtil.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/fileUtil.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include/notify  -o CMakeFiles/file_watcher.dir/src/mappedFile.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/mappedFile.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include/notify -g -o CMakeFiles/file_watcher.dir/src/mappedFile.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/mappedFile.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/mappedFile.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include/notify  -o CMakeFiles/file_watcher.dir/src/notify/linux/notify.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify/linux/notify.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include/notify -g -o CMakeFiles/file_watcher.dir/src/notify/linux/notify.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify/linux/notify.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify/linux/notify.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include/notify  -o CMakeFiles/file_watcher.dir/src/resource.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/resource.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/notify -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include -I/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/include/notify -g -o CMakeFiles/file_watcher.dir/src/resource.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/resource.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/fileWatcher/src/resource.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/lightmapper",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include  -o CMakeFiles/lightmapper.dir/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/lightmapper/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -o CMakeFiles/lightmapper.dir/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/lightmapper/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/lightmapper/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/lightmapper",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include  -o CMakeFiles/lightmapper.dir/lightmapper.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/lightmapper/lightmapper.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -o CMakeFiles/lightmapper.dir/lightmapper.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/lightmapper/lightmapper.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/lightmapper/lightmapper.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/xatlas",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include  -o CMakeFiles/xatlas.dir/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/xatlas/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -o CMakeFiles/xatlas.dir/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/xatlas/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/xatlas/CMakeFiles/3.23.2/CompilerIdCXX/CMakeCXXCompilerId.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/xatlas",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include  -o CMakeFiles/xatlas.dir/xatlas.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/xatlas/xatlas.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -g -o CMakeFiles/xatlas.dir/xatlas.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/xatlas/xatlas.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/xatlas/xatlas.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -o CMakeFiles/imgui_node_editor.dir/CMakeFiles/3.23.3/CompilerIdCXX/CMakeCXXCompilerId.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/CMakeFiles/3.23.3/CompilerIdCXX/CMakeCXXCompilerId.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -O0 -g -DNDEBUG -o CMakeFiles/imgui_node_editor.dir/CMakeFiles/3.23.3/CompilerIdCXX/CMakeCXXCompilerId.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/CMakeFiles/3.23.3/CompilerIdCXX/CMakeCXXCompilerId.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/CMakeFiles/3.23.3/CompilerIdCXX/CMakeCXXCompilerId.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -o CMakeFiles/imgui_node_editor.dir/crude_json.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/crude_json.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -O0 -g -DNDEBUG -o CMakeFiles/imgui_node_editor.dir/crude_json.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/crude_json.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/crude_json.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -o CMakeFiles/imgui_node_editor.dir/imgui_canvas.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/imgui_canvas.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -O0 -g -DNDEBUG -o CMakeFiles/imgui_node_editor.dir/imgui_canvas.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/imgui_canvas.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/imgui_canvas.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -o CMakeFiles/imgui_node_editor.dir/imgui_node_editor.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/imgui_node_editor.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -O0 -g -DNDEBUG -o CMakeFiles/imgui_node_editor.dir/imgui_node_editor.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/imgui_node_editor.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/imgui_node_editor.cpp"
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor",
-  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -o CMakeFiles/imgui_node_editor.dir/imgui_node_editor_api.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/imgui_node_editor_api.cpp",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../imgui -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/../../src -I/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/. -O3 -O0 -g -DNDEBUG -o CMakeFiles/imgui_node_editor.dir/imgui_node_editor_api.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/imgui_node_editor_api.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui-node-editor/imgui_node_editor_api.cpp"
 }
 ]

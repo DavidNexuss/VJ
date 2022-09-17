@@ -27,7 +27,9 @@ build
 .cache
 .vscode
 codelite
+
 # cmake generated
+compile_commands.json
 Makefile
 CMakeCache.txt
 *CMakeFiles/
