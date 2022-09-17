@@ -10,6 +10,7 @@ struct ILogger {
 ILogger *log();
 } // namespace shambhala
 
+#ifdef DEBUG
 #define LOGS(severity, fmt, ...)                                               \
   do {                                                                         \
     char buffer[4096];                                                         \
@@ -18,3 +19,11 @@ ILogger *log();
   } while (0)
 
 #define LOG(...) LOGS(0, __VA_ARGS__)
+#else
+#define LOGS(...)                                                              \
+  do {                                                                         \
+  } while (0)
+#define LOG(...)                                                               \
+  do {                                                                         \
+  } while (0)
+#endif

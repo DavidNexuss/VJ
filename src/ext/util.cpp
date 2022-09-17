@@ -78,6 +78,7 @@ Mesh *util::meshCreateCube() {
     result = shambhala::createMesh();
     result->meshLayout = getPrimitiveLayout();
     result->vertexBuffer = util::createCube();
+    result->invertedFaces = true;
   }
   return result;
 }

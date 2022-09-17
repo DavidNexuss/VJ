@@ -278,6 +278,8 @@ struct BindState {
   GLuint currentVbo = -1;
   GLuint currentEbo = -1;
   int activeTextureUnit = -1;
+
+  bool cullFrontFace = false;
   void clearState() {}
 };
 static BindState gBindState;
@@ -325,6 +327,13 @@ void device::bindProgram(GLuint program) {
 GLuint device::getUniform(GLuint program, const char *name) {
   return glGetUniformLocation(program, name);
 }
+
+void device::cullFrontFace(bool frontFace) {
+  if (frontFace != gBindState.cullFrontFace) {
+    glCullFace(frontFace ? GL_FRONT : GL_BACK);
+    gBindState.cullFrontFace = frontFace;
+  }
+}
 //-------------------------[END GL]
 
 //-------------------------[BEGIN DISPOSE]
@@ -343,9 +352,8 @@ struct UseState {
   bool hasModelConfiguration = false;
 
   // Culling information
-  bool needsFaceCullUpdate = false;
-  bool lastcullFrontFace = false;
-  bool invertedFaces = false;
+  bool modelCullFrontFace = false;
+  bool meshCullFrontFace = false;
 
   std::unordered_map<int, Material *> worldMaterials;
   void bindUniforms(Material *material) {}
@@ -355,6 +363,8 @@ struct UseState {
     currentMeshLayout = nullptr;
     hasModelConfiguration = false;
   }
+
+  bool isFrontCulled() { return meshCullFrontFace ^ modelCullFrontFace; }
 };
 static UseState guseState;
 
@@ -428,6 +438,7 @@ void device::useMesh(Mesh *mesh) {
   device::bindVbo(mesh->vbo);
   device::bindEbo(mesh->ebo);
   guseState.currentMesh = mesh;
+  guseState.meshCullFrontFace = mesh->invertedFaces;
 }
 
 void device::useTexture(UTexture texture) {
@@ -471,10 +482,7 @@ void device::useTexture(DynamicTexture texture) {
 // TODO:Improve quality, also check if caching is any useful
 void device::useModelConfiguration(ModelConfiguration *configuration) {
 
-  if (configuration->cullFrontFace != guseState.lastcullFrontFace) {
-    guseState.lastcullFrontFace = configuration->cullFrontFace;
-    guseState.needsFaceCullUpdate = true;
-  }
+  guseState.modelCullFrontFace = configuration->cullFrontFace;
 
   if (!guseState.hasModelConfiguration ||
       (configuration->pointSize !=
@@ -505,7 +513,7 @@ void device::useMaterial(Material *material) {
 }
 
 void device::drawCall() {
-
+  device::cullFrontFace(guseState.isFrontCulled());
   if (guseState.currentMesh->ebo != -1)
     glDrawElements(guseState.currentModelConfiguration.renderMode,
                    guseState.currentMesh->vertexCount(), Standard::meshIndexGL,
@@ -653,6 +661,8 @@ bool Model::operator<(const Model &model) const {
 bool Model::ready() const { return program != nullptr && mesh != nullptr; }
 
 void Model::draw() {
+  if (depthMask)
+    glDepthMask(GL_FALSE);
   device::useModelConfiguration(this);
   device::useMesh(mesh);
   device::useProgram(program);
@@ -661,6 +671,8 @@ void Model::draw() {
 
   device::useMaterial(node);
   device::drawCall();
+  if (depthMask)
+    glDepthMask(GL_TRUE);
 }
 //---------------------[MODEL END]
 //---------------------[MODELLIST BEGIN]
@@ -712,12 +724,14 @@ struct Engine {
   EngineControllers controllers;
   ModelList *workingModelList;
 
-  void init() {
-    workingModelList = shambhala::createModelList();
-    glClearColor(0.5, 0.5, 0.5, 1.0);
+  void init() { workingModelList = shambhala::createModelList(); }
+
+  void prepareRender() {
+    glClearColor(0.0, 0.0, 0.0, 1.0);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
   }
+
   void cleanup() {}
 };
 
@@ -778,6 +792,7 @@ ILogger *shambhala::log() { return engine.controllers.logger; }
 
 //---------------------[BEGIN ENGINECREATE]
 
+void shambhala::rendertarget_prepareRender() { engine.prepareRender(); }
 ModelList *shambhala::createModelList() { return new ModelList; }
 Texture *shambhala::createTexture() { return new Texture; }
 Model *shambhala::createModel() { return new Model; }

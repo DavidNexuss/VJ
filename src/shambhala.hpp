@@ -184,7 +184,7 @@ struct Mesh {
   GLuint ebo = -1;
   bool needsVBOUpdate = false;
   bool needsEBOUpdate = false;
-
+  bool invertedFaces = false;
   int vertexCount();
 };
 
@@ -341,6 +341,7 @@ void bindTexture(GLuint textureId, GLenum mode);
 void bindTexture(GLuint textureId, GLenum mode, int textureUnit);
 void bindRenderBuffer(GLuint renderBuffer);
 void bindFrameBuffer(GLuint frameBuffer);
+void cullFrontFace(bool frontFace);
 
 void useModelConfiguration(ModelConfiguration *configuration);
 void useTexture(UTexture texture);
@@ -386,6 +387,7 @@ void *createWindow(const WindowConfiguration &configuration);
 void setActiveWindow(void *window);
 void destroyEngine();
 
+void rendertarget_prepareRender();
 void loop_step();
 void loop_beginRenderContext();
 void loop_endRenderContext();
