@@ -29,6 +29,9 @@ build
 codelite
 
 # cmake generated
+assets/*
+assets
+main
 compile_commands.json
 Makefile
 CMakeCache.txt
