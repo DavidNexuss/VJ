@@ -1,4 +1,6 @@
 #include "shambhala.hpp"
+#include "adapters/log.hpp"
+#include "core/core.hpp"
 #include "simple_vector.hpp"
 #include "standard.hpp"
 #include <algorithm>
@@ -18,6 +20,7 @@ struct Engine {
   ModelList *workingModelList;
   RenderCamera *rootRenderCamera;
   DeviceParameters gpu_params;
+  GLuint vao;
   int frameCounter = 0;
 
   void init() {
@@ -30,6 +33,7 @@ struct Engine {
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
+    vao = device::createVAO();
   }
 
   void cleanup() {}
@@ -38,7 +42,10 @@ struct Engine {
 static Engine engine;
 //---------------------[BEGIN NODE]
 
-Node::Node() { clean = false; }
+Node::Node() {
+  clean = false;
+  hasCustomBindFunction = true;
+}
 void Node::removeChildNode(Node *childNode) {}
 
 void Node::setDirty() {
@@ -128,7 +135,7 @@ bool Uniform::bind(GLuint glUniformID) const {
 }
 //--------------------------[END UNIFORM]
 //--------------------------[BEGIN MESHLAYOUT]
-int MeshLayout::vertexSize() const {
+int VertexBuffer::vertexSize() const {
   if (_vertexsize != -1)
     return _vertexsize;
   int vs = 0;
@@ -221,8 +228,7 @@ GLuint device::compileProgram(GLuint *shaders, GLint *status) {
 
 //--------------------------[BEGIN CREATE]
 
-GLuint device::createVAO(
-    const simple_vector<MeshLayout::MeshLayoutAttribute> &attributes) {
+GLuint device::createVAO() {
   GLuint vao;
   glGenVertexArrays(1, &vao);
   return vao;
@@ -296,26 +302,34 @@ GLuint device::createCubemap() {
 
 struct BindState {
   GLuint boundTextures[Standard::maxTextureUnits] = {0};
+  GLuint boundAttributes[100] = {0};
   GLuint currentProgram = -1;
-  GLuint currentVao = -1;
   GLuint currentVbo = -1;
   GLuint currentEbo = -1;
   int activeTextureUnit = -1;
 
   bool cullFrontFace = false;
   void clearState() {}
+
+  GLuint currentVao = -1;
 };
 static BindState gBindState;
 
 void device::bindVao(GLuint vao) {
-  glBindVertexArray(vao);
+  if (gBindState.currentVao == vao)
+    return;
   gBindState.currentVao = vao;
+  glBindVertexArray(vao);
 }
 void device::bindVbo(GLuint vbo) {
+  if (gBindState.currentVbo == vbo)
+    return;
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   gBindState.currentVbo = vbo;
 }
 void device::bindEbo(GLuint ebo) {
+  if (gBindState.currentEbo == ebo)
+    return;
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   gBindState.currentEbo = ebo;
 }
@@ -335,6 +349,21 @@ void device::bindTexture(GLuint textureId, GLenum mode, int textureUnit) {
       gBindState.activeTextureUnit = textureUnit;
     }
     glBindTexture(mode, textureId);
+  }
+}
+void device::bindAttribute(GLuint vbo, int index, int size, int stride,
+                           int offset, int divisor) {
+
+  if (gBindState.boundAttributes[index] != vbo) {
+    if (gBindState.boundAttributes[index] == 0)
+      glEnableVertexAttribArray(index);
+    gBindState.boundAttributes[index] = vbo;
+    glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride,
+                          (void *)(size_t(offset)));
+
+    if (divisor != 0) {
+      glVertexAttribDivisor(index, divisor);
+    }
   }
 }
 
@@ -370,7 +399,6 @@ struct UseState {
   // Current use state
   Program *currentProgram = nullptr;
   Mesh *currentMesh = nullptr;
-  MeshLayout *currentMeshLayout = nullptr;
   ModelList *currentModelList = nullptr;
   ModelConfiguration currentModelConfiguration;
 
@@ -386,7 +414,6 @@ struct UseState {
   void clearState() {
     currentProgram = nullptr;
     currentMesh = nullptr;
-    currentMeshLayout = nullptr;
     hasModelConfiguration = false;
   }
 
@@ -434,39 +461,52 @@ void device::useProgram(Program *program) {
 void device::ignoreProgramBinding(bool ignore) {
   guseState.ignoreProgramUse = ignore;
 }
-void device::useMeshLayout(MeshLayout *layout) {
-  if (layout == guseState.currentMeshLayout)
-    return;
 
-  if (layout->vao == -1)
-    layout->vao = device::createVAO(layout->attributes);
-  device::bindVao(layout->vao);
-  guseState.currentMeshLayout = layout;
+void device::useIndexBuffer(IndexBuffer *indexBuffer) {
+
+  if (indexBuffer->indexBuffer.size() &&
+      (indexBuffer->updateData || indexBuffer->ebo == -1)) {
+
+    device::createEBO(indexBuffer->indexBuffer, &indexBuffer->ebo);
+    indexBuffer->updateData = false;
+  }
+
+  device::bindEbo(indexBuffer->ebo);
+}
+
+void device::useVertexBuffer(VertexBuffer *vertexbuffer) {
+
+  if (vertexbuffer->vertexBuffer.size() &&
+      (vertexbuffer->updateData || vertexbuffer->vbo == -1)) {
+    device::createVBO(vertexbuffer->vertexBuffer, &vertexbuffer->vbo);
+    vertexbuffer->updateData = false;
+  }
+
+  device::bindVbo(vertexbuffer->vbo);
+
+  SoftCheck(vertexbuffer->attributes.size() != 0, {
+    LOG("[Warning] Vertexbuffer with not attributes! %d",
+        (int)vertexbuffer->attributes.size());
+  });
+  int offset = 0;
+  int stride = vertexbuffer->vertexSize();
+  for (int i = 0; i < vertexbuffer->attributes.size(); i++) {
+    int index = vertexbuffer->attributes[i].index;
+    int divisor = vertexbuffer->attributes[i].attributeDivisor;
+    int size = vertexbuffer->attributes[i].size;
+
+    device::bindAttribute(vertexbuffer->vbo, index, size, stride,
+                          offset * sizeof(float), divisor);
+    offset += vertexbuffer->attributes[i].size;
+  }
 }
 void device::useMesh(Mesh *mesh) {
   if (guseState.currentMesh == mesh)
     return;
-  device::useMeshLayout(mesh->meshLayout);
-  if (mesh->indexBuffer.size() && (mesh->needsEBOUpdate || mesh->ebo == -1)) {
-    device::createEBO(mesh->indexBuffer, &mesh->ebo);
-    mesh->needsEBOUpdate = false;
-  }
-  if (mesh->vertexBuffer.size() && (mesh->needsVBOUpdate || mesh->vbo == -1)) {
-    device::createVBO(mesh->vertexBuffer, &mesh->vbo);
+  device::useVertexBuffer(mesh->vbo);
+  if (mesh->ebo)
+    device::useIndexBuffer(mesh->ebo);
 
-    int offset = 0;
-    for (int i = 0; i < mesh->meshLayout->attributes.size(); i++) {
-      glVertexAttribPointer(mesh->meshLayout->attributes[i].index,
-                            mesh->meshLayout->attributes[i].size, GL_FLOAT,
-                            GL_FALSE, mesh->meshLayout->vertexSize(),
-                            (void *)(offset * sizeof(float)));
-      glEnableVertexAttribArray(mesh->meshLayout->attributes[i].index);
-      offset += mesh->meshLayout->attributes[i].size;
-    }
-    mesh->needsVBOUpdate = false;
-  }
-  device::bindVbo(mesh->vbo);
-  device::bindEbo(mesh->ebo);
   guseState.currentMesh = mesh;
   guseState.meshCullFrontFace = mesh->invertedFaces;
 }
@@ -562,13 +602,19 @@ void device::renderPass() {
 
 void device::drawCall() {
   device::cullFrontFace(guseState.isFrontCulled());
-  if (guseState.currentMesh->ebo != -1)
+  int vertexCount = guseState.currentMesh->vertexCount();
+  SoftCheck(vertexCount > 0, {
+    LOG("[Warning] vertexcount of mesh %p is 0", guseState.currentMesh);
+  });
+
+  if (guseState.currentMesh->ebo) {
     glDrawElements(guseState.currentModelConfiguration.renderMode,
                    guseState.currentMesh->vertexCount(), Standard::meshIndexGL,
                    (void *)0);
-  else
+  } else {
     glDrawArrays(guseState.currentModelConfiguration.renderMode, 0,
                  guseState.currentMesh->vertexCount());
+  }
 }
 
 DeviceParameters device::queryDeviceParameters() {
@@ -690,6 +736,7 @@ void FrameBuffer::check() {
   bool error =
       glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE;
   if (error) {
+    // TODO: Do something
   }
 }
 
@@ -754,9 +801,7 @@ void ModelList::forceSorting() { shouldSort = true; }
 
 //---------------------[BEGIN COMPONENT METHODS]
 
-int Mesh::vertexCount() {
-  return vertexBuffer.size() / meshLayout->vertexSize();
-}
+int Mesh::vertexCount() { return vbo->vertexBuffer.size() / vbo->vertexSize(); }
 void Texture::addTextureResource(TextureResource *textureData) {
   this->textureData.push(textureData);
 }
@@ -821,6 +866,7 @@ void RenderCamera::render(int frame) {
   }
 }
 
+// TODO: Fix actually call this function
 void RenderCamera::bind(Program *activeProgram) {
   for (int i = 0; i < renderBindings.size(); i++) {
 
@@ -850,6 +896,7 @@ void shambhala::loop_beginRenderContext() {
   gBindState.clearState();
   glViewport(0, 0, viewport()->screenWidth, viewport()->screenHeight);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  device::bindVao(engine.vao);
 }
 void shambhala::loop_beginUIContext() {}
 void shambhala::loop_endRenderContext() { viewport()->dispatchRenderEvents(); }
@@ -911,7 +958,6 @@ ModelList *shambhala::createModelList() { return new ModelList; }
 Texture *shambhala::createTexture() { return new Texture; }
 Model *shambhala::createModel() { return new Model; }
 Mesh *shambhala::createMesh() { return new Mesh; }
-MeshLayout *shambhala::createMeshLayout() { return new MeshLayout; }
 Program *shambhala::createProgram() { return new Program; }
 FrameBuffer *shambhala::createFramebuffer() { return new FrameBuffer; }
 Material *shambhala::createMaterial() { return new Material; }
@@ -921,6 +967,8 @@ RenderCamera *shambhala::createRenderCamera() {
   result->modelList = engine.workingModelList;
   return result;
 }
+VertexBuffer *shambhala::createVertexBuffer() { return new VertexBuffer; }
+IndexBuffer *shambhala::createIndexBuffer() { return new IndexBuffer; }
 
 //---------------------[END ENGINECREATE]
 

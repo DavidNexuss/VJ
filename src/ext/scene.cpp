@@ -101,17 +101,24 @@ createMaterialInstance(const aiScene *scene, aiMaterial *material,
 
   return minstance;
 }
+static int _vertexSize(const vector<VertexAttribute> &attrs) {
+  int size = 0;
+  for (int i = 0; i < attrs.size(); i++) {
+    size += attrs[i].size;
+  }
+  return size;
+}
+
 Mesh *createMesh(const aiScene *scene, aiMesh *mesh,
                  const SceneLoaderConfiguration &configuration) {
 
-  int vertexSize = configuration.meshLayout->vertexSize() / sizeof(float);
+  int vertexSize = _vertexSize(configuration.attributes);
   simple_vector<float> vertexBuffer(mesh->mNumVertices * vertexSize);
   std::cerr << "Loading model with vertex size: " << vertexSize << std::endl;
   for (int i = 0; i < mesh->mNumVertices; i++) {
     int offset = 0;
-    for (int attr = 0; attr < configuration.meshLayout->attributes.size();
-         attr++) {
-      switch (configuration.meshLayout->attributes[attr].index) {
+    for (int attr = 0; attr < configuration.attributes.size(); attr++) {
+      switch (configuration.attributes[attr].index) {
       case Standard::aPosition:
         vertexBuffer[i * vertexSize + offset] = mesh->mVertices[i].x;
         vertexBuffer[i * vertexSize + offset + 1] = mesh->mVertices[i].y;
@@ -143,7 +150,7 @@ Mesh *createMesh(const aiScene *scene, aiMesh *mesh,
             mesh->mTextureCoords[0][i].y;
         break;
       }
-      offset += configuration.meshLayout->attributes[attr].size;
+      offset += configuration.attributes[attr].size;
     }
   }
 
@@ -157,8 +164,11 @@ Mesh *createMesh(const aiScene *scene, aiMesh *mesh,
 
   int indexcount = indices.size();
   Mesh *meshid = shambhala::createMesh();
-  meshid->vertexBuffer = vertexBuffer.drop();
-  meshid->indexBuffer = indices.drop();
+  meshid->vbo = shambhala::createVertexBuffer();
+  meshid->ebo = shambhala::createIndexBuffer();
+  meshid->vbo->vertexBuffer = vertexBuffer.drop();
+  meshid->vbo->attributes = configuration.attributes;
+  meshid->ebo->indexBuffer = indices.drop();
   return meshid;
 }
 

@@ -95,31 +95,18 @@ simple_vector<uint8_t> util::createCube() {
   return {cube_mesh, cube_mesh_size};
 }
 
-MeshLayout *getPrimitiveLayout() {
-  static MeshLayout *primitiveLayout = nullptr;
-  if (primitiveLayout == nullptr) {
-    primitiveLayout = shambhala::createMeshLayout();
-    primitiveLayout->attributes = {
-        {Standard::aPosition, 3}, {Standard::aNormal, 3}, {Standard::aUV, 2}};
-  }
-  return primitiveLayout;
-}
+static vector<VertexAttribute> primitiveLayout = {
+    {Standard::aPosition, 3}, {Standard::aNormal, 3}, {Standard::aUV, 2}};
 
-MeshLayout *getScreenLayout() {
-  static MeshLayout *primitiveLayout = nullptr;
-  if (primitiveLayout == nullptr) {
-    primitiveLayout = shambhala::createMeshLayout();
-    primitiveLayout->attributes = {{Standard::aPosition, 2}};
-  }
-  return primitiveLayout;
-}
+static vector<VertexAttribute> screenLayout = {{Standard::aPosition, 2}};
 
 Mesh *util::meshCreateCube() {
   static Mesh *result = nullptr;
   if (result == nullptr) {
     result = shambhala::createMesh();
-    result->meshLayout = getPrimitiveLayout();
-    result->vertexBuffer = util::createCube();
+    result->vbo = shambhala::createVertexBuffer();
+    result->vbo->vertexBuffer = util::createCube();
+    result->vbo->attributes = primitiveLayout;
     result->invertedFaces = true;
   }
   return result;
@@ -129,8 +116,9 @@ Mesh *util::createScreen() {
   static Mesh *result = nullptr;
   if (result == nullptr) {
     result = shambhala::createMesh();
-    result->meshLayout = getScreenLayout();
-    result->vertexBuffer = {screen_mesh, screen_mesh_size};
+    result->vbo = shambhala::createVertexBuffer();
+    result->vbo->attributes = screenLayout;
+    result->vbo->vertexBuffer = {screen_mesh, screen_mesh_size};
     result->invertedFaces = true;
   }
   return result;

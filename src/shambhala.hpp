@@ -117,6 +117,41 @@ public:
 };
 
 struct Texture;
+
+struct VertexAttribute {
+  int index;
+  int size;
+  int attributeDivisor = 0;
+};
+
+struct VertexBuffer {
+  simple_vector<uint8_t> vertexBuffer;
+  simple_vector<VertexAttribute> attributes;
+  GLuint vbo = -1;
+
+  bool updateData = false;
+  bool streamData = false;
+  int vertexSize() const;
+
+private:
+  mutable int _vertexsize = -1;
+};
+
+struct IndexBuffer {
+  simple_vector<unsigned short> indexBuffer;
+  GLuint ebo = -1;
+  bool updateData = false;
+};
+
+struct Mesh {
+  int meshLayout = 0;
+  VertexBuffer *vbo = nullptr;
+  IndexBuffer *ebo = nullptr;
+
+  bool invertedFaces = false;
+  int vertexCount();
+};
+
 struct Material {
 
 #define UNIFORMS_FUNC_DECLARATION(v, T)                                        \
@@ -132,6 +167,7 @@ struct Material {
 #undef UNIFORMS_FUNC_DECLARATION
 
   std::unordered_map<std::string, Uniform> uniforms;
+  VertexBuffer *vbo = nullptr;
 
   virtual void update(float deltatime) {}
   virtual void bind(Program *activeProgram) {}
@@ -160,32 +196,6 @@ public:
   const glm::mat4 &getTransformMatrix() const;
   const glm::mat4 &getCombinedMatrix() const;
   void bind(Program *activeProgram) override;
-};
-
-struct MeshLayout {
-  struct MeshLayoutAttribute {
-    int index;
-    int size;
-  };
-  simple_vector<MeshLayoutAttribute> attributes;
-  int vertexSize() const;
-  GLuint vao = -1;
-
-private:
-  mutable int _vertexsize = -1;
-};
-
-struct Mesh {
-  simple_vector<uint8_t> vertexBuffer;
-  simple_vector<unsigned short> indexBuffer;
-  MeshLayout *meshLayout;
-
-  GLuint vbo = -1;
-  GLuint ebo = -1;
-  bool needsVBOUpdate = false;
-  bool needsEBOUpdate = false;
-  bool invertedFaces = false;
-  int vertexCount();
 };
 
 struct ModelConfiguration {
@@ -336,8 +346,7 @@ namespace device {
 
 GLuint compileShader(const char *data, GLenum type, const char *resourcename);
 GLuint compileProgram(GLuint *shaders, GLint *status);
-GLuint
-createVAO(const simple_vector<MeshLayout::MeshLayoutAttribute> &attributes);
+GLuint createVAO();
 GLuint createVBO(const simple_vector<uint8_t> &vertexBuffer, GLuint *vbo);
 GLuint createEBO(const simple_vector<unsigned short> &indexBuffer, GLuint *ebo);
 GLuint createTexture(bool filter);
@@ -361,6 +370,8 @@ void disposeProgram(GLuint program);
 void disposeTexture(GLuint texture);
 void disposeVao(GLuint vao);
 void disposeVbo(GLuint vbo);
+void bindAttribute(GLuint vbo, int index, int size, int stride, int offset,
+                   int divisor);
 void bindProgram(GLuint program);
 void bindVao(GLuint vao);
 void bindVbo(GLuint vbo);
@@ -376,7 +387,8 @@ void useTexture(UTexture texture);
 void useTexture(DynamicTexture texture);
 void useTexture(Texture *texture);
 void useProgram(Program *program);
-void useMeshLayout(MeshLayout *layout);
+void useVertexBuffer(VertexBuffer *vertexbuffer);
+void useIndexBuffer(IndexBuffer *indexBuffer);
 void useMesh(Mesh *mesh);
 void useMaterial(Material *material);
 void useUniform(const char *name, const Uniform &value);
@@ -393,12 +405,13 @@ Node *createNode();
 Texture *createTexture();
 Model *createModel();
 Mesh *createMesh();
-MeshLayout *createMeshLayout();
 Program *createProgram();
 FrameBuffer *createFramebuffer();
 Material *createMaterial();
 ModelList *createModelList();
 RenderCamera *createRenderCamera();
+VertexBuffer *createVertexBuffer();
+IndexBuffer *createIndexBuffer();
 
 // DeclarativeRenderer
 void setWorldMaterial(int clas, Material *worldMaterial);

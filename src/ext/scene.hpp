@@ -5,7 +5,7 @@
 namespace shambhala {
 struct SceneLoaderConfiguration {
   int assimpFlags;
-  MeshLayout *meshLayout;
+  vector<VertexAttribute> attributes;
   vector<aiTextureType> textureTypes;
   vector<std::string> textureNames;
 

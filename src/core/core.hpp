@@ -18,6 +18,15 @@ using std::array;
          -> " << #X << std::endl; } */                                         \
   } while (0)
 
+#define SoftCheck(X, Y)                                                        \
+  do {                                                                         \
+    auto val = (X);                                                            \
+    if (!(val)) {                                                              \
+      Y                                                                        \
+    } /* else { std::cerr << "[[Hard check successful]] : " << __LINE__ << "   \
+         -> " << #X << std::endl; } */                                         \
+  } while (0)
+
 template <typename T> uint32_t hash(const T &object) {
   return std::hash<typename std::remove_reference<T>::type>()(object);
 }
