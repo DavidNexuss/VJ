@@ -26,7 +26,7 @@ struct SceneDefinition {
 struct Scene {
   ModelList *sceneOwner;
   Node *rootNode;
-  ModelList models;
+  ModelList *models;
 
   Scene(const SceneDefinition &definition);
   ~Scene();

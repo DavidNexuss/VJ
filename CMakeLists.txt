@@ -16,7 +16,7 @@ add_subdirectory(lib/imgui-node-editor)
 target_include_directories(shambhala PRIVATE include src)
 target_link_libraries(shambhala imgui imguiText stbimage file_watcher lightmapper xatlas imgui_node_editor)
 add_executable(main main.cpp)
-target_link_libraries(main shambhala stbimage GL GLEW glfw)
+target_link_libraries(main shambhala stbimage GL GLEW glfw assimp)
 
 set(CMAKE_CXX_FLAGS "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG" )

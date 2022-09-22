@@ -18,6 +18,7 @@ struct IIO {
   io_buffer *readFile(const char *path);
   void freeFile(io_buffer *buffer);
 
+  std::string findFile(const char *path);
   virtual io_buffer internal_readFile(const char *path) = 0;
   virtual void internal_freeFile(uint8_t *buffer) = 0;
 

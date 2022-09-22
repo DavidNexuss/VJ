@@ -15,12 +15,25 @@
 
 using namespace shambhala;
 
+void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
+             GLsizei length, const GLchar *message, const void *userParam) {
+
+  std::cerr << "[GL " << severity << "] " << message << std::endl;
+  if (severity >= 37190) {
+    // throw std::runtime_error{"error"};
+  }
+}
+
+inline void clearFramebuffer() { glClearColor(0.0, 0.0, 0.0, 1.0); }
+inline void clearDefault() { glClearColor(0.0, 0.0, 0.0, 1.0); }
+
+static Material *emptyMaterial = shambhala::createMaterial();
 struct Engine {
   EngineControllers controllers;
   ModelList *workingModelList;
   RenderCamera *rootRenderCamera;
   DeviceParameters gpu_params;
-  GLuint vao;
+  GLuint vao = -1;
   int frameCounter = 0;
 
   void init() {
@@ -30,10 +43,14 @@ struct Engine {
   }
 
   void prepareRender() {
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    clearDefault();
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     vao = device::createVAO();
+#ifdef DEBUG
+    glDebugMessageCallback(glError, nullptr);
+    glEnable(GL_DEBUG_OUTPUT);
+#endif
   }
 
   void cleanup() {}
@@ -117,12 +134,12 @@ bool Uniform::bind(GLuint glUniformID) const {
     glUniform1i(glUniformID, INT);
     break;
   case UniformType::SAMPLER2D:
-    device::useTexture(SAMPLER2D);
     glUniform1i(glUniformID, SAMPLER2D.unit);
+    device::useTexture(SAMPLER2D);
     break;
   case UniformType::DYNAMIC_TEXTURE:
+    glUniform1i(glUniformID, DYNAMIC_TEXTURE.unit);
     device::useTexture(DYNAMIC_TEXTURE);
-    glUniform1d(glUniformID, DYNAMIC_TEXTURE.unit);
     break;
   case UniformType::BINDLESS_TEXTURE:
     glUniformHandleui64ARB(glUniformID, BINDLESS_TEXTURE);
@@ -312,6 +329,8 @@ struct BindState {
   void clearState() {}
 
   GLuint currentVao = -1;
+
+  void printBindState() {}
 };
 static BindState gBindState;
 
@@ -342,10 +361,11 @@ void device::bindTexture(GLuint textureId, GLenum mode) {
 }
 
 void device::bindTexture(GLuint textureId, GLenum mode, int textureUnit) {
+
   if (gBindState.boundTextures[textureUnit] != textureId) {
     gBindState.boundTextures[textureUnit] = textureId;
     if (gBindState.activeTextureUnit != textureUnit) {
-      glActiveTexture(textureUnit);
+      glActiveTexture(textureUnit + GL_TEXTURE0);
       gBindState.activeTextureUnit = textureUnit;
     }
     glBindTexture(mode, textureId);
@@ -400,6 +420,8 @@ struct UseState {
   Program *currentProgram = nullptr;
   Mesh *currentMesh = nullptr;
   ModelList *currentModelList = nullptr;
+  VertexBuffer *currentVertexBuffer = nullptr;
+  IndexBuffer *currentIndexBuffer = nullptr;
   ModelConfiguration currentModelConfiguration;
 
   bool hasModelConfiguration = false;
@@ -425,6 +447,8 @@ void device::useProgram(Program *program) {
   if (guseState.currentProgram == program || guseState.ignoreProgramUse)
     return;
 
+  SoftCheck(program != nullptr,
+            LOG("[Warning] Trying to use a null program!", 0););
   // Check program compilation with shaders
   bool programUpdate = program->shaderProgram == -1;
   GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
@@ -454,7 +478,7 @@ void device::useProgram(Program *program) {
 
   // Bind worldMaterials
   for (auto &worldmat : guseState.worldMaterials) {
-    worldmat.second->bind(program);
+    useMaterial(worldmat.second);
   }
 }
 
@@ -464,6 +488,10 @@ void device::ignoreProgramBinding(bool ignore) {
 
 void device::useIndexBuffer(IndexBuffer *indexBuffer) {
 
+  if (indexBuffer == guseState.currentIndexBuffer)
+    return;
+
+  guseState.currentIndexBuffer = indexBuffer;
   if (indexBuffer->indexBuffer.size() &&
       (indexBuffer->updateData || indexBuffer->ebo == -1)) {
 
@@ -476,10 +504,19 @@ void device::useIndexBuffer(IndexBuffer *indexBuffer) {
 
 void device::useVertexBuffer(VertexBuffer *vertexbuffer) {
 
-  if (vertexbuffer->vertexBuffer.size() &&
-      (vertexbuffer->updateData || vertexbuffer->vbo == -1)) {
+  if (vertexbuffer == guseState.currentVertexBuffer)
+    return;
+
+  guseState.currentVertexBuffer = vertexbuffer;
+  if (vertexbuffer->vertexBuffer.size() && (vertexbuffer->vbo == -1)) {
     device::createVBO(vertexbuffer->vertexBuffer, &vertexbuffer->vbo);
     vertexbuffer->updateData = false;
+  }
+
+  if (vertexbuffer->updateData) {
+    device::bindVbo(vertexbuffer->vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertexbuffer->vertexBuffer.size(),
+                    vertexbuffer->vertexBuffer.data());
   }
 
   device::bindVbo(vertexbuffer->vbo);
@@ -501,6 +538,7 @@ void device::useVertexBuffer(VertexBuffer *vertexbuffer) {
   }
 }
 void device::useMesh(Mesh *mesh) {
+  SoftCheck(mesh != nullptr, log()->log("[Warning] Null mesh use"););
   if (guseState.currentMesh == mesh)
     return;
   device::useVertexBuffer(mesh->vbo);
@@ -517,6 +555,7 @@ void device::useTexture(UTexture texture) {
 
 void device::useTexture(Texture *texture) {
 
+  SoftCheck(texture != nullptr, log()->log("[Warning] Null texture use", 1););
   if (texture->_textureID == -1)
     texture->_textureID = texture->textureMode == GL_TEXTURE_CUBE_MAP
                               ? device::createCubemap()
@@ -572,11 +611,19 @@ void device::useModelConfiguration(ModelConfiguration *configuration) {
 void device::useUniform(const char *name, const Uniform &value) {
   GLuint uniformId =
       device::getUniform(guseState.currentProgram->shaderProgram, name);
+
+  // SoftCheck(uniformId != -1, LOG("[Warning] Attempted to use an invalid
+  // uniform %s", name););
   if (uniformId != -1)
     value.bind(uniformId);
 }
 
 void device::useMaterial(Material *material) {
+  if (material == nullptr)
+    return;
+
+  SoftCheck(material != nullptr, log()->log("[Warning] Null material use"););
+
   for (auto &uniform : material->uniforms) {
     useUniform(uniform.first.c_str(), uniform.second);
   }
@@ -743,7 +790,7 @@ void FrameBuffer::check() {
 void FrameBuffer::begin(int screenWidth, int screenHeight) {
   resize(screenWidth, screenHeight);
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  clearFramebuffer();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -801,7 +848,11 @@ void ModelList::forceSorting() { shouldSort = true; }
 
 //---------------------[BEGIN COMPONENT METHODS]
 
-int Mesh::vertexCount() { return vbo->vertexBuffer.size() / vbo->vertexSize(); }
+int Mesh::vertexCount() {
+  if (ebo == nullptr)
+    return vbo->vertexBuffer.size() / vbo->vertexSize();
+  return ebo->indexBuffer.size();
+}
 void Texture::addTextureResource(TextureResource *textureData) {
   this->textureData.push(textureData);
 }
@@ -836,8 +887,11 @@ void RenderCamera::render(int frame) {
   }
 
   device::useModelList(modelList);
+  shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera, this);
 
-  if (frameBuffer != nullptr) {
+  bool useFrameBuffer = frameBuffer != nullptr && !_isRootCamera;
+
+  if (useFrameBuffer) {
     frameBuffer->begin(viewport()->screenWidth, viewport()->screenHeight);
   }
 
@@ -861,9 +915,13 @@ void RenderCamera::render(int frame) {
     device::ignoreProgramBinding(false);
   }
 
-  if (frameBuffer != nullptr) {
+  if (useFrameBuffer) {
     frameBuffer->end();
   }
+
+  shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera,
+                              emptyMaterial);
+  _isRootCamera = false;
 }
 
 // TODO: Fix actually call this function
@@ -880,13 +938,19 @@ void RenderCamera::bind(Program *activeProgram) {
   }
 }
 
-void RenderCamera::addBinding(RenderCamera *child, int attachmentIndex,
-                              const char *uniformAttribute) {
+void RenderCamera::addInput(RenderCamera *child, int attachmentIndex,
+                            const char *uniformAttribute) {
   RenderBinding renderBinding;
   renderBinding.attachmentIndex = attachmentIndex;
   renderBinding.renderCamera = child;
   renderBinding.uniformAttribute = uniformAttribute;
   renderBindings.push(renderBinding);
+}
+
+void RenderCamera::addOutput(FrameBufferAttachmentDescriptor desc) {
+  if (frameBuffer == nullptr)
+    frameBuffer = shambhala::createFramebuffer();
+  frameBuffer->addChannel(desc);
 }
 //---------------------[END RENDERCAMERA]
 //---------------------[BEGIN ENGINE]
@@ -901,6 +965,8 @@ void shambhala::loop_beginRenderContext() {
 void shambhala::loop_beginUIContext() {}
 void shambhala::loop_endRenderContext() { viewport()->dispatchRenderEvents(); }
 void shambhala::loop_declarativeRender() {
+  engine.rootRenderCamera->modelList = engine.workingModelList;
+  engine.rootRenderCamera->_isRootCamera = true;
   engine.rootRenderCamera->render(engine.frameCounter++);
 }
 void shambhala::loop_endUIContext() {}
@@ -944,6 +1010,11 @@ void shambhala::addModel(Model *model) {
 void shambhala::setRootRenderCamera(RenderCamera *renderCamera) {
   engine.rootRenderCamera = renderCamera;
 }
+
+void shambhala::setWorkingModelList(ModelList *modelList) {
+  engine.workingModelList = modelList;
+}
+ModelList *shambhala::getWorkingModelList() { return engine.workingModelList; }
 
 IViewport *shambhala::viewport() { return engine.controllers.viewport; }
 IIO *shambhala::io() { return engine.controllers.io; }

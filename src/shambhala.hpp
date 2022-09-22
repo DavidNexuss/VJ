@@ -60,8 +60,8 @@ struct Program {
 };
 
 struct UTexture {
-  GLuint texID;
-  int unit;
+  GLuint texID = -1;
+  int unit = 0;
   GLenum mode = GL_TEXTURE_2D;
   UTexture() {}
   UTexture(GLuint _texID, int _unit) : texID(_texID), unit(_unit) {}
@@ -72,7 +72,7 @@ struct UTexture {
 struct Texture;
 struct DynamicTexture {
   Texture *sourceTexture = nullptr;
-  int unit;
+  int unit = 0;
 
   DynamicTexture() {}
 };
@@ -129,8 +129,9 @@ struct VertexBuffer {
   simple_vector<VertexAttribute> attributes;
   GLuint vbo = -1;
 
+  bool hint_allocation_dynamic = false;
+  bool hint_allocation_stream = false;
   bool updateData = false;
-  bool streamData = false;
   int vertexSize() const;
 
 private:
@@ -171,8 +172,8 @@ struct Material {
 
   virtual void update(float deltatime) {}
   virtual void bind(Program *activeProgram) {}
-  bool needsFrameUpdate;
-  bool hasCustomBindFunction;
+  bool needsFrameUpdate = false;
+  bool hasCustomBindFunction = false;
 };
 
 #undef UNIFORMS_LIST
@@ -183,7 +184,7 @@ struct Node : public Material {
   glm::mat4 transformMatrix = glm::mat4(1.0);
 
   mutable glm::mat4 combinedMatrix;
-  mutable bool clean;
+  mutable bool clean = false;
 
   void removeChildNode(Node *childNode);
 
@@ -226,7 +227,7 @@ struct Model : public ModelConfiguration {
 
 struct ModelList {
   simple_vector<Model *> models;
-  Node *rootnode;
+  Node *rootnode = nullptr;
 
   void add(Model *model);
   void forceSorting();
@@ -236,7 +237,7 @@ struct ModelList {
 
 private:
   std::vector<int> modelindices;
-  bool shouldSort;
+  bool shouldSort = true;
 };
 struct TextureResource : public IResource {
   uint8_t *textureBuffer;
@@ -319,10 +320,13 @@ struct RenderCamera : public Material {
   Program *overrideProgram = nullptr;
   Program *postprocessProgram = nullptr;
 
+  bool _isRootCamera = false;
+
   void render(int frame);
   void bind(Program *activeProgram) override;
-  void addBinding(RenderCamera *child, int attachmentIndex,
-                  const char *uniformAttribute);
+  void addInput(RenderCamera *child, int attachmentIndex,
+                const char *uniformAttribute);
+  void addOutput(FrameBufferAttachmentDescriptor desc);
 
 private:
   int currentFrame = -1;

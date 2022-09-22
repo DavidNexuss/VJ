@@ -42,7 +42,10 @@ enum WorldMaterialAspect { wGlobal = 0, wCamera, wSky, wCount };
       f(uViewPos)          /* vec3       World camera position */              \
       f(uSkyBox)           /* sampler2D  SkyBox cubemap */                     \
       f(uShadowMap)        /* sampler2D  ShadowMap depth information */        \
-      f(uLightSpaceMatrix) /* mat4 Light space matrix */
+      f(uLightSpaceMatrix) /* mat4 Light space matrix */                       \
+      f(uBaseColor)        /* sampler2D  Base Color */                         \
+      f(uBump)             /* sampler2D  Bump map */                           \
+      f(uSpecial)          /* sampler2D  Special map */
 
 #define CHARACTER_LIST(O) static const char *O = #O;
 
@@ -59,8 +62,10 @@ enum TextureUnits {
   tAttachmentTexture = 16
 };
 
+enum RenderUnits { tBaseColor = 0 };
+
 enum SpecialWorldMaterials {
-  worldMatRenderCamera = -1,
+  clas_worldMatRenderCamera = -1,
 };
 
 const static size_t maxTextureUnits = 16;

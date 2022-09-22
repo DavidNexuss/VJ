@@ -114,7 +114,6 @@ Mesh *createMesh(const aiScene *scene, aiMesh *mesh,
 
   int vertexSize = _vertexSize(configuration.attributes);
   simple_vector<float> vertexBuffer(mesh->mNumVertices * vertexSize);
-  std::cerr << "Loading model with vertex size: " << vertexSize << std::endl;
   for (int i = 0; i < mesh->mNumVertices; i++) {
     int offset = 0;
     for (int attr = 0; attr < configuration.attributes.size(); attr++) {
@@ -204,7 +203,7 @@ Node *processNode(aiNode *node, const aiScene *scene, Scene &result,
     model->material = context.loadMaterial(
         scene, scene->mMeshes[node->mMeshes[i]]->mMaterialIndex, configuration);
     model->node = engineNode;
-    result.models.add(model);
+    result.models->add(model);
   }
 
   for (size_t i = 0; i < node->mNumChildren; i++) {
@@ -226,6 +225,7 @@ Scene::Scene(const SceneDefinition &def) {
   }
 
   LoadingContext context;
+  models = shambhala::createModelList();
   rootNode =
       processNode(scene->mRootNode, scene, *this, context, def.configuration);
   sceneOwner = shambhala::getWorkingModelList();

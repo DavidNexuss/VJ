@@ -5,6 +5,13 @@ void shambhala::IIO::freeFile(io_buffer *buffer) {
   if (buffer->useCount < 1)
     cachedBuffers.erase(buffer->resourcename);
 }
+
+// TODO: Fix something
+std::string shambhala::IIO::findFile(const char *path) {
+
+  for (int i = 0; i < translators.size(); i++) {
+  }
+}
 io_buffer *shambhala::IIO::readFile(const char *path) {
   LOG("Reading %s:", path);
   auto it = cachedBuffers.find(path);

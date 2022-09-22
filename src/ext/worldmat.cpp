@@ -23,6 +23,8 @@ Camera::Camera() {
   zoomFactor = 1.0;
 
   useOrthographic = false;
+  needsFrameUpdate = true;
+  hasCustomBindFunction = true;
 }
 glm::mat4 Camera::createProjectionMatrix() {
 
