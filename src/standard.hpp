@@ -45,7 +45,8 @@ enum WorldMaterialAspect { wGlobal = 0, wCamera, wSky, wCount };
       f(uLightSpaceMatrix) /* mat4 Light space matrix */                       \
       f(uBaseColor)        /* sampler2D  Base Color */                         \
       f(uBump)             /* sampler2D  Bump map */                           \
-      f(uSpecial)          /* sampler2D  Special map */
+      f(uSpecial)          /* sampler2D  Special map */                        \
+      f(uDepth)
 
 #define CHARACTER_LIST(O) static const char *O = #O;
 
@@ -59,9 +60,11 @@ enum TextureUnits {
   tShadowMap = 13,
   tCreation = 14,
   tSkyBox = 15,
-  tAttachmentTexture = 16
+  tDepthTexture = 16,
+  tAttachmentTexture = 17
 };
 
+enum SpecialAttachments { attachmentDepthBuffer = -1 };
 enum RenderUnits { tBaseColor = 0 };
 
 enum SpecialWorldMaterials {

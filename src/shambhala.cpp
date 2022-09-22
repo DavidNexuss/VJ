@@ -13,6 +13,8 @@
   do {                                                                         \
   } while (0)
 
+#define TEXTURE_CACHING 0
+
 using namespace shambhala;
 
 void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
@@ -362,6 +364,8 @@ void device::bindTexture(GLuint textureId, GLenum mode) {
 
 void device::bindTexture(GLuint textureId, GLenum mode, int textureUnit) {
 
+#if (TEXTURE_CACHING)
+
   if (gBindState.boundTextures[textureUnit] != textureId) {
     gBindState.boundTextures[textureUnit] = textureId;
     if (gBindState.activeTextureUnit != textureUnit) {
@@ -370,7 +374,14 @@ void device::bindTexture(GLuint textureId, GLenum mode, int textureUnit) {
     }
     glBindTexture(mode, textureId);
   }
+
+#else
+
+  glActiveTexture(textureUnit + GL_TEXTURE0);
+  glBindTexture(mode, textureId);
+#endif
 }
+
 void device::bindAttribute(GLuint vbo, int index, int size, int stride,
                            int offset, int divisor) {
 
@@ -686,6 +697,7 @@ GLuint FrameBuffer::createDepthStencilBuffer() {
 void FrameBuffer::initialize() {
   _framebuffer = device::createFramebuffer();
   device::bindFrameBuffer(_framebuffer);
+  colorAttachments.resize(attachmentsDefinition.size());
   glGenTextures(colorAttachments.size(), &colorAttachments[0]);
   for (int i = 0; i < colorAttachments.size(); i++) {
     device::bindTexture(colorAttachments[i], GL_TEXTURE_2D);
@@ -776,20 +788,13 @@ void FrameBuffer::resize(int screenWidth, int screenHeight) {
   bufferHeight = screenHeight;
 
   initialize();
-  check();
-}
-
-void FrameBuffer::check() {
-  bool error =
-      glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE;
-  if (error) {
-    // TODO: Do something
-  }
 }
 
 void FrameBuffer::begin(int screenWidth, int screenHeight) {
   resize(screenWidth, screenHeight);
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+  SoftCheck(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE,
+            LOG("[DEVICE] Incomplete framebuffer %d ", _framebuffer););
   clearFramebuffer();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -798,7 +803,10 @@ void FrameBuffer::end() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 void FrameBuffer::addChannel(const FrameBufferAttachmentDescriptor &fbodef) {
   attachmentsDefinition.push(fbodef);
-  colorAttachments.push(-1);
+}
+
+void FrameBuffer::setConfiguration(FrameBufferDescriptorFlags flags) {
+  configuration = flags;
 }
 
 //---------------------[FRAMEBUFFER END]
@@ -877,6 +885,7 @@ bool Texture::needsUpdate() {
 
 //---------------------[BEGIN RENDERCAMERA]
 
+RenderCamera::RenderCamera() { hasCustomBindFunction = true; }
 void RenderCamera::render(int frame) {
   if (frame == currentFrame)
     return;
@@ -927,14 +936,21 @@ void RenderCamera::render(int frame) {
 // TODO: Fix actually call this function
 void RenderCamera::bind(Program *activeProgram) {
   for (int i = 0; i < renderBindings.size(); i++) {
-
-    UTexture texture;
-    texture.mode = GL_TEXTURE_2D;
-    texture.texID = renderBindings[i]
-                        .renderCamera->frameBuffer
-                        ->colorAttachments[renderBindings[i].attachmentIndex];
-    texture.unit = Standard::tAttachmentTexture + i;
-    device::useUniform(renderBindings[i].uniformAttribute, texture);
+    if (renderBindings[i].attachmentIndex < 0) {
+      UTexture texture;
+      texture.mode = GL_TEXTURE_2D;
+      texture.texID = renderBindings[i].renderCamera->frameBuffer->depthBuffer;
+      texture.unit = Standard::tDepthTexture;
+      device::useUniform(renderBindings[i].uniformAttribute, texture);
+    } else {
+      UTexture texture;
+      texture.mode = GL_TEXTURE_2D;
+      texture.texID = renderBindings[i]
+                          .renderCamera->frameBuffer
+                          ->colorAttachments[renderBindings[i].attachmentIndex];
+      texture.unit = Standard::tAttachmentTexture + i;
+      device::useUniform(renderBindings[i].uniformAttribute, texture);
+    }
   }
 }
 
@@ -951,6 +967,14 @@ void RenderCamera::addOutput(FrameBufferAttachmentDescriptor desc) {
   if (frameBuffer == nullptr)
     frameBuffer = shambhala::createFramebuffer();
   frameBuffer->addChannel(desc);
+}
+
+void RenderCamera::setFrameBufferConfiguration(
+    FrameBufferDescriptorFlags flags) {
+  if (frameBuffer == nullptr) {
+    frameBuffer = shambhala::createFramebuffer();
+  }
+  frameBuffer->setConfiguration(flags);
 }
 //---------------------[END RENDERCAMERA]
 //---------------------[BEGIN ENGINE]

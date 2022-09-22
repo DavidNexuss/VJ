@@ -257,6 +257,7 @@ struct Texture {
 };
 
 enum FrameBufferDescriptorFlags {
+  FRAME_BUFFER_NULL = 0,
   USE_RENDER_BUFFER = 1 << 0,
   USE_DEPTH = 1 << 1,
   USE_STENCIL = 1 << 2,
@@ -274,15 +275,14 @@ struct FrameBufferAttachmentDescriptor {
 };
 
 class FrameBuffer {
-  FrameBufferDescriptorFlags configuration;
+  FrameBufferDescriptorFlags configuration = FRAME_BUFFER_NULL;
   GLuint _framebuffer = -1;
 
-  int bufferWidth = 0, bufferHeight = 0;
+  int bufferWidth = -1, bufferHeight = -1;
 
   void initialize();
   void dispose();
   void resize(int screenWidth, int screenHeight);
-  void check();
 
   GLuint createDepthStencilBuffer();
 
@@ -303,6 +303,8 @@ public:
 
   vector<GLuint> colorAttachments;
   vector<FrameBufferAttachmentDescriptor> attachmentsDefinition;
+
+  void setConfiguration(FrameBufferDescriptorFlags flags);
 };
 
 struct RenderCamera;
@@ -320,6 +322,7 @@ struct RenderCamera : public Material {
   Program *overrideProgram = nullptr;
   Program *postprocessProgram = nullptr;
 
+  RenderCamera();
   bool _isRootCamera = false;
 
   void render(int frame);
@@ -327,6 +330,7 @@ struct RenderCamera : public Material {
   void addInput(RenderCamera *child, int attachmentIndex,
                 const char *uniformAttribute);
   void addOutput(FrameBufferAttachmentDescriptor desc);
+  void setFrameBufferConfiguration(FrameBufferDescriptorFlags);
 
 private:
   int currentFrame = -1;

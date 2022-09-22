@@ -36,8 +36,9 @@ void createSkyBox() {
 RenderCamera *createDefferedPass() {
   RenderCamera *deferredPipeline = shambhala::createRenderCamera();
   deferredPipeline->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});   // ALBEDO
-  deferredPipeline->addOutput({GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE}); // ESP
   deferredPipeline->addOutput({GL_RGB, GL_RGB, GL_FLOAT});           // NORMAL
+  deferredPipeline->addOutput({GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE}); // ESP
+  deferredPipeline->setFrameBufferConfiguration(shambhala::USE_DEPTH);
   return deferredPipeline;
 }
 
@@ -45,8 +46,10 @@ RenderCamera *pbrPass(RenderCamera *deferredPass) {
   RenderCamera *pbrPass = shambhala::createRenderCamera();
 
   pbrPass->addInput(deferredPass, 0, Standard::uBaseColor);
-  pbrPass->addInput(deferredPass, 1, Standard::uSpecial);
-  pbrPass->addInput(deferredPass, 2, Standard::uBump);
+  pbrPass->addInput(deferredPass, 1, Standard::uBump);
+  pbrPass->addInput(deferredPass, 2, Standard::uSpecial);
+  pbrPass->addInput(deferredPass, Standard::attachmentDepthBuffer,
+                    Standard::uDepth);
 
   pbrPass->addOutput({GL_RGB, GL_RGB, GL_FLOAT});
   pbrPass->addOutput({GL_RGB, GL_RGB, GL_FLOAT});
