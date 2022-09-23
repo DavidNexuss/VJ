@@ -11,7 +11,7 @@
 using namespace shambhala;
 
 void setupRender() {
-  worldmats::Camera *camera = new worldmats::DebugCamera;
+  Material *camera = new worldmats::DebugCamera;
   shambhala::setWorldMaterial(0, camera);
 }
 
@@ -33,56 +33,6 @@ void createSkyBox() {
   shambhala::addModel(skybox);
 }
 
-RenderCamera *createDefferedPass() {
-  RenderCamera *deferredPipeline = shambhala::createRenderCamera();
-  deferredPipeline->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});   // ALBEDO
-  deferredPipeline->addOutput({GL_RGB, GL_RGB, GL_FLOAT});           // NORMAL
-  deferredPipeline->addOutput({GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE}); // ESP
-  deferredPipeline->setFrameBufferConfiguration(shambhala::USE_DEPTH);
-  return deferredPipeline;
-}
-
-RenderCamera *pbrPass(RenderCamera *deferredPass) {
-  RenderCamera *pbrPass = shambhala::createRenderCamera();
-
-  pbrPass->addInput(deferredPass, 0, Standard::uBaseColor);
-  pbrPass->addInput(deferredPass, 1, Standard::uBump);
-  pbrPass->addInput(deferredPass, 2, Standard::uSpecial);
-  pbrPass->addInput(deferredPass, Standard::attachmentDepthBuffer,
-                    Standard::uDepth);
-
-  pbrPass->addOutput({GL_RGB, GL_RGB, GL_FLOAT});
-  pbrPass->addOutput({GL_RGB, GL_RGB, GL_FLOAT});
-
-  pbrPass->postprocessProgram = shambhala::util::createScreenProgram(
-      resource::ioMemoryFile("programs/pbr.fs"));
-  return pbrPass;
-}
-
-RenderCamera *gaussPass(RenderCamera *camera, int attachment) {
-  RenderCamera *gaussPass = shambhala::createRenderCamera();
-  gaussPass->postprocessProgram =
-      util::createScreenProgram(resource::ioMemoryFile("programs/gauss.fs"));
-  gaussPass->addInput(camera, attachment, "source");
-  gaussPass->addOutput({GL_RGB, GL_RGB, GL_FLOAT});
-  return gaussPass;
-}
-
-RenderCamera *createBlendPass(RenderCamera *pbrPass) {
-
-  RenderCamera *blendPass = shambhala::createRenderCamera();
-  blendPass->addInput(pbrPass, 0, "hdr");
-  blendPass->addInput(gaussPass(pbrPass, 1), 0, "blur");
-  blendPass->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
-  blendPass->postprocessProgram = shambhala::util::createScreenProgram(
-      resource::ioMemoryFile("programs/blend.fs"));
-  return blendPass;
-}
-
-RenderCamera *createRenderDefferedPipeline() {
-  return createBlendPass(pbrPass(createDefferedPass()));
-}
-
 Program *errorProgram;
 
 Program *deferredProgram() {
@@ -96,6 +46,19 @@ Program *deferredProgram() {
         resource::ioMemoryFile("programs/forward_pbr.fs");
   }
   return deferredProgram;
+}
+
+Program *pbrProgram() {
+  static Program *def = nullptr;
+  if (def == nullptr) {
+
+    def = createProgram();
+    def->shaders[VERTEX_SHADER].file =
+        resource::ioMemoryFile("programs/regular.vs");
+    def->shaders[FRAGMENT_SHADER].file =
+        resource::ioMemoryFile("programs/pbr.fs");
+  }
+  return def;
 }
 void setupPrograms() {
 
@@ -153,12 +116,9 @@ void setupObjects() {
                                        "textures/weapon/Weapon_Special.png"}));
 
   for (int i = 0; i < scene.models->models.size(); i++) {
-    scene.models->models[i]->program = deferredProgram();
+    scene.models->models[i]->program = pbrProgram();
     scene.models->models[i]->material = mat;
   }
-}
-void setupRenderPipeline() {
-  shambhala::setRootRenderCamera(pbrPass(createDefferedPass()));
 }
 int main() {
   EngineParameters parameters;
@@ -174,7 +134,7 @@ int main() {
   configuration.titlename = "Test main";
   configuration.width = 800;
   configuration.height = 600;
-  configuration.mssaLevel = 2;
+  configuration.mssaLevel = 4;
   configuration.openglMajorVersion = 4;
   configuration.openglMinorVersion = 3;
 
@@ -188,7 +148,8 @@ int main() {
   // Init
   createSkyBox();
   // setupModels();
-  setupRenderPipeline();
+
+  // shambhala::setRootRenderCamera(rendercamera::createBlendPass(rendercamera::createForwardPass()));
   int frame = 0;
 
   // setupRenderPipeline();

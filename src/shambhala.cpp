@@ -4,6 +4,7 @@
 #include "simple_vector.hpp"
 #include "standard.hpp"
 #include <algorithm>
+#include <ext.hpp>
 #include <ext/util.hpp>
 #include <stbimage/stb_image.h>
 #include <unordered_map>
@@ -29,7 +30,6 @@ void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
 inline void clearFramebuffer() { glClearColor(0.0, 0.0, 0.0, 1.0); }
 inline void clearDefault() { glClearColor(0.0, 0.0, 0.0, 1.0); }
 
-static Material *emptyMaterial = shambhala::createMaterial();
 struct Engine {
   EngineControllers controllers;
   ModelList *workingModelList;
@@ -38,16 +38,26 @@ struct Engine {
   GLuint vao = -1;
   int frameCounter = 0;
 
+  const char *errorProgramFS = "programs/error.fs";
+  const char *errorProgramVS = "programs/error.vs";
+
+  Program *defaultProgram = nullptr;
+  Material *defaultMaterial = nullptr;
+
   void init() {
     workingModelList = shambhala::createModelList();
     rootRenderCamera = shambhala::createRenderCamera();
     gpu_params = device::queryDeviceParameters();
+
+    defaultProgram = helper::programFromFiles(errorProgramFS, errorProgramVS);
+    defaultMaterial = shambhala::createMaterial();
   }
 
   void prepareRender() {
     clearDefault();
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_MULTISAMPLE);
     vao = device::createVAO();
 #ifdef DEBUG
     glDebugMessageCallback(glError, nullptr);
@@ -460,6 +470,11 @@ void device::useProgram(Program *program) {
 
   SoftCheck(program != nullptr,
             LOG("[Warning] Trying to use a null program!", 0););
+
+  if (program == nullptr || program->errored) {
+    device::useProgram(engine.defaultProgram);
+    return;
+  }
   // Check program compilation with shaders
   bool programUpdate = program->shaderProgram == -1;
   GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
@@ -481,7 +496,7 @@ void device::useProgram(Program *program) {
   if (programUpdate) {
     GLint status;
     program->shaderProgram = device::compileProgram(shaders, &status);
-    program->errored = status;
+    program->errored = !status;
   }
 
   device::bindProgram(program->shaderProgram);
@@ -650,6 +665,7 @@ void device::useModelList(ModelList *modelList) {
 void device::renderPass() {
   const std::vector<int> &renderOrder =
       guseState.currentModelList->getRenderOrder();
+  SoftCheck(renderOrder.size() > 0, LOG("[Warning] Empty render pass ! ", 0););
   for (int i = 0; i < renderOrder.size(); i++) {
     Model *model = guseState.currentModelList->models[renderOrder[i]];
     if (model->enabled) {
@@ -929,7 +945,7 @@ void RenderCamera::render(int frame) {
   }
 
   shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera,
-                              emptyMaterial);
+                              engine.defaultMaterial);
   _isRootCamera = false;
 }
 
@@ -1072,3 +1088,14 @@ IndexBuffer *shambhala::createIndexBuffer() { return new IndexBuffer; }
 void shambhala::buildSortPass() { engine.workingModelList->forceSorting(); }
 //---------------------[END ENGINEUPDATE]
 //---------------------[END ENGINE]
+
+//---------------------[BEGIN HELPER]
+
+Program *shambhala::helper::programFromFiles(const char *fragmentShader,
+                                             const char *vertexShader) {
+  Program *program = shambhala::createProgram();
+  program->shaders[FRAGMENT_SHADER].file =
+      resource::ioMemoryFile(fragmentShader);
+  program->shaders[VERTEX_SHADER].file = resource::ioMemoryFile(vertexShader);
+  return program;
+}

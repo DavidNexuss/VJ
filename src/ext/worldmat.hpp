@@ -91,5 +91,18 @@ public:
 
   FlyCamera();
 };
+
+struct Camera2D : public Material {
+
+  Camera2D();
+  glm::vec2 offset = glm::vec2(0.0);
+  float zoom = 1.0f;
+
+  void update(float deltatime) override;
+  void bind(Program *activeProgram) override;
+
+private:
+  glm::mat4 cameraMatrix;
+};
 } // namespace worldmats
 } // namespace shambhala

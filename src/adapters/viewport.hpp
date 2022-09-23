@@ -16,6 +16,7 @@ struct IViewport {
   double scrollX, scrollY;
   double deltaTime;
 
+  double aspectRatio();
   bool isKeyPressed(int keyCode);
   bool isKeyJustPressed(int keyCode);
 

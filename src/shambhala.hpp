@@ -456,13 +456,7 @@ bool loop_shouldClose();
 namespace shambhala {
 namespace helper {
 
-struct ProgramOpts {
-  const char *fragmentShader;
-  const char *vertexShader;
-};
-
-Program *program(ProgramOpts opts);
-
+Program *programFromFiles(const char *fragmentShader, const char *vertexShader);
 struct ModelOpts {
   Mesh *mesh;
   Program *program;

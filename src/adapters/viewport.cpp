@@ -21,3 +21,7 @@ void shambhala::IViewport::restoreViewport() {
 }
 
 bool shambhala::IViewport::isMousePressed() { return mousePressed; }
+
+double shambhala::IViewport::aspectRatio() {
+  return screenWidth / screenHeight;
+}

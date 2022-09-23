@@ -2,6 +2,7 @@
 #include "worldmat.hpp"
 #include "shambhala.hpp"
 #include <glm/ext.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <standard.hpp>
 
 using namespace glm;
@@ -207,4 +208,27 @@ void DebugCamera::update(float deltatime) {
 
   lookAt(viewpos, target);
   Camera::update(deltatime);
+}
+
+Camera2D::Camera2D() {
+  hasCustomBindFunction = true;
+  Material::needsFrameUpdate = true;
+}
+
+void Camera2D::bind(Program *activeProgram) {
+  static glm::mat4 viewMatrix = glm::mat4(1.0);
+  device::useUniform(Standard::uProjectionMatrix, cameraMatrix);
+  device::useUniform(Standard::uViewMatrix, viewMatrix);
+}
+
+void Camera2D::update(float deltatime) {
+  float width = shambhala::viewport()->screenWidth * 0.5;
+  float height = shambhala::viewport()->screenHeight * 0.5;
+
+  width /= 500.0f;
+  height /= 500.0f;
+  cameraMatrix = glm::ortho(zoom * -width, zoom * width, zoom * -height,
+                            zoom * height, -1.0f, 1.0f);
+  cameraMatrix =
+      glm::translate(cameraMatrix, glm::vec3(-offset.x, -offset.y, 0.0));
 }
