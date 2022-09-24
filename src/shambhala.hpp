@@ -175,6 +175,7 @@ struct Material {
   virtual void bind(Program *activeProgram) {}
   bool needsFrameUpdate = false;
   bool hasCustomBindFunction = false;
+  int currentFrame = -1;
 
   simple_vector<Material *> childMaterials;
 };
@@ -333,9 +334,6 @@ struct RenderCamera : public Material {
                 const char *uniformAttribute);
   void addOutput(FrameBufferAttachmentDescriptor desc);
   void setFrameBufferConfiguration(FrameBufferDescriptorFlags);
-
-private:
-  int currentFrame = -1;
 };
 
 struct EngineControllers {

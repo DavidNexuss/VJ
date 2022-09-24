@@ -35,6 +35,7 @@ inline void clearDefault() { glClearColor(0.0, 0.0, 0.0, 1.0); }
 struct Engine {
   EngineControllers controllers;
   ModelList *workingModelList;
+  RenderCamera *currentRenderCamera;
   DeviceParameters gpu_params;
   GLuint vao = -1;
 
@@ -44,6 +45,7 @@ struct Engine {
   Program *defaultProgram = nullptr;
   Material *defaultMaterial = nullptr;
 
+  bool prepared = false;
   void init() {
     workingModelList = shambhala::createModelList();
     gpu_params = device::queryDeviceParameters();
@@ -53,6 +55,10 @@ struct Engine {
   }
 
   void prepareRender() {
+    if (prepared)
+      return;
+    prepared = true;
+
     clearDefault();
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
@@ -646,7 +652,11 @@ void device::useUniform(const char *name, const Uniform &value) {
 void device::useMaterial(Material *material) {
   if (material == nullptr)
     return;
+  if (material->currentFrame != engine.currentRenderCamera->currentFrame) {
+    material->update(viewport()->deltaTime);
+  }
 
+  material->currentFrame = engine.currentRenderCamera->currentFrame;
   SoftCheck(material != nullptr, log()->log("[Warning] Null material use"););
 
   for (auto &uniform : material->uniforms) {
@@ -914,6 +924,7 @@ void RenderCamera::render(int frame, bool isRoot) {
     renderBindings[i].renderCamera->render(frame);
   }
 
+  engine.currentRenderCamera = this;
   device::useModelList(modelList);
   shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera, this);
 
@@ -1030,6 +1041,7 @@ void *shambhala::createWindow(const WindowConfiguration &configuration) {
 }
 void shambhala::setActiveWindow(void *window) {
   viewport()->setActiveWindow(window);
+  engine.prepareRender();
 }
 
 void shambhala::setWorldMaterial(int clas, Material *worldMaterial) {
@@ -1057,7 +1069,6 @@ ILogger *shambhala::log() { return engine.controllers.logger; }
 
 //---------------------[BEGIN ENGINECREATE]
 
-void shambhala::rendertarget_prepareRender() { engine.prepareRender(); }
 ModelList *shambhala::createModelList() { return new ModelList; }
 Texture *shambhala::createTexture() { return new Texture; }
 Model *shambhala::createModel() { return new Model; }

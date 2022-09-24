@@ -11,11 +11,6 @@
 #include <standard.hpp>
 using namespace shambhala;
 
-void setupRender() {
-  Material *camera = new worldmats::DebugCamera;
-  shambhala::setWorldMaterial(0, camera);
-}
-
 simple_vector<TextureResource *>
 textures(const simple_vector<const char *> &textures) {
 
@@ -120,9 +115,7 @@ int main() {
   configuration.openglMinorVersion = 3;
 
   shambhala::setActiveWindow(shambhala::createWindow(configuration));
-  shambhala::rendertarget_prepareRender();
 
-  setupRender();
   setupObjects();
 
   createSkyBox();
@@ -130,6 +123,7 @@ int main() {
 
   // shambhala::setRootRenderCamera(rendercamera::createBlendPass(rendercamera::createForwardPass()));
   RenderCamera *renderCamera = shambhala::createRenderCamera();
+  renderCamera->childMaterials.push(new worldmats::DebugCamera);
   int frame = 0;
 
   do {
