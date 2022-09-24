@@ -5,6 +5,7 @@
 #include "core/core.hpp"
 #include "simple_vector.hpp"
 #include <glm/glm.hpp>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -174,6 +175,8 @@ struct Material {
   virtual void bind(Program *activeProgram) {}
   bool needsFrameUpdate = false;
   bool hasCustomBindFunction = false;
+
+  simple_vector<Material *> childMaterials;
 };
 
 #undef UNIFORMS_LIST
@@ -323,9 +326,8 @@ struct RenderCamera : public Material {
   Program *postprocessProgram = nullptr;
 
   RenderCamera();
-  bool _isRootCamera = false;
 
-  void render(int frame);
+  void render(int frame, bool isRoot = false);
   void bind(Program *activeProgram) override;
   void addInput(RenderCamera *child, int attachmentIndex,
                 const char *uniformAttribute);
@@ -428,7 +430,6 @@ void removeWorldMaterial(Material *worldMaterial);
 
 ModelList *getWorkingModelList();
 void setWorkingModelList(ModelList *modelList);
-void setRootRenderCamera(RenderCamera *renderCamera);
 void addModel(Model *model);
 
 void buildSortPass();
@@ -448,22 +449,19 @@ void loop_beginRenderContext();
 void loop_endRenderContext();
 void loop_beginUIContext();
 void loop_endUIContext();
-void loop_declarativeRender();
 bool loop_shouldClose();
 
 } // namespace shambhala
 
 namespace shambhala {
-namespace helper {
+namespace loader {
 
-Program *programFromFiles(const char *fragmentShader, const char *vertexShader);
-struct ModelOpts {
-  Mesh *mesh;
-  Program *program;
-  Material *material;
-};
+Program *loadProgram(const char *fragmentShader, const char *vertexShader);
+Texture *loadTexture(const char *path);
 
-Model *model(ModelOpts opts);
-} // namespace helper
+void unloadProgram(Program *program);
+void unloadTexture(Texture *texture);
+
+} // namespace loader
 } // namespace shambhala
 #undef ENUM_OPERATORS

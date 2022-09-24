@@ -11,6 +11,11 @@
 },
 {
   "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/ext/editor.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/ext/editor.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/src/ext/editor.cpp"
+},
+{
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
   "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/shambhala.dir/src/ext/rendercamera.cpp.o -c /home/david/shared/Projects/ShambhalaMini/src/ext/rendercamera.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/src/ext/rendercamera.cpp"
 },

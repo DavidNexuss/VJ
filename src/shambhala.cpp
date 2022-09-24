@@ -6,8 +6,10 @@
 #include <algorithm>
 #include <ext.hpp>
 #include <ext/util.hpp>
+#include <memory>
 #include <stbimage/stb_image.h>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #define REGISTER_UNIFORM_FLUSH()                                               \
@@ -33,10 +35,8 @@ inline void clearDefault() { glClearColor(0.0, 0.0, 0.0, 1.0); }
 struct Engine {
   EngineControllers controllers;
   ModelList *workingModelList;
-  RenderCamera *rootRenderCamera;
   DeviceParameters gpu_params;
   GLuint vao = -1;
-  int frameCounter = 0;
 
   const char *errorProgramFS = "programs/error.fs";
   const char *errorProgramVS = "programs/error.vs";
@@ -46,10 +46,9 @@ struct Engine {
 
   void init() {
     workingModelList = shambhala::createModelList();
-    rootRenderCamera = shambhala::createRenderCamera();
     gpu_params = device::queryDeviceParameters();
 
-    defaultProgram = helper::programFromFiles(errorProgramFS, errorProgramVS);
+    defaultProgram = loader::loadProgram(errorProgramFS, errorProgramVS);
     defaultMaterial = shambhala::createMaterial();
   }
 
@@ -65,7 +64,7 @@ struct Engine {
 #endif
   }
 
-  void cleanup() {}
+  void cleanup() { loader::unloadProgram(defaultProgram); }
 };
 
 static Engine engine;
@@ -656,6 +655,10 @@ void device::useMaterial(Material *material) {
   if (material->hasCustomBindFunction) {
     material->bind(guseState.currentProgram);
   }
+
+  for (int i = 0; i < material->childMaterials.size(); i++) {
+    device::useMaterial(material->childMaterials[i]);
+  }
 }
 
 void device::useModelList(ModelList *modelList) {
@@ -902,7 +905,7 @@ bool Texture::needsUpdate() {
 //---------------------[BEGIN RENDERCAMERA]
 
 RenderCamera::RenderCamera() { hasCustomBindFunction = true; }
-void RenderCamera::render(int frame) {
+void RenderCamera::render(int frame, bool isRoot) {
   if (frame == currentFrame)
     return;
 
@@ -914,7 +917,7 @@ void RenderCamera::render(int frame) {
   device::useModelList(modelList);
   shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera, this);
 
-  bool useFrameBuffer = frameBuffer != nullptr && !_isRootCamera;
+  bool useFrameBuffer = frameBuffer != nullptr && !isRoot;
 
   if (useFrameBuffer) {
     frameBuffer->begin(viewport()->screenWidth, viewport()->screenHeight);
@@ -946,7 +949,6 @@ void RenderCamera::render(int frame) {
 
   shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera,
                               engine.defaultMaterial);
-  _isRootCamera = false;
 }
 
 // TODO: Fix actually call this function
@@ -1004,11 +1006,6 @@ void shambhala::loop_beginRenderContext() {
 }
 void shambhala::loop_beginUIContext() {}
 void shambhala::loop_endRenderContext() { viewport()->dispatchRenderEvents(); }
-void shambhala::loop_declarativeRender() {
-  engine.rootRenderCamera->modelList = engine.workingModelList;
-  engine.rootRenderCamera->_isRootCamera = true;
-  engine.rootRenderCamera->render(engine.frameCounter++);
-}
 void shambhala::loop_endUIContext() {}
 void shambhala::loop_step() {
   for (auto &ent : guseState.worldMaterials) {
@@ -1045,10 +1042,6 @@ void shambhala::addModel(Model *model) {
   if (model->mesh == nullptr) {
     LOG("Warning, model %p does not have a mesh! ", model);
   }
-}
-
-void shambhala::setRootRenderCamera(RenderCamera *renderCamera) {
-  engine.rootRenderCamera = renderCamera;
 }
 
 void shambhala::setWorkingModelList(ModelList *modelList) {
@@ -1091,11 +1084,54 @@ void shambhala::buildSortPass() { engine.workingModelList->forceSorting(); }
 
 //---------------------[BEGIN HELPER]
 
-Program *shambhala::helper::programFromFiles(const char *fragmentShader,
-                                             const char *vertexShader) {
-  Program *program = shambhala::createProgram();
-  program->shaders[FRAGMENT_SHADER].file =
-      resource::ioMemoryFile(fragmentShader);
-  program->shaders[VERTEX_SHADER].file = resource::ioMemoryFile(vertexShader);
-  return program;
+#include <unordered_map>
+
+using Key = unsigned long;
+template <typename T, typename Container> struct LoaderMap {
+  std::unordered_map<Key, T *> cache;
+  std::unordered_map<T *, int> countMap;
+
+  template <typename... Args> T *get(Args &&...args) {
+    Key key = Container::computeKey(std::forward<Args>(args)...);
+    auto it = cache.find(key);
+    if (it != cache.end()) {
+      int counter = countMap[it->second];
+      if (counter >= 1) {
+        countMap[it->second]++;
+        return it->second;
+      }
+    }
+    T *result = cache[key] = Container::create(std::forward<Args>(args)...);
+    countMap[result] = 1;
+    return result;
+  }
+
+  void unload(T *ptr) {
+    int count = --countMap[ptr];
+    if (count < 1) {
+      delete ptr;
+    }
+  }
+};
+
+struct ProgramContainer : public LoaderMap<Program, ProgramContainer> {
+  static Program *create(const char *fs, const char *vs) {
+    Program *program = shambhala::createProgram();
+    program->shaders[FRAGMENT_SHADER].file = resource::ioMemoryFile(fs);
+    program->shaders[VERTEX_SHADER].file = resource::ioMemoryFile(vs);
+    return program;
+  }
+
+  static Key computeKey(const char *fs, const char *vs) {
+    return Key(fs) * 5 + Key(vs) * 3;
+  }
+};
+
+static ProgramContainer programContainer;
+
+Program *loader::loadProgram(const char *fs, const char *vs) {
+  return programContainer.get(fs, vs);
+}
+void loader::unloadProgram(Program *program) {
+  programContainer.unload(program);
 }

@@ -2,6 +2,7 @@
 #include "ext/util.hpp"
 #include "simple_vector.hpp"
 #include <ext.hpp>
+#include <glm/ext/matrix_transform.hpp>
 #include <impl/io_linux.hpp>
 #include <impl/logger.hpp>
 #include <impl/viewport_glfw.hpp>
@@ -33,21 +34,6 @@ void createSkyBox() {
   shambhala::addModel(skybox);
 }
 
-Program *errorProgram;
-
-Program *deferredProgram() {
-  static Program *deferredProgram = nullptr;
-  if (deferredProgram == nullptr) {
-
-    deferredProgram = createProgram();
-    deferredProgram->shaders[VERTEX_SHADER].file =
-        resource::ioMemoryFile("programs/forward_pbr.vs");
-    deferredProgram->shaders[FRAGMENT_SHADER].file =
-        resource::ioMemoryFile("programs/forward_pbr.fs");
-  }
-  return deferredProgram;
-}
-
 Program *pbrProgram() {
   static Program *def = nullptr;
   if (def == nullptr) {
@@ -60,26 +46,16 @@ Program *pbrProgram() {
   }
   return def;
 }
-void setupPrograms() {
 
-  errorProgram = createProgram();
-  errorProgram->shaders[FRAGMENT_SHADER].file =
-      resource::ioMemoryFile("assets/materials/error.frag");
-  errorProgram->shaders[VERTEX_SHADER].file =
-      resource::ioMemoryFile("assets/materials/error.vert");
-}
-Model *cube;
 void setupModels() {
 
-  cube = createModel();
+  Model *cube = createModel();
   cube->mesh = util::meshCreateCube();
-  cube->program = errorProgram;
   shambhala::addModel(cube);
 }
 
-Material *
-createDefferedMaterial(const simple_vector<TextureResource *> &textureData) {
-  Material *mat = shambhala::createMaterial();
+Material *createPbrMaterial(const simple_vector<TextureResource *> &textureData,
+                            Material *mat) {
   static const char *uniforms[] = {Standard::uBaseColor, Standard::uBump,
                                    Standard::uSpecial};
   for (int i = 0; i < textureData.size(); i++) {
@@ -95,11 +71,13 @@ createDefferedMaterial(const simple_vector<TextureResource *> &textureData) {
 #include <assimp/postprocess.h>
 #include <standard.hpp>
 
+Node *rootScene;
 void setupObjects() {
   SceneLoaderConfiguration configuration;
   configuration.assimpFlags = aiProcess_FlipUVs | aiProcess_GenNormals |
                               aiProcess_Triangulate |
                               aiProcess_CalcTangentSpace;
+
   configuration.attributes = {{Standard::aPosition, 3},
                               {Standard::aNormal, 3},
                               {Standard::aUV, 2},
@@ -111,14 +89,17 @@ void setupObjects() {
   Scene scene(def);
   shambhala::setWorkingModelList(scene.models);
   Material *mat =
-      createDefferedMaterial(textures({"textures/weapon/Weapon_BaseColor.png",
-                                       "textures/weapon/Weapon_Normal.png",
-                                       "textures/weapon/Weapon_Special.png"}));
+      createPbrMaterial(textures({"textures/weapon/Weapon_BaseColor.png",
+                                  "textures/weapon/Weapon_Normal.png",
+                                  "textures/weapon/Weapon_Special.png"}),
+                        shambhala::createMaterial());
 
   for (int i = 0; i < scene.models->models.size(); i++) {
     scene.models->models[i]->program = pbrProgram();
     scene.models->models[i]->material = mat;
   }
+
+  rootScene = scene.rootNode;
 }
 int main() {
   EngineParameters parameters;
@@ -142,22 +123,24 @@ int main() {
   shambhala::rendertarget_prepareRender();
 
   setupRender();
-  setupPrograms();
   setupObjects();
 
-  // Init
   createSkyBox();
   // setupModels();
 
   // shambhala::setRootRenderCamera(rendercamera::createBlendPass(rendercamera::createForwardPass()));
+  RenderCamera *renderCamera = shambhala::createRenderCamera();
   int frame = 0;
 
-  // setupRenderPipeline();
   do {
+
+    glm::mat4 transform = rootScene->getTransformMatrix();
+    transform = glm::rotate(transform, 0.2f, glm::vec3(0, 1, 0));
+    rootScene->setTransformMatrix(transform);
 
     shambhala::loop_step();
     shambhala::loop_beginRenderContext();
-    shambhala::loop_declarativeRender();
+    renderCamera->render(frame++, true);
     shambhala::loop_beginUIContext();
     shambhala::loop_endUIContext();
     shambhala::loop_endRenderContext();
