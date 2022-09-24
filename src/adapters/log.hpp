@@ -10,11 +10,14 @@ struct ILogger {
 ILogger *log();
 } // namespace shambhala
 
+#include <string.h>
+#define __FILENAME__                                                           \
+  (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #ifdef DEBUG
 #define LOGS(severity, fmt, ...)                                               \
   do {                                                                         \
     char buffer[4096];                                                         \
-    sprintf(buffer, "[%s : %d] " fmt, __FILE__, __LINE__, __VA_ARGS__);        \
+    sprintf(buffer, "[%s : %d] " fmt, __FILENAME__, __LINE__, __VA_ARGS__);    \
     shambhala::log()->log(buffer, severity);                                   \
   } while (0)
 
