@@ -32,6 +32,11 @@ struct IViewport {
   virtual void dispatchRenderEvents() = 0;
   virtual bool shouldClose() = 0;
 
+  virtual void imguiInit(int openglmajor, int openglminor) = 0;
+  virtual void imguiDispose() = 0;
+  virtual void imguiBeginRender() = 0;
+  virtual void imguiEndRender() = 0;
+
   std::unordered_map<int, bool> pressed;
   std::unordered_map<int, bool> justPressed;
 

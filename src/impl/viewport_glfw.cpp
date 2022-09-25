@@ -1,3 +1,4 @@
+#include <string>
 #define GLFW_STATIC
 #include "viewport_glfw.hpp"
 #include <GL/glew.h>
@@ -76,6 +77,47 @@ void ViewportGLFW::dispatchRenderEvents() {
 
 bool ViewportGLFW::shouldClose() {
   return glfwWindowShouldClose(currentWindow);
+}
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
+void ViewportGLFW::imguiInit(int openglMajorVersion, int openglMinorVersion) {
+
+  ImGui::CreateContext();
+  ImGuiIO &io = ImGui::GetIO();
+  (void)io;
+  io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+  io.ConfigFlags |=
+      ImGuiConfigFlags_NavEnableGamepad; // Enable Gamepad Controls
+
+  // Setup Dear ImGui style
+  ImGui::StyleColorsDark();
+
+  // Setup Platform/Renderer backends
+  ImGui_ImplGlfw_InitForOpenGL(currentWindow, true);
+
+  std::string version = "#version " + std::to_string(openglMajorVersion) +
+                        std::to_string(openglMinorVersion) + "0 ";
+  ImGui_ImplOpenGL3_Init(version.c_str());
+}
+void ViewportGLFW::imguiDispose() {
+
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext();
+}
+void ViewportGLFW::imguiBeginRender() {
+
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
+}
+void ViewportGLFW::imguiEndRender() {
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 using namespace std;

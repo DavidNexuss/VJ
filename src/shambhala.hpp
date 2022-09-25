@@ -178,6 +178,8 @@ struct Material {
   int currentFrame = -1;
 
   simple_vector<Material *> childMaterials;
+
+  void addNextMaterial(Material *);
 };
 
 #undef UNIFORMS_LIST
@@ -309,6 +311,8 @@ public:
   vector<FrameBufferAttachmentDescriptor> attachmentsDefinition;
 
   void setConfiguration(FrameBufferDescriptorFlags flags);
+  int getWidth();
+  int getHeight();
 };
 
 struct RenderCamera;
@@ -322,18 +326,37 @@ struct RenderCamera : public Material {
   ModelList *modelList = nullptr;
   FrameBuffer *frameBuffer = nullptr;
   simple_vector<RenderBinding> renderBindings;
+  simple_vector<RenderCamera *> dummyInput;
 
   Program *overrideProgram = nullptr;
   Program *postprocessProgram = nullptr;
 
   RenderCamera();
 
-  void render(int frame, bool isRoot = false);
-  void bind(Program *activeProgram) override;
+  virtual void render(int frame, bool isRoot = false);
+
+  void beginRender(int frame, bool isRoot = false);
+  void endRender(int frame, bool isRoot = false);
+
+  virtual void bind(Program *activeProgram) override;
   void addInput(RenderCamera *child, int attachmentIndex,
                 const char *uniformAttribute);
+  void addDummyInput(RenderCamera *child);
+  RenderCamera *getDummyInput(int index);
+  int getDummyInputCount();
+
   void addOutput(FrameBufferAttachmentDescriptor desc);
   void setFrameBufferConfiguration(FrameBufferDescriptorFlags);
+  int getWidth();
+  int getHeight();
+};
+
+struct RenderConfiguration {
+  int mssaLevel = 0;
+  bool wireRendering = false;
+  glm::vec3 clearColor = glm::vec3(0.0);
+  int virtualWidth = 0;
+  int virtualHeight = 0;
 };
 
 struct EngineControllers {
@@ -425,6 +448,8 @@ IndexBuffer *createIndexBuffer();
 void setWorldMaterial(int clas, Material *worldMaterial);
 void addWorldMaterial(Material *worldMaterial);
 void removeWorldMaterial(Material *worldMaterial);
+void pushRenderConfiguration(RenderConfiguration *configuration);
+void popRenderConfiguration();
 
 ModelList *getWorkingModelList();
 void setWorkingModelList(ModelList *modelList);
@@ -442,7 +467,6 @@ void setActiveWindow(void *window);
 void destroyEngine();
 
 void rendertarget_prepareRender();
-void loop_step();
 void loop_beginRenderContext();
 void loop_endRenderContext();
 void loop_beginUIContext();

@@ -11,6 +11,11 @@ struct ViewportGLFW : public IViewport {
   virtual void dispatchRenderEvents() override;
   virtual bool shouldClose() override;
 
+  void imguiInit(int openglmajor, int openglminor) override;
+  void imguiDispose() override;
+  void imguiBeginRender() override;
+  void imguiEndRender() override;
+
   void *createWindow(const WindowConfiguration &configuration) override;
 };
 } // namespace shambhala

@@ -11,8 +11,8 @@ bool shambhala::IViewport::isKeyJustPressed(int keyCode) {
 void shambhala::IViewport::fakeViewportSize(int width, int height) {
   backedWidth = screenWidth;
   backedHeight = screenHeight;
-  screenWidth = width;
-  screenHeight = height;
+  screenWidth = width == 0 ? screenWidth : width;
+  screenHeight = height == 0 ? screenHeight : height;
 }
 
 void shambhala::IViewport::restoreViewport() {

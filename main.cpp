@@ -20,13 +20,14 @@ textures(const simple_vector<const char *> &textures) {
   }
   return result;
 }
-void createSkyBox() {
+Material *createSkyBox() {
   Model *skybox = util::modelCreateSkyBox(textures(
       {"assets/textures/canyon/right.png", "assets/textures/canyon/left.png",
        "assets/textures/canyon/top.png", "assets/textures/canyon/bottom.png",
        "assets/textures/canyon/front.png", "assets/textures/canyon/back.png"}));
 
   shambhala::addModel(skybox);
+  return skybox->material;
 }
 
 Program *pbrProgram() {
@@ -118,25 +119,31 @@ int main() {
 
   setupObjects();
 
-  createSkyBox();
+  Material *sky = createSkyBox();
   // setupModels();
 
   // shambhala::setRootRenderCamera(rendercamera::createBlendPass(rendercamera::createForwardPass()));
   RenderCamera *renderCamera = shambhala::createRenderCamera();
-  renderCamera->childMaterials.push(new worldmats::DebugCamera);
+  renderCamera->addNextMaterial(sky);
+  renderCamera->addNextMaterial(new worldmats::DebugCamera);
+  // renderCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
+
   int frame = 0;
 
+  editor::addEditorTab(renderCamera, "mainwindow");
   do {
 
     glm::mat4 transform = rootScene->getTransformMatrix();
     transform = glm::rotate(transform, 0.2f, glm::vec3(0, 1, 0));
     rootScene->setTransformMatrix(transform);
 
-    shambhala::loop_step();
     shambhala::loop_beginRenderContext();
-    renderCamera->render(frame++, true);
-    shambhala::loop_beginUIContext();
-    shambhala::loop_endUIContext();
+    /*
+        shambhala::loop_beginUIContext();
+        editor::editorRender(frame++);
+        shambhala::loop_endUIContext();*/
+
+    renderCamera->render(frame++);
     shambhala::loop_endRenderContext();
 
   } while (!shambhala::loop_shouldClose());

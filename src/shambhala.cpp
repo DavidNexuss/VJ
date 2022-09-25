@@ -37,6 +37,7 @@ struct Engine {
   ModelList *workingModelList;
   RenderCamera *currentRenderCamera;
   DeviceParameters gpu_params;
+  RenderConfiguration *renderConfig;
   GLuint vao = -1;
 
   const char *errorProgramFS = "programs/error.fs";
@@ -52,22 +53,7 @@ struct Engine {
 
     defaultProgram = loader::loadProgram(errorProgramFS, errorProgramVS);
     defaultMaterial = shambhala::createMaterial();
-  }
-
-  void prepareRender() {
-    if (prepared)
-      return;
-    prepared = true;
-
-    clearDefault();
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_MULTISAMPLE);
-    vao = device::createVAO();
-#ifdef DEBUG
-    glDebugMessageCallback(glError, nullptr);
-    glEnable(GL_DEBUG_OUTPUT);
-#endif
+    renderConfig = new RenderConfiguration;
   }
 
   void cleanup() { loader::unloadProgram(defaultProgram); }
@@ -343,10 +329,10 @@ struct BindState {
   int activeTextureUnit = -1;
 
   bool cullFrontFace = false;
-  void clearState() {}
 
   GLuint currentVao = -1;
 
+  void clearState() { currentVao = -1; }
   void printBindState() {}
 };
 static BindState gBindState;
@@ -652,7 +638,8 @@ void device::useUniform(const char *name, const Uniform &value) {
 void device::useMaterial(Material *material) {
   if (material == nullptr)
     return;
-  if (material->currentFrame != engine.currentRenderCamera->currentFrame) {
+  if (material->currentFrame != engine.currentRenderCamera->currentFrame &&
+      material->needsFrameUpdate) {
     material->update(viewport()->deltaTime);
   }
 
@@ -838,6 +825,9 @@ void FrameBuffer::setConfiguration(FrameBufferDescriptorFlags flags) {
   configuration = flags;
 }
 
+int FrameBuffer::getWidth() { return bufferWidth; }
+int FrameBuffer::getHeight() { return bufferHeight; }
+
 //---------------------[FRAMEBUFFER END]
 //---------------------[MODEL BEGIN]
 bool Model::operator<(const Model &model) const {
@@ -885,6 +875,7 @@ void ModelList::forceSorting() { shouldSort = true; }
 
 //---------------------[BEGIN COMPONENT METHODS]
 
+void Material::addNextMaterial(Material *mat) { childMaterials.push(mat); }
 int Mesh::vertexCount() {
   if (ebo == nullptr)
     return vbo->vertexBuffer.size() / vbo->vertexSize();
@@ -915,11 +906,17 @@ bool Texture::needsUpdate() {
 //---------------------[BEGIN RENDERCAMERA]
 
 RenderCamera::RenderCamera() { hasCustomBindFunction = true; }
+
 void RenderCamera::render(int frame, bool isRoot) {
+  beginRender(frame, isRoot);
+  endRender(frame);
+}
+
+void RenderCamera::beginRender(int frame, bool isRoot) {
+
   if (frame == currentFrame)
     return;
 
-  currentFrame = frame;
   for (int i = 0; i < renderBindings.size(); i++) {
     renderBindings[i].renderCamera->render(frame);
   }
@@ -927,6 +924,14 @@ void RenderCamera::render(int frame, bool isRoot) {
   engine.currentRenderCamera = this;
   device::useModelList(modelList);
   shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera, this);
+}
+
+void RenderCamera::endRender(int frame, bool isRoot) {
+
+  if (frame == currentFrame)
+    return;
+
+  currentFrame = frame;
 
   bool useFrameBuffer = frameBuffer != nullptr && !isRoot;
 
@@ -992,6 +997,14 @@ void RenderCamera::addInput(RenderCamera *child, int attachmentIndex,
   renderBindings.push(renderBinding);
 }
 
+void RenderCamera::addDummyInput(RenderCamera *child) {
+  dummyInput.push(child);
+}
+RenderCamera *RenderCamera::getDummyInput(int index) {
+  return dummyInput[index];
+}
+int RenderCamera::getDummyInputCount() { return dummyInput.size(); }
+
 void RenderCamera::addOutput(FrameBufferAttachmentDescriptor desc) {
   if (frameBuffer == nullptr)
     frameBuffer = shambhala::createFramebuffer();
@@ -1005,31 +1018,61 @@ void RenderCamera::setFrameBufferConfiguration(
   }
   frameBuffer->setConfiguration(flags);
 }
+
+int RenderCamera::getWidth() {
+  if (frameBuffer != nullptr)
+    return frameBuffer->getWidth();
+  return viewport()->screenWidth;
+}
+int RenderCamera::getHeight() {
+  if (frameBuffer != nullptr)
+    return frameBuffer->getHeight();
+  return viewport()->screenHeight;
+}
 //---------------------[END RENDERCAMERA]
 //---------------------[BEGIN ENGINE]
 
 void shambhala::loop_beginRenderContext() {
   guseState.clearState();
   gBindState.clearState();
+
+  glClearColor(engine.renderConfig->clearColor.x,
+               engine.renderConfig->clearColor.y,
+               engine.renderConfig->clearColor.z, 1.0);
+  glEnable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_MULTISAMPLE);
+  if (engine.vao == -1) {
+    engine.vao = device::createVAO();
+
+    viewport()->imguiInit(4, 2);
+  }
+#ifdef DEBUG
+  glDebugMessageCallback(glError, nullptr);
+  glEnable(GL_DEBUG_OUTPUT);
+#endif
+
+  viewport()->fakeViewportSize(engine.renderConfig->virtualWidth,
+                               engine.renderConfig->virtualHeight);
+
   glViewport(0, 0, viewport()->screenWidth, viewport()->screenHeight);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   device::bindVao(engine.vao);
 }
-void shambhala::loop_beginUIContext() {}
-void shambhala::loop_endRenderContext() { viewport()->dispatchRenderEvents(); }
-void shambhala::loop_endUIContext() {}
-void shambhala::loop_step() {
-  for (auto &ent : guseState.worldMaterials) {
-    if (ent.second->needsFrameUpdate) {
-      ent.second->update(viewport()->deltaTime);
-    }
-  }
+
+void shambhala::loop_beginUIContext() { viewport()->imguiBeginRender(); }
+
+void shambhala::loop_endRenderContext() {
+  viewport()->restoreViewport();
+  viewport()->dispatchRenderEvents();
 }
 
-// TODO FIX: glfw header incluse
+void shambhala::loop_endUIContext() { viewport()->imguiEndRender(); }
+
 bool shambhala::loop_shouldClose() { return viewport()->shouldClose(); }
 
 void shambhala::destroyEngine() {}
+
 //---------------------[BEGIN ENGINECONFIGURATION]
 void shambhala::createEngine(EngineParameters parameters) {
   engine.controllers = parameters;
@@ -1041,7 +1084,6 @@ void *shambhala::createWindow(const WindowConfiguration &configuration) {
 }
 void shambhala::setActiveWindow(void *window) {
   viewport()->setActiveWindow(window);
-  engine.prepareRender();
 }
 
 void shambhala::setWorldMaterial(int clas, Material *worldMaterial) {
