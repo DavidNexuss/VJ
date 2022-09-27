@@ -68,12 +68,14 @@ Material *createPbrMaterial(const simple_vector<TextureResource *> &textureData,
 #include <assimp/postprocess.h>
 #include <standard.hpp>
 
-Node *rootScene;
-void setupObjects() {
-  SceneLoaderConfiguration configuration;
+Scene loadScene(const char *path) { 
+SceneLoaderConfiguration configuration;
   configuration.assimpFlags = aiProcess_FlipUVs | aiProcess_GenNormals |
                               aiProcess_Triangulate |
-                              aiProcess_CalcTangentSpace;
+                              aiProcess_CalcTangentSpace | 
+                              aiProcess_OptimizeGraph | 
+                              aiProcess_OptimizeMeshes |
+                              aiProcess_PreTransformVertices;
 
   configuration.attributes = {{Standard::aPosition, 3},
                               {Standard::aNormal, 3},
@@ -81,23 +83,42 @@ void setupObjects() {
                               {Standard::aTangent, 3}};
 
   SceneDefinition def;
-  def.scenePath = "machine/objects/weapon.obj";
+  def.scenePath = path;
   def.configuration = configuration;
-  Scene scene(def);
-  shambhala::setWorkingModelList(scene.models);
+  return Scene(def);
+}
+void setupObjects() {
+  Scene weapon = loadScene("machine/objects/weapon.obj");
+  shambhala::setWorkingModelList(weapon.models);
   Material *mat =
       createPbrMaterial(textures({"textures/weapon/Weapon_BaseColor.png",
                                   "textures/weapon/Weapon_Normal.png",
                                   "textures/weapon/Weapon_Special.png"}),
                         shambhala::createMaterial());
 
-  for (int i = 0; i < scene.models->models.size(); i++) {
-    scene.models->models[i]->program = pbrProgram();
-    scene.models->models[i]->material = mat;
+  for (int i = 0; i < weapon.models->models.size(); i++) {
+    weapon.models->models[i]->program = pbrProgram();
+    weapon.models->models[i]->material = mat;
   }
 
-  rootScene = scene.rootNode;
-  gi::bakeAmbientOcclusion(scene.models, 2048, 1);
+  gi::bakeAmbientOcclusion(weapon.models, 2048, 1);
+}
+
+void setupPlayer() { 
+  Scene robot = loadScene("machine/objects/robot.obj");
+  shambhala::setWorkingModelList(robot.models);
+  Program* textured = shambhala::loader::loadProgram("programs/textured.fs", "programs/regular.vs");
+  Material *mat = shambhala::createMaterial();
+  Texture* baseColor = shambhala::createTexture();
+  baseColor->addTextureResource(shambhala::resource::stbiTextureFile("color2.png",3));
+  mat->set(Standard::uBaseColor, DynamicTexture{baseColor});
+
+  for (size_t i = 0; i < robot.models->size(); i++) {
+    robot.models->get(i)->program = textured;
+    robot.models->get(i)->material = mat;
+  }
+
+//  gi::bakeAmbientOcclusion(robot.models, 2048,1);
 }
 
 void enginecreate() {
@@ -124,7 +145,8 @@ void enginecreate() {
 int main() {
 
   enginecreate();
-  setupObjects();
+  //setupObjects();
+  setupPlayer();
 
   Material *sky = createSkyBox();
   // setupModels();
@@ -141,10 +163,6 @@ int main() {
 
   // editor::addEditorTab(renderCamera, "mainwindow");
   do {
-
-    glm::mat4 transform = rootScene->getTransformMatrix();
-    transform = glm::rotate(transform, 0.2f, glm::vec3(0, 1, 0));
-    rootScene->setTransformMatrix(transform);
 
     shambhala::loop_beginRenderContext();
     /*
