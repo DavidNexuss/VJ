@@ -28,6 +28,7 @@ struct IResource {
   const char *resourcename = nullptr;
   bool claim();
   bool needsUpdate();
+  void forceUpdate();
 
 private:
   bool _needsUpdate = true;
@@ -39,7 +40,7 @@ struct MemoryResource : public IResource {
 };
 
 struct Shader {
-  GLuint shader;
+  GLuint shader = -1;
   IResource *file = nullptr;
 };
 
@@ -76,6 +77,9 @@ struct DynamicTexture {
   int unit = 0;
 
   DynamicTexture() {}
+  DynamicTexture(Texture *sourceTexture) {
+    this->sourceTexture = sourceTexture;
+  }
 };
 
 #define UNIFORMS_LIST(o)                                                       \
@@ -146,7 +150,7 @@ struct IndexBuffer {
 };
 
 struct Mesh {
-  int meshLayout = 0;
+  // int meshLayout = 0;
   VertexBuffer *vbo = nullptr;
   IndexBuffer *ebo = nullptr;
 
@@ -237,6 +241,9 @@ struct ModelList {
 
   void add(Model *model);
   void forceSorting();
+
+  int size() const;
+  Model *get(int index) const;
   const std::vector<int> &getRenderOrder();
 
   ModelList();
@@ -246,10 +253,11 @@ private:
   bool shouldSort = true;
 };
 struct TextureResource : public IResource {
-  uint8_t *textureBuffer;
+  uint8_t *textureBuffer = nullptr;
   int width;
   int height;
-  int components;
+  int components = 3;
+  bool hdrSpace = false;
   virtual io_buffer *read() override;
 };
 struct Texture {
@@ -389,7 +397,7 @@ GLuint getShaderType(int shaderType);
 GLuint getUniform(GLuint program, const char *name);
 
 void uploadTexture(GLenum target, unsigned char *texturebuffer, int width,
-                   int height, int components);
+                   int height, int components, bool hdr);
 
 void uploadDepthTexture(GLuint texture, int width, int height);
 void uploadStencilTexture(GLuint texture, int width, int height);
@@ -473,6 +481,9 @@ void loop_beginUIContext();
 void loop_endUIContext();
 bool loop_shouldClose();
 
+void engine_clearState();
+void engine_prepareRender();
+void engine_prepareDeclarativeRender();
 } // namespace shambhala
 
 namespace shambhala {

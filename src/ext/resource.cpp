@@ -1,4 +1,5 @@
 #include "resource.hpp"
+#include <standard.hpp>
 #include <stbimage/stb_image.h>
 using namespace shambhala;
 
@@ -37,3 +38,17 @@ bool IResource::claim() {
 }
 
 bool IResource::needsUpdate() { return this->_needsUpdate; }
+
+void IResource::forceUpdate() { _needsUpdate = true; }
+struct StaticMemoryResource : public IResource {
+  io_buffer buffer;
+  io_buffer *read() override { return &buffer; }
+};
+IResource *
+shambhala::resource::createFromNullTerminatedString(const char *data,
+                                                    const char *resourcename) {
+  StaticMemoryResource *resource = new StaticMemoryResource;
+  resource->buffer = {(uint8_t *)data, Standard::resourceNullTerminated};
+  resource->resourcename = resourcename;
+  return resource;
+}

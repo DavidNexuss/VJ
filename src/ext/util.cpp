@@ -124,38 +124,22 @@ Mesh *util::createScreen() {
   return result;
 }
 
-struct StaticMemoryResource : public IResource {
-  io_buffer buffer;
-  io_buffer *read() override { return &buffer; }
-};
-
-StaticMemoryResource *createFromNullTerminatedString(const char *data,
-                                                     const char *resourcename) {
-  StaticMemoryResource *resource = new StaticMemoryResource;
-  resource->buffer = {(uint8_t *)data, Standard::resourceNullTerminated};
-  resource->resourcename = resourcename;
-  return resource;
-}
-
 Shader util::createScreenVertexShader() {
   Shader shader;
-  StaticMemoryResource *res = new StaticMemoryResource;
-  res->buffer = {(uint8_t *)screenVertexShader,
-                 Standard::resourceNullTerminated};
-  res->resourcename = "internal:screen_vertex_shader";
-  shader.file = res;
+  shader.file = resource::createFromNullTerminatedString(
+      screenVertexShader, "internal:screen_vertex_shader");
   return shader;
 }
 Shader util::createEmptyFragmentShader() {
   Shader shader;
-  shader.file = createFromNullTerminatedString(emptyFragShader,
-                                               "internal:empty_frag_shader");
+  shader.file = resource::createFromNullTerminatedString(
+      emptyFragShader, "internal:empty_frag_shader");
   return shader;
 }
 Shader util::createRegularVertexShader() {
   Shader shader;
-  shader.file = createFromNullTerminatedString(regularVertexShader,
-                                               "internal:regular_vert_shader");
+  shader.file = resource::createFromNullTerminatedString(
+      regularVertexShader, "internal:regular_vert_shader");
   return shader;
 }
 

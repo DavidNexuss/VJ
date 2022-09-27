@@ -175,6 +175,8 @@ public:
   }
 
   const T *data() const { return _data; }
+  uint8_t *bindata() { return (uint8_t *)_data; }
+
   ~simple_vector() {
     if (_data != nullptr && !freeVector) {
       delete[] _data;

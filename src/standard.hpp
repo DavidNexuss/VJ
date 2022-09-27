@@ -20,7 +20,8 @@ enum VertexAttributes {
   aBiTangent = 5,
   aColorAlpha = 6,
   aPosition2 = 7,
-  aPosition4 = 8
+  aPosition4 = 8,
+  aUVLightmap = 9
 };
 
 // Vertex attributes sizes
@@ -46,7 +47,8 @@ enum WorldMaterialAspect { wGlobal = 0, wCamera, wSky, wCount };
       f(uBaseColor)        /* sampler2D  Base Color */                         \
       f(uBump)             /* sampler2D  Bump map */                           \
       f(uSpecial)          /* sampler2D  Special map */                        \
-      f(uDepth)
+      f(uDepth)            /* sampler2D  Depth map */                          \
+      f(uLightmap)         /* sampler2D  Light map */
 
 #define CHARACTER_LIST(O) static const char *O = #O;
 
@@ -57,8 +59,8 @@ UNIFORM_LIST(CHARACTER_LIST)
 
 // Engine reserved textureUnits
 enum TextureUnits {
+  tCreation = 0,
   tShadowMap = 13,
-  tCreation = 14,
   tSkyBox = 15,
   tDepthTexture = 16,
   tAttachmentTexture = 17

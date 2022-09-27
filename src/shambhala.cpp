@@ -16,7 +16,7 @@
   do {                                                                         \
   } while (0)
 
-#define TEXTURE_CACHING 0
+#define TEXTURE_CACHING 1
 
 using namespace shambhala;
 
@@ -168,12 +168,13 @@ int VertexBuffer::vertexSize() const {
 
 //--------------------------[BEGIN UPLOAD]
 void device::uploadTexture(GLenum target, unsigned char *texturebuffer,
-                           int width, int height, int components) {
+                           int width, int height, int components, bool hdr) {
 
   const static int internalFormat[] = {GL_RED, GL_RG8, GL_RGB8, GL_RGBA8};
   const static int externalFormat[] = {GL_RED, GL_RG, GL_RGB, GL_RGBA};
   glTexImage2D(target, 0, internalFormat[components - 1], width, height, 0,
-               externalFormat[components - 1], GL_UNSIGNED_BYTE, texturebuffer);
+               externalFormat[components - 1],
+               hdr ? GL_FLOAT : GL_UNSIGNED_BYTE, texturebuffer);
 }
 
 void device::uploadDepthTexture(GLuint texture, int width, int height) {
@@ -377,7 +378,6 @@ void device::bindTexture(GLuint textureId, GLenum mode, int textureUnit) {
   }
 
 #else
-
   glActiveTexture(textureUnit + GL_TEXTURE0);
   glBindTexture(mode, textureId);
 #endif
@@ -589,7 +589,8 @@ void device::useTexture(Texture *texture) {
         device::uploadTexture(target, texture->textureData[i]->textureBuffer,
                               texture->textureData[i]->width,
                               texture->textureData[i]->height,
-                              texture->textureData[i]->components);
+                              texture->textureData[i]->components,
+                              texture->textureData[i]->hdrSpace);
       }
     }
     glGenerateMipmap(target);
@@ -871,6 +872,9 @@ const std::vector<int> &ModelList::getRenderOrder() {
 }
 
 void ModelList::forceSorting() { shouldSort = true; }
+
+int ModelList::size() const { return models.size(); }
+Model *ModelList::get(int index) const { return models[index]; }
 //---------------------[MODELLIST END]
 
 //---------------------[BEGIN COMPONENT METHODS]
@@ -1033,12 +1037,18 @@ int RenderCamera::getHeight() {
 //---------------------[BEGIN ENGINE]
 
 void shambhala::loop_beginRenderContext() {
+  engine_clearState();
+  engine_prepareRender();
+  engine_prepareDeclarativeRender();
+}
+
+void shambhala::engine_clearState() {
   guseState.clearState();
   gBindState.clearState();
+}
 
-  glClearColor(engine.renderConfig->clearColor.x,
-               engine.renderConfig->clearColor.y,
-               engine.renderConfig->clearColor.z, 1.0);
+void shambhala::engine_prepareRender() {
+
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
@@ -1046,18 +1056,26 @@ void shambhala::loop_beginRenderContext() {
     engine.vao = device::createVAO();
 
     viewport()->imguiInit(4, 2);
-  }
+
 #ifdef DEBUG
-  glDebugMessageCallback(glError, nullptr);
-  glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(glError, nullptr);
+    glEnable(GL_DEBUG_OUTPUT);
 #endif
+  }
+  device::bindVao(engine.vao);
+}
+
+void shambhala::engine_prepareDeclarativeRender() {
+
+  glClearColor(engine.renderConfig->clearColor.x,
+               engine.renderConfig->clearColor.y,
+               engine.renderConfig->clearColor.z, 1.0);
 
   viewport()->fakeViewportSize(engine.renderConfig->virtualWidth,
                                engine.renderConfig->virtualHeight);
 
   glViewport(0, 0, viewport()->screenWidth, viewport()->screenHeight);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  device::bindVao(engine.vao);
 }
 
 void shambhala::loop_beginUIContext() { viewport()->imguiBeginRender(); }

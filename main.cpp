@@ -1,4 +1,5 @@
 #include "adapters/log.hpp"
+#include "ext/gi.hpp"
 #include "ext/util.hpp"
 #include "simple_vector.hpp"
 #include <ext.hpp>
@@ -96,8 +97,11 @@ void setupObjects() {
   }
 
   rootScene = scene.rootNode;
+  gi::bakeAmbientOcclusion(scene.models, 512, 1);
 }
-int main() {
+
+void enginecreate() {
+
   EngineParameters parameters;
   parameters.io = new shambhala::LinuxIO;
   parameters.viewport = new shambhala::ViewportGLFW;
@@ -116,21 +120,26 @@ int main() {
   configuration.openglMinorVersion = 3;
 
   shambhala::setActiveWindow(shambhala::createWindow(configuration));
+}
+int main() {
 
+  enginecreate();
   setupObjects();
 
   Material *sky = createSkyBox();
   // setupModels();
 
-  // shambhala::setRootRenderCamera(rendercamera::createBlendPass(rendercamera::createForwardPass()));
-  RenderCamera *renderCamera = shambhala::createRenderCamera();
-  renderCamera->addNextMaterial(sky);
-  renderCamera->addNextMaterial(new worldmats::DebugCamera);
-  // renderCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
+  RenderCamera *renderCamera =
+      rendercamera::createBlendPass(rendercamera::createForwardPass());
+  renderCamera->frameBuffer = nullptr;
+
+  renderCamera = shambhala::createRenderCamera();
+  shambhala::setWorldMaterial(Standard::wSky, sky);
+  shambhala::setWorldMaterial(Standard::wCamera, new worldmats::DebugCamera);
 
   int frame = 0;
 
-  editor::addEditorTab(renderCamera, "mainwindow");
+  // editor::addEditorTab(renderCamera, "mainwindow");
   do {
 
     glm::mat4 transform = rootScene->getTransformMatrix();
@@ -143,7 +152,8 @@ int main() {
         editor::editorRender(frame++);
         shambhala::loop_endUIContext();*/
 
-    renderCamera->render(frame++);
+    renderCamera->render(frame++, true);
+
     shambhala::loop_endRenderContext();
 
   } while (!shambhala::loop_shouldClose());
