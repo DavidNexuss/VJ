@@ -24,8 +24,8 @@ void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
              GLsizei length, const GLchar *message, const void *userParam) {
 
   std::cerr << "[GL " << severity << "] " << message << std::endl;
-  if (severity >= 37190) {
-    // throw std::runtime_error{"error"};
+  if (severity >= 37190 && (id == GL_INVALID_OPERATION || type == GL_INVALID_OPERATION)) {
+     throw std::runtime_error{"error"};
   }
 }
 
@@ -333,7 +333,10 @@ struct BindState {
 
   GLuint currentVao = -1;
 
-  void clearState() { currentVao = -1; }
+  void clearState() { 
+    currentVao = -1; 
+    currentProgram = -1;
+  }
   void printBindState() {}
 };
 static BindState gBindState;
@@ -448,6 +451,8 @@ struct UseState {
   void clearState() {
     currentProgram = nullptr;
     currentMesh = nullptr;
+    currentVertexBuffer = nullptr;
+    currentIndexBuffer = nullptr;
     hasModelConfiguration = false;
   }
 

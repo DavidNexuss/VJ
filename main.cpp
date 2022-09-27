@@ -97,7 +97,7 @@ void setupObjects() {
   }
 
   rootScene = scene.rootNode;
-  gi::bakeAmbientOcclusion(scene.models, 512, 1);
+  gi::bakeAmbientOcclusion(scene.models, 2048, 1);
 }
 
 void enginecreate() {
