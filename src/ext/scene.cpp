@@ -109,11 +109,9 @@ static int _vertexSize(const vector<VertexAttribute> &attrs) {
   return size;
 }
 
-Mesh *createMesh(const aiScene *scene, aiMesh *mesh,
-                 const SceneLoaderConfiguration &configuration) {
+void bufferVertices(float *vertexBuffer, aiMesh *mesh,const SceneLoaderConfiguration &configuration) {
 
   int vertexSize = _vertexSize(configuration.attributes);
-  simple_vector<float> vertexBuffer(mesh->mNumVertices * vertexSize);
   for (int i = 0; i < mesh->mNumVertices; i++) {
     int offset = 0;
     for (int attr = 0; attr < configuration.attributes.size(); attr++) {
@@ -152,14 +150,26 @@ Mesh *createMesh(const aiScene *scene, aiMesh *mesh,
       offset += configuration.attributes[attr].size;
     }
   }
+}
 
-  vector<Standard::meshIndex> indices;
+void bufferIndices(simple_vector<Standard::meshIndex> &indices, aiMesh *mesh) {
+
+  int start = indices.size();
   for (int i = 0; i < mesh->mNumFaces; i++) {
     const aiFace &face = mesh->mFaces[i];
     for (int j = 0; j < face.mNumIndices; j++) {
-      indices.push(face.mIndices[j]);
+      indices.push(face.mIndices[j] + start);
     }
   }
+}
+Mesh *createMesh(aiMesh *mesh, const SceneLoaderConfiguration &configuration) {
+
+  int vertexSize = _vertexSize(configuration.attributes);
+  simple_vector<float> vertexBuffer(mesh->mNumVertices * vertexSize);
+  vector<Standard::meshIndex> indices;
+
+  bufferVertices(&vertexBuffer[0], mesh, configuration);
+  bufferIndices(indices, mesh);
 
   int indexcount = indices.size();
   Mesh *meshid = shambhala::createMesh();
@@ -171,13 +181,44 @@ Mesh *createMesh(const aiScene *scene, aiMesh *mesh,
   return meshid;
 }
 
+Mesh *createMeshCombined(const simple_vector<aiMesh *> meshes,
+                         const simple_vector<glm::mat4> &transforms,
+                         const SceneLoaderConfiguration &configuration) {
+  Mesh *result = shambhala::createMesh();
+
+  int vertexSize = _vertexSize(configuration.attributes);
+  int numVertices = 0;
+  for (int i = 0; i < meshes.size(); i++)
+    numVertices += meshes[i]->mNumVertices;
+
+  simple_vector<float> vertexBuffer(numVertices * vertexSize);
+  simple_vector<Standard::meshIndex> indices;
+
+  float *vertexBufferPtr = &vertexBuffer[0];
+
+  for (int i = 0; i < meshes.size(); i++) {
+    bufferVertices(vertexBufferPtr, meshes[i], configuration);
+    vertexBufferPtr += meshes[i]->mNumVertices * vertexSize;
+  }
+
+  for (int i = 0; i < meshes.size(); i++) {
+    bufferIndices(indices, meshes[i]);
+  }
+
+  result->vbo = shambhala::createVertexBuffer();
+  result->ebo = shambhala::createIndexBuffer();
+  result->vbo->vertexBuffer = vertexBuffer.drop();
+  result->ebo->indexBuffer = indices.drop();
+  result->vbo->attributes = configuration.attributes;
+  return result;
+}
+
 Mesh *LoadingContext::loadMesh(const aiScene *scene, int index,
                                const SceneLoaderConfiguration &configuration) {
   auto it = meshes.find(index);
   if (it != meshes.end())
     return it->second;
-  return meshes[index] =
-             createMesh(scene, scene->mMeshes[index], configuration);
+  return meshes[index] = createMesh(scene->mMeshes[index], configuration);
 }
 
 Material *
@@ -214,6 +255,37 @@ Node *processNode(aiNode *node, const aiScene *scene, Scene &result,
   return engineNode;
 }
 
+void dfs_nodes(const aiScene *scene, aiNode *node,
+               simple_vector<aiMesh *> &meshes,
+               simple_vector<glm::mat4> &transforms, glm::mat4 transform) {
+
+  for (size_t i = 0; i < node->mNumMeshes; i++) {
+    meshes.push(scene->mMeshes[node->mMeshes[i]]);
+    transforms.push(transform);
+  }
+
+  for (size_t i = 0; i < node->mNumChildren; i++) {
+    glm::mat4 childTransform =
+        transform * getTransformMatrix(node->mTransformation);
+    dfs_nodes(scene, node->mChildren[i], meshes, transforms, childTransform);
+  }
+}
+Node *processNodeCombine(aiNode *node, const aiScene *scene, Scene &result,
+                         const SceneLoaderConfiguration &configuration) {
+  simple_vector<aiMesh *> meshes;
+  simple_vector<glm::mat4> transforms;
+  Node *engineNode = shambhala::createNode();
+  engineNode->setTransformMatrix(getTransformMatrix(node->mTransformation));
+
+  dfs_nodes(scene, node, meshes, transforms, glm::mat4(1.0f));
+
+  Model *model = shambhala::createModel();
+  model->mesh = createMeshCombined(meshes, transforms, configuration);
+  model->node = engineNode;
+  result.models->add(model);
+  return engineNode;
+}
+
 Scene::Scene(const SceneDefinition &def) {
   Assimp::Importer importer;
   const aiScene *scene =
@@ -226,8 +298,13 @@ Scene::Scene(const SceneDefinition &def) {
 
   LoadingContext context;
   models = shambhala::createModelList();
-  rootNode =
-      processNode(scene->mRootNode, scene, *this, context, def.configuration);
+  if (def.configuration.combineMeshes) {
+    rootNode =
+        processNodeCombine(scene->mRootNode, scene, *this, def.configuration);
+  } else {
+    rootNode =
+        processNode(scene->mRootNode, scene, *this, context, def.configuration);
+  }
   sceneOwner = shambhala::getWorkingModelList();
 }
 Scene::~Scene() {}

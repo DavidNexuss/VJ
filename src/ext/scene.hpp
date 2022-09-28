@@ -5,6 +5,7 @@
 namespace shambhala {
 struct SceneLoaderConfiguration {
   int assimpFlags;
+  bool combineMeshes;
   vector<VertexAttribute> attributes;
   vector<aiTextureType> textureTypes;
   vector<std::string> textureNames;

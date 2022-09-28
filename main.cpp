@@ -68,14 +68,13 @@ Material *createPbrMaterial(const simple_vector<TextureResource *> &textureData,
 #include <assimp/postprocess.h>
 #include <standard.hpp>
 
-Scene loadScene(const char *path) { 
-SceneLoaderConfiguration configuration;
-  configuration.assimpFlags = aiProcess_FlipUVs | aiProcess_GenNormals |
-                              aiProcess_Triangulate |
-                              aiProcess_CalcTangentSpace | 
-                              aiProcess_OptimizeGraph | 
-                              aiProcess_OptimizeMeshes |
-                              aiProcess_PreTransformVertices;
+Scene loadScene(const char *path) {
+  SceneLoaderConfiguration configuration;
+  configuration.combineMeshes = true;
+  configuration.assimpFlags =
+      aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_Triangulate |
+      aiProcess_CalcTangentSpace | aiProcess_OptimizeGraph |
+      aiProcess_OptimizeMeshes | aiProcess_PreTransformVertices;
 
   configuration.attributes = {{Standard::aPosition, 3},
                               {Standard::aNormal, 3},
@@ -104,13 +103,15 @@ void setupObjects() {
   gi::bakeAmbientOcclusion(weapon.models, 2048, 1);
 }
 
-void setupPlayer() { 
+void setupPlayer() {
   Scene robot = loadScene("machine/objects/robot.obj");
   shambhala::setWorkingModelList(robot.models);
-  Program* textured = shambhala::loader::loadProgram("programs/textured.fs", "programs/regular.vs");
+  Program *textured = shambhala::loader::loadProgram("programs/textured.fs",
+                                                     "programs/regular.vs");
   Material *mat = shambhala::createMaterial();
-  Texture* baseColor = shambhala::createTexture();
-  baseColor->addTextureResource(shambhala::resource::stbiTextureFile("color2.png",3));
+  Texture *baseColor = shambhala::createTexture();
+  baseColor->addTextureResource(
+      shambhala::resource::stbiTextureFile("color2.png", 3));
   mat->set(Standard::uBaseColor, DynamicTexture{baseColor});
 
   for (size_t i = 0; i < robot.models->size(); i++) {
@@ -118,7 +119,7 @@ void setupPlayer() {
     robot.models->get(i)->material = mat;
   }
 
-//  gi::bakeAmbientOcclusion(robot.models, 2048,1);
+  //  gi::bakeAmbientOcclusion(robot.models, 2048,1);
 }
 
 void enginecreate() {
@@ -145,7 +146,7 @@ void enginecreate() {
 int main() {
 
   enginecreate();
-  //setupObjects();
+  // setupObjects();
   setupPlayer();
 
   Material *sky = createSkyBox();
