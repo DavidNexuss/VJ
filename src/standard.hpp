@@ -91,10 +91,10 @@ const static int resourceNullTerminated = -1;
 // Mesh index size
 // Normally a 16bit unsigned int limit for indexes count should be more than
 // enough for any mesh
-using meshIndex = unsigned short;
+using meshIndex = unsigned int;
 
-const static uint32_t meshIndexGL = GL_UNSIGNED_SHORT; // For glDrawElements
-                                                       // call
+const static uint32_t meshIndexGL = GL_UNSIGNED_INT; // For glDrawElements
+                                                     // call
 const static bool interleaveVBOData = true;
 
 const static unsigned int glInvalid = -1;

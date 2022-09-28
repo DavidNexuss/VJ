@@ -24,8 +24,9 @@ void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
              GLsizei length, const GLchar *message, const void *userParam) {
 
   std::cerr << "[GL " << severity << "] " << message << std::endl;
-  if (severity >= 37190 && (id == GL_INVALID_OPERATION || type == GL_INVALID_OPERATION)) {
-     throw std::runtime_error{"error"};
+  if (severity >= 37190 &&
+      (id == GL_INVALID_OPERATION || type == GL_INVALID_OPERATION)) {
+    throw std::runtime_error{"error"};
   }
 }
 
@@ -265,15 +266,15 @@ GLuint device::createVBO(const simple_vector<uint8_t> &vertexBuffer,
   return *vbo;
 }
 
-GLuint device::createEBO(const simple_vector<unsigned short> &indexBuffer,
+GLuint device::createEBO(const simple_vector<Standard::meshIndex> &indexBuffer,
                          GLuint *ebo) {
   if (*ebo == -1) {
     glGenBuffers(1, ebo);
   }
   device::bindEbo(*ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-               indexBuffer.size() * sizeof(unsigned short), indexBuffer.data(),
-               GL_STATIC_DRAW);
+               indexBuffer.size() * sizeof(Standard::meshIndex),
+               indexBuffer.data(), GL_STATIC_DRAW);
   return *ebo;
 }
 
@@ -333,8 +334,8 @@ struct BindState {
 
   GLuint currentVao = -1;
 
-  void clearState() { 
-    currentVao = -1; 
+  void clearState() {
+    currentVao = -1;
     currentProgram = -1;
   }
   void printBindState() {}

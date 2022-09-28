@@ -95,12 +95,14 @@ void setupObjects() {
                                   "textures/weapon/Weapon_Special.png"}),
                         shambhala::createMaterial());
 
+  Program *program = shambhala::loader::loadProgram("programs/zdebug.fs",
+                                                    "programs/regular.vs");
   for (int i = 0; i < weapon.models->models.size(); i++) {
-    weapon.models->models[i]->program = pbrProgram();
+    weapon.models->models[i]->program = program;
     weapon.models->models[i]->material = mat;
   }
 
-  gi::bakeAmbientOcclusion(weapon.models, 2048, 1);
+  // gi::bakeAmbientOcclusion(weapon.models, 2048, 1);
 }
 
 void setupPlayer() {
@@ -114,8 +116,11 @@ void setupPlayer() {
       shambhala::resource::stbiTextureFile("color2.png", 3));
   mat->set(Standard::uBaseColor, DynamicTexture{baseColor});
 
+  Program *program = shambhala::loader::loadProgram("programs/zdebug.fs",
+                                                    "programs/regular.vs");
+  program = pbrProgram();
   for (size_t i = 0; i < robot.models->size(); i++) {
-    robot.models->get(i)->program = textured;
+    robot.models->get(i)->program = program;
     robot.models->get(i)->material = mat;
   }
 

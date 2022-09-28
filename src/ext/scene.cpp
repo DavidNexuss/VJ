@@ -109,27 +109,63 @@ static int _vertexSize(const vector<VertexAttribute> &attrs) {
   return size;
 }
 
-void bufferVertices(float *vertexBuffer, aiMesh *mesh,const SceneLoaderConfiguration &configuration) {
-
+void bufferVertices(float *vertexBuffer, aiMesh *mesh,
+                    const SceneLoaderConfiguration &configuration,
+                    const glm::mat4 *transform = nullptr) {
+  glm::mat3 normalMat;
+  bool useTransform = transform != nullptr && *transform != glm::mat4(1.0f);
+  if (useTransform) {
+    normalMat = glm::mat3(glm::transpose(glm::inverse(*transform)));
+  }
   int vertexSize = _vertexSize(configuration.attributes);
   for (int i = 0; i < mesh->mNumVertices; i++) {
     int offset = 0;
     for (int attr = 0; attr < configuration.attributes.size(); attr++) {
       switch (configuration.attributes[attr].index) {
       case Standard::aPosition:
-        vertexBuffer[i * vertexSize + offset] = mesh->mVertices[i].x;
-        vertexBuffer[i * vertexSize + offset + 1] = mesh->mVertices[i].y;
-        vertexBuffer[i * vertexSize + offset + 2] = mesh->mVertices[i].z;
+        if (useTransform) {
+          glm::vec4 position =
+              glm::vec4(mesh->mVertices[i].x, mesh->mVertices[i].y,
+                        mesh->mVertices[i].z, 1.0);
+          position = *transform * position;
+          vertexBuffer[i * vertexSize + offset] = position.x;
+          vertexBuffer[i * vertexSize + offset + 1] = position.y;
+          vertexBuffer[i * vertexSize + offset + 2] = position.z;
+        } else {
+          vertexBuffer[i * vertexSize + offset] = mesh->mVertices[i].x;
+          vertexBuffer[i * vertexSize + offset + 1] = mesh->mVertices[i].y;
+          vertexBuffer[i * vertexSize + offset + 2] = mesh->mVertices[i].z;
+        }
         break;
       case Standard::aNormal:
-        vertexBuffer[i * vertexSize + offset] = mesh->mNormals[i].x;
-        vertexBuffer[i * vertexSize + offset + 1] = mesh->mNormals[i].y;
-        vertexBuffer[i * vertexSize + offset + 2] = mesh->mNormals[i].z;
+        if (useTransform) {
+          glm::vec3 normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y,
+                                       mesh->mNormals[i].z);
+          normal = normalMat * normal;
+          vertexBuffer[i * vertexSize + offset] = normal.x;
+          vertexBuffer[i * vertexSize + offset + 1] = normal.y;
+          vertexBuffer[i * vertexSize + offset + 2] = normal.z;
+        } else {
+          vertexBuffer[i * vertexSize + offset] = mesh->mNormals[i].x;
+          vertexBuffer[i * vertexSize + offset + 1] = mesh->mNormals[i].y;
+          vertexBuffer[i * vertexSize + offset + 2] = mesh->mNormals[i].z;
+        }
         break;
       case Standard::aBiTangent:
-        vertexBuffer[i * vertexSize + offset] = mesh->mBitangents[i].x;
-        vertexBuffer[i * vertexSize + offset + 1] = mesh->mBitangents[i].y;
-        vertexBuffer[i * vertexSize + offset + 2] = mesh->mBitangents[i].z;
+
+        if (useTransform) {
+          glm::vec3 normal =
+              glm::vec3(mesh->mBitangents[i].x, mesh->mBitangents[i].y,
+                        mesh->mBitangents[i].z);
+          normal = normalMat * normal;
+          vertexBuffer[i * vertexSize + offset] = normal.x;
+          vertexBuffer[i * vertexSize + offset + 1] = normal.y;
+          vertexBuffer[i * vertexSize + offset + 2] = normal.z;
+        } else {
+          vertexBuffer[i * vertexSize + offset] = mesh->mBitangents[i].x;
+          vertexBuffer[i * vertexSize + offset + 1] = mesh->mBitangents[i].y;
+          vertexBuffer[i * vertexSize + offset + 2] = mesh->mBitangents[i].z;
+        }
         break;
       case Standard::aColor:
         vertexBuffer[i * vertexSize + offset] = mesh->mColors[0][i].r;
@@ -137,9 +173,20 @@ void bufferVertices(float *vertexBuffer, aiMesh *mesh,const SceneLoaderConfigura
         vertexBuffer[i * vertexSize + offset + 2] = mesh->mColors[0][i].b;
         break;
       case Standard::aTangent:
-        vertexBuffer[i * vertexSize + offset] = mesh->mTangents[i].x;
-        vertexBuffer[i * vertexSize + offset + 1] = mesh->mTangents[i].y;
-        vertexBuffer[i * vertexSize + offset + 2] = mesh->mTangents[i].z;
+
+        if (useTransform) {
+          glm::vec3 normal = glm::vec3(
+              mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
+          normal = normalMat * normal;
+          vertexBuffer[i * vertexSize + offset] = normal.x;
+          vertexBuffer[i * vertexSize + offset + 1] = normal.y;
+          vertexBuffer[i * vertexSize + offset + 2] = normal.z;
+        } else {
+
+          vertexBuffer[i * vertexSize + offset] = mesh->mTangents[i].x;
+          vertexBuffer[i * vertexSize + offset + 1] = mesh->mTangents[i].y;
+          vertexBuffer[i * vertexSize + offset + 2] = mesh->mTangents[i].z;
+        }
         break;
       case Standard::aUV:
         vertexBuffer[i * vertexSize + offset] = mesh->mTextureCoords[0][i].x;
@@ -152,9 +199,9 @@ void bufferVertices(float *vertexBuffer, aiMesh *mesh,const SceneLoaderConfigura
   }
 }
 
-void bufferIndices(simple_vector<Standard::meshIndex> &indices, aiMesh *mesh) {
+void bufferIndices(simple_vector<Standard::meshIndex> &indices, aiMesh *mesh,
+                   int start) {
 
-  int start = indices.size();
   for (int i = 0; i < mesh->mNumFaces; i++) {
     const aiFace &face = mesh->mFaces[i];
     for (int j = 0; j < face.mNumIndices; j++) {
@@ -169,7 +216,7 @@ Mesh *createMesh(aiMesh *mesh, const SceneLoaderConfiguration &configuration) {
   vector<Standard::meshIndex> indices;
 
   bufferVertices(&vertexBuffer[0], mesh, configuration);
-  bufferIndices(indices, mesh);
+  bufferIndices(indices, mesh, 0);
 
   int indexcount = indices.size();
   Mesh *meshid = shambhala::createMesh();
@@ -188,7 +235,8 @@ Mesh *createMeshCombined(const simple_vector<aiMesh *> meshes,
 
   int vertexSize = _vertexSize(configuration.attributes);
   int numVertices = 0;
-  for (int i = 0; i < meshes.size(); i++)
+  int count = meshes.size();
+  for (int i = 0; i < count; i++)
     numVertices += meshes[i]->mNumVertices;
 
   simple_vector<float> vertexBuffer(numVertices * vertexSize);
@@ -196,13 +244,15 @@ Mesh *createMeshCombined(const simple_vector<aiMesh *> meshes,
 
   float *vertexBufferPtr = &vertexBuffer[0];
 
-  for (int i = 0; i < meshes.size(); i++) {
-    bufferVertices(vertexBufferPtr, meshes[i], configuration);
+  for (int i = 0; i < count; i++) {
+    bufferVertices(vertexBufferPtr, meshes[i], configuration, &transforms[i]);
     vertexBufferPtr += meshes[i]->mNumVertices * vertexSize;
   }
 
-  for (int i = 0; i < meshes.size(); i++) {
-    bufferIndices(indices, meshes[i]);
+  int start = 0;
+  for (int i = 0; i < count; i++) {
+    bufferIndices(indices, meshes[i], start);
+    start += meshes[i]->mNumVertices;
   }
 
   result->vbo = shambhala::createVertexBuffer();

@@ -6,9 +6,9 @@
 #include "simple_vector.hpp"
 #include <glm/glm.hpp>
 #include <memory>
+#include <standard.hpp>
 #include <unordered_map>
 #include <vector>
-
 #pragma once
 #define ENUM_OPERATORS(T)                                                      \
   inline T operator~(T a) { return (T) ~(int)a; }                              \
@@ -144,7 +144,7 @@ private:
 };
 
 struct IndexBuffer {
-  simple_vector<unsigned short> indexBuffer;
+  simple_vector<Standard::meshIndex> indexBuffer;
   GLuint ebo = -1;
   bool updateData = false;
 };
@@ -387,7 +387,8 @@ GLuint compileShader(const char *data, GLenum type, const char *resourcename);
 GLuint compileProgram(GLuint *shaders, GLint *status);
 GLuint createVAO();
 GLuint createVBO(const simple_vector<uint8_t> &vertexBuffer, GLuint *vbo);
-GLuint createEBO(const simple_vector<unsigned short> &indexBuffer, GLuint *ebo);
+GLuint createEBO(const simple_vector<Standard::meshIndex> &indexBuffer,
+                 GLuint *ebo);
 GLuint createTexture(bool filter);
 GLuint createCubemap();
 GLuint createRenderBuffer();
