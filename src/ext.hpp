@@ -5,4 +5,5 @@
 #include <ext/resource.hpp>
 #include <ext/scene.hpp>
 #include <ext/util.hpp>
+#include <ext/uv.hpp>
 #include <ext/worldmat.hpp>

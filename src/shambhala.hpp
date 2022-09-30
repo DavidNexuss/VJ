@@ -127,6 +127,8 @@ struct VertexAttribute {
   int index;
   int size;
   int attributeDivisor = 0;
+  float *sourceData;
+  int stride;
 };
 
 struct VertexBuffer {
@@ -156,6 +158,8 @@ struct Mesh {
 
   bool invertedFaces = false;
   int vertexCount();
+
+  VertexAttribute getAttribute(int attribIndex);
 };
 
 struct Material {
@@ -184,6 +188,7 @@ struct Material {
   simple_vector<Material *> childMaterials;
 
   void addNextMaterial(Material *);
+  void popNextMaterial();
 };
 
 #undef UNIFORMS_LIST

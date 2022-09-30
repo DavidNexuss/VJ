@@ -1,4 +1,5 @@
 #include "editor.hpp"
+#include "ext/worldmat.hpp"
 #include <ext.hpp>
 #include <imgui/imgui.h>
 #include <shambhala.hpp>
@@ -6,23 +7,6 @@
 
 using namespace shambhala::editor;
 using namespace shambhala;
-
-struct MaterialRenderCamera : public RenderCamera {
-  MaterialRenderCamera(RenderCamera *child) { addDummyInput(child); }
-  void render(int frame, bool isRoot = false) override {
-    getDummyInput(0)->beginRender(frame, isRoot);
-    shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera, this);
-    getDummyInput(0)->endRender(frame, isRoot);
-  }
-};
-
-struct EditorRenderCamera : public MaterialRenderCamera {
-  worldmats::DebugCamera *editorCamera;
-  EditorRenderCamera(RenderCamera *child) : MaterialRenderCamera(child) {
-    editorCamera = new worldmats::DebugCamera;
-    addNextMaterial(editorCamera);
-  }
-};
 
 namespace ImGui {
 void RenderCamera(RenderCamera *renderCamera) {
@@ -33,17 +17,33 @@ void RenderCamera(RenderCamera *renderCamera) {
 }
 } // namespace ImGui
 
+struct RenderCameraTab {
+  worldmats::DebugCamera *debugCamera;
+  RenderCamera *camera;
+
+  RenderCameraTab() {}
+  RenderCameraTab(RenderCamera *camera) {
+    this->camera = camera;
+    debugCamera = new worldmats::DebugCamera;
+  }
+
+  void render(int frame, bool isRoot = false) const {
+    camera->addNextMaterial(debugCamera);
+    camera->render(frame, isRoot);
+    camera->popNextMaterial();
+  }
+};
+
 struct EditorState {
-  std::unordered_map<std::string, RenderCamera *> tabs;
+  std::unordered_map<std::string, RenderCameraTab> tabs;
 
   void renderTabs(int frame) {
     for (const auto &tab : tabs) {
       const char *name = tab.first.c_str();
-      RenderCamera *renderCamera = tab.second;
-      renderCamera->render(frame);
+      tab.second.render(frame);
 
       ImGui::Begin(name);
-      ImGui::RenderCamera(renderCamera->getDummyInput(0));
+      ImGui::RenderCamera(tab.second.camera);
       ImGui::End();
     }
   }
@@ -56,7 +56,7 @@ void editor::editorStep() {}
 void editor::enableEditor(bool pEnable) {}
 
 void editor::addEditorTab(RenderCamera *renderCamera, const std::string &name) {
-  editorState.tabs[name] = new EditorRenderCamera(renderCamera);
+  editorState.tabs[name] = RenderCameraTab{renderCamera};
 }
 void editor::editorBeginContext() {}
 void editor::editorEndContext() {}

@@ -16,7 +16,7 @@
   do {                                                                         \
   } while (0)
 
-#define TEXTURE_CACHING 1
+#define TEXTURE_CACHING 0
 
 using namespace shambhala;
 
@@ -155,7 +155,7 @@ bool Uniform::bind(GLuint glUniformID) const {
   return true;
 }
 //--------------------------[END UNIFORM]
-//--------------------------[BEGIN MESHLAYOUT]
+//--------------------------[BEGIN MESH]
 int VertexBuffer::vertexSize() const {
   if (_vertexsize != -1)
     return _vertexsize;
@@ -165,7 +165,7 @@ int VertexBuffer::vertexSize() const {
   }
   return _vertexsize = vs * sizeof(float);
 }
-//--------------------------[END MESHLAYOUT]
+//--------------------------[END MESH]
 
 //--------------------------[BEGIN UPLOAD]
 void device::uploadTexture(GLenum target, unsigned char *texturebuffer,
@@ -886,6 +886,9 @@ Model *ModelList::get(int index) const { return models[index]; }
 //---------------------[BEGIN COMPONENT METHODS]
 
 void Material::addNextMaterial(Material *mat) { childMaterials.push(mat); }
+void Material::popNextMaterial() {
+  childMaterials.resize(childMaterials.size() - 1);
+}
 int Mesh::vertexCount() {
   if (ebo == nullptr)
     return vbo->vertexBuffer.size() / vbo->vertexSize();
@@ -893,6 +896,18 @@ int Mesh::vertexCount() {
 }
 void Texture::addTextureResource(TextureResource *textureData) {
   this->textureData.push(textureData);
+}
+
+VertexAttribute Mesh::getAttribute(int attribIndex) {
+  for (int i = 0; i < vbo->attributes.size(); i++) {
+    if (vbo->attributes[i].index == attribIndex) {
+      VertexAttribute attrib = vbo->attributes[i];
+      attrib.sourceData = (float *)&vbo->vertexBuffer[0];
+      attrib.stride = vbo->vertexSize();
+      return attrib;
+    }
+  }
+  return VertexAttribute{};
 }
 
 void ModelList::add(Model *model) {
@@ -919,7 +934,7 @@ RenderCamera::RenderCamera() { hasCustomBindFunction = true; }
 
 void RenderCamera::render(int frame, bool isRoot) {
   beginRender(frame, isRoot);
-  endRender(frame);
+  endRender(frame, isRoot);
 }
 
 void RenderCamera::beginRender(int frame, bool isRoot) {

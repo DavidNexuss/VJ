@@ -97,6 +97,7 @@ void setupObjects() {
 
   Program *program = shambhala::loader::loadProgram("programs/zdebug.fs",
                                                     "programs/regular.vs");
+  program = pbrProgram();
   for (int i = 0; i < weapon.models->models.size(); i++) {
     weapon.models->models[i]->program = program;
     weapon.models->models[i]->material = mat;
@@ -151,32 +152,28 @@ void enginecreate() {
 int main() {
 
   enginecreate();
-  // setupObjects();
-  setupPlayer();
+  setupObjects();
+  // setupPlayer();
 
   Material *sky = createSkyBox();
   // setupModels();
 
   RenderCamera *renderCamera =
       rendercamera::createBlendPass(rendercamera::createForwardPass());
-  renderCamera->frameBuffer = nullptr;
 
-  renderCamera = shambhala::createRenderCamera();
   shambhala::setWorldMaterial(Standard::wSky, sky);
   shambhala::setWorldMaterial(Standard::wCamera, new worldmats::DebugCamera);
 
   int frame = 0;
 
-  // editor::addEditorTab(renderCamera, "mainwindow");
+  editor::addEditorTab(renderCamera, "mainwindow");
   do {
 
     shambhala::loop_beginRenderContext();
-    /*
-        shambhala::loop_beginUIContext();
-        editor::editorRender(frame++);
-        shambhala::loop_endUIContext();*/
 
-    renderCamera->render(frame++, true);
+    shambhala::loop_beginUIContext();
+    editor::editorRender(frame++);
+    shambhala::loop_endUIContext();
 
     shambhala::loop_endRenderContext();
 
