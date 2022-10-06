@@ -89,6 +89,14 @@ static const char *emptyFragShader = " \
 void main() { } \
 ";
 
+static const char *passShader = " \
+#version 330 core\n \
+uniform sampler2D input; \
+out vec3 color; \
+in vec2 uv; \
+void main() {  color = texture2D(input, uv).xyz; }\
+";
+
 using namespace shambhala;
 
 simple_vector<uint8_t> util::createCube() {
@@ -142,6 +150,12 @@ Shader util::createRegularVertexShader() {
       regularVertexShader, "internal:regular_vert_shader");
   return shader;
 }
+Shader util::createPassThroughShader() {
+  Shader shader;
+  shader.file = resource::createFromNullTerminatedString(
+      passShader, "internal:pass_frag_effect");
+  return shader;
+}
 
 Program *util::createScreenProgram(IResource *resource) {
   Program *result = shambhala::createProgram();
@@ -164,6 +178,16 @@ Program *util::createRegularShaderProgram(IResource *fragmentShader) {
   return result;
 }
 
+Program *util::createPassthroughEffect() {
+  static Program *result = nullptr;
+  if (result == nullptr) {
+    result = shambhala::createProgram();
+    result->shaders[FRAGMENT_SHADER] = util::createPassThroughShader();
+    result->shaders[VERTEX_SHADER] = util::createScreenVertexShader();
+  }
+  return result;
+}
+
 static Program *getSkyboxProgram() {
   static Program *skyProgram = nullptr;
   if (skyProgram != nullptr)
@@ -171,9 +195,9 @@ static Program *getSkyboxProgram() {
 
   skyProgram = createProgram();
   skyProgram->shaders[FRAGMENT_SHADER].file =
-      resource::ioMemoryFile("materials/cubemap.frag");
+      resource::ioMemoryFile("programs/cubemap.frag");
   skyProgram->shaders[VERTEX_SHADER].file =
-      resource::ioMemoryFile("materials/cubemap.vert");
+      resource::ioMemoryFile("programs/cubemap.vert");
 
   skyProgram->hint_skybox = true;
 
@@ -204,6 +228,12 @@ Model *util::modelCreateSkyBox(
   return result;
 }
 
+RenderCamera *util::createPassThroughCamera(RenderCamera *input) {
+  RenderCamera *result = shambhala::createRenderCamera();
+  result->addInput(input, 0, "input");
+  result->postprocessProgram = createPassthroughEffect();
+  return result;
+}
 const char *util::stacked(GLuint *array) {
   static char buffer[4096] = {0};
   int index = 0;

@@ -294,7 +294,7 @@ Node *processNode(aiNode *node, const aiScene *scene, Scene &result,
     model->material = context.loadMaterial(
         scene, scene->mMeshes[node->mMeshes[i]]->mMaterialIndex, configuration);
     model->node = engineNode;
-    result.models->add(model);
+    shambhala::getWorkingModelList()->add(model);
   }
 
   for (size_t i = 0; i < node->mNumChildren; i++) {
@@ -332,10 +332,11 @@ Node *processNodeCombine(aiNode *node, const aiScene *scene, Scene &result,
   Model *model = shambhala::createModel();
   model->mesh = createMeshCombined(meshes, transforms, configuration);
   model->node = engineNode;
-  result.models->add(model);
+  shambhala::getWorkingModelList()->add(model);
   return engineNode;
 }
 
+Scene::Scene() {}
 Scene::Scene(const SceneDefinition &def) {
   Assimp::Importer importer;
   const aiScene *scene =
@@ -347,7 +348,6 @@ Scene::Scene(const SceneDefinition &def) {
   }
 
   LoadingContext context;
-  models = shambhala::createModelList();
   if (def.configuration.combineMeshes) {
     rootNode =
         processNodeCombine(scene->mRootNode, scene, *this, def.configuration);
@@ -355,6 +355,42 @@ Scene::Scene(const SceneDefinition &def) {
     rootNode =
         processNode(scene->mRootNode, scene, *this, context, def.configuration);
   }
-  sceneOwner = shambhala::getWorkingModelList();
 }
 Scene::~Scene() {}
+
+Scene Scene::createInstance() {
+  Scene instance;
+  instance.rootNode = instance.rootNode->createInstance();
+  return instance;
+}
+
+struct SceneContainer : public loader::LoaderMap<Scene, SceneContainer> {
+
+  static Scene *create(const char *path) {
+
+    SceneLoaderConfiguration configuration;
+    configuration.combineMeshes = true;
+    configuration.assimpFlags =
+        aiProcess_FlipUVs | aiProcess_GenNormals | aiProcess_Triangulate |
+        aiProcess_CalcTangentSpace | aiProcess_OptimizeGraph |
+        aiProcess_OptimizeMeshes | aiProcess_PreTransformVertices;
+
+    configuration.attributes = {{Standard::aPosition, 3},
+                                {Standard::aNormal, 3},
+                                {Standard::aUV, 2},
+                                {Standard::aTangent, 3}};
+
+    SceneDefinition def;
+    def.scenePath = path;
+    def.configuration = configuration;
+    return new Scene(def);
+  }
+
+  static loader::Key computeKey(const char *path) {
+    return loader::computeKey(path);
+  }
+};
+
+static SceneContainer sceneContainer;
+Scene *loader::loadScene(const char *path) { return sceneContainer.get(path); }
+void loader::unloadScene(Scene *scene) { sceneContainer.unload(scene); }

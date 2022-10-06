@@ -19,19 +19,19 @@ lm_context *getLightMapperContext() {
 }
 Program *getAmbientOcclusionProgram() {
 
-  const char *vp =
-      "#version 330  core\n"
-      "layout (location = 0) in vec3 aPosition ;\n"
-      "layout (location = 2) in vec2 aUV;\n"
-      "uniform mat4 uViewMatrix;\n"
-      "uniform mat4 uProjectionMatrix;\n"
-      "out vec2 v_texcoord;\n"
+  const char *vp = "#version 330  core\n"
+                   "layout (location = 0) in vec3 aPosition ;\n"
+                   "layout (location = 2) in vec2 aUV;\n"
+                   "uniform mat4 uViewMatrix;\n"
+                   "uniform mat4 uProjectionMatrix;\n"
+                   "out vec2 v_texcoord;\n"
 
-      "void main()\n"
-      "{\n"
-      "gl_Position = uProjectionMatrix * (uViewMatrix * vec4(aPosition, 1.0));\n"
-      "v_texcoord = aUV;\n"
-      "}\n";
+                   "void main()\n"
+                   "{\n"
+                   "gl_Position = uProjectionMatrix * (uViewMatrix * "
+                   "vec4(aPosition, 1.0));\n"
+                   "v_texcoord = aUV;\n"
+                   "}\n";
 
   const char *fp = "#version 330  core\n"
                    "in vec2 v_texcoord;\n"
@@ -126,8 +126,11 @@ Texture *gi::bakeAmbientOcclusion(ModelList *modelList, int size, int bounces) {
       int nOffset = sizeof(float) * bindings[j].normalOffset;
       int uvOffset = sizeof(float) * bindings[j].uvOffset;
 
-      dprintf(2, "Position attr %d, Normal attr %d, uv attr %d\n", bindings[j].positionAttribute , bindings[j].normalAttribute, bindings[j].uvAttribute);
-      dprintf(2, "Position offset %d, Normal offset %d, uv Offset %d\n", pOffset,nOffset, uvOffset);
+      dprintf(2, "Position attr %d, Normal attr %d, uv attr %d\n",
+              bindings[j].positionAttribute, bindings[j].normalAttribute,
+              bindings[j].uvAttribute);
+      dprintf(2, "Position offset %d, Normal offset %d, uv Offset %d\n",
+              pOffset, nOffset, uvOffset);
       dprintf(2, "Vertexbuffer size %d\n", int(vbo->vertexBuffer.size()));
 
       uint8_t *position = vbo->vertexBuffer.bindata() + pOffset;
@@ -136,8 +139,8 @@ Texture *gi::bakeAmbientOcclusion(ModelList *modelList, int size, int bounces) {
 
       int stride = vbo->vertexSize();
 
-      lmSetGeometry(ctx, transform, LM_FLOAT, position, stride,
-                    LM_FLOAT, normal, stride, LM_FLOAT, uv, stride,
+      lmSetGeometry(ctx, transform, LM_FLOAT, position, stride, LM_FLOAT,
+                    normal, stride, LM_FLOAT, uv, stride,
                     ebo->indexBuffer.size(), LM_UNSIGNED_SHORT,
                     ebo->indexBuffer.bindata());
 

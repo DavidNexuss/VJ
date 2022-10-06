@@ -86,9 +86,11 @@ Scene loadScene(const char *path) {
   def.configuration = configuration;
   return Scene(def);
 }
-void setupObjects() {
+ModelList *setupObjects() {
+
+  ModelList *weapons = shambhala::createModelList();
+  shambhala::setWorkingModelList(weapons);
   Scene weapon = loadScene("machine/objects/weapon.obj");
-  shambhala::setWorkingModelList(weapon.models);
   Material *mat =
       createPbrMaterial(textures({"textures/weapon/Weapon_BaseColor.png",
                                   "textures/weapon/Weapon_Normal.png",
@@ -98,14 +100,16 @@ void setupObjects() {
   Program *program = shambhala::loader::loadProgram("programs/zdebug.fs",
                                                     "programs/regular.vs");
   program = pbrProgram();
-  for (int i = 0; i < weapon.models->models.size(); i++) {
-    weapon.models->models[i]->program = program;
-    weapon.models->models[i]->material = mat;
+  for (int i = 0; i < weapons->models.size(); i++) {
+    weapons->models[i]->program = program;
+    weapons->models[i]->material = mat;
   }
 
+  return weapons;
   // gi::bakeAmbientOcclusion(weapon.models, 2048, 1);
 }
 
+/*
 void setupPlayer() {
   Scene robot = loadScene("machine/objects/robot.obj");
   shambhala::setWorkingModelList(robot.models);
@@ -120,13 +124,14 @@ void setupPlayer() {
   Program *program = shambhala::loader::loadProgram("programs/zdebug.fs",
                                                     "programs/regular.vs");
   program = pbrProgram();
-  for (size_t i = 0; i < robot.models->size(); i++) {
+
+  shambhala::cea for (size_t i = 0; i < robot.models->size(); i++) {
     robot.models->get(i)->program = program;
     robot.models->get(i)->material = mat;
-  }
+  }*/
 
-  //  gi::bakeAmbientOcclusion(robot.models, 2048,1);
-}
+//  gi::bakeAmbientOcclusion(robot.models, 2048,1);
+//}
 
 void enginecreate() {
 
@@ -149,31 +154,83 @@ void enginecreate() {
 
   shambhala::setActiveWindow(shambhala::createWindow(configuration));
 }
+
+ModelList *loadModelList(const char *scenePath, Program *program,
+                         Material *mat) {
+  ModelList *scene = shambhala::createModelList();
+  shambhala::setWorkingModelList(scene);
+
+  Scene *obj = shambhala::loader::loadScene(scenePath);
+
+  for (int i = 0; i < scene->size(); i++) {
+    scene->get(i)->program = program;
+    scene->get(i)->material = mat;
+  }
+
+  shambhala::setWorkingModelList(nullptr);
+  return scene;
+}
+
+ModelList *loadWeapon() {
+  const char *path = "machine/objects/weapon.obj";
+  Material *mat =
+      createPbrMaterial(textures({"textures/weapon/Weapon_BaseColor.png",
+                                  "textures/weapon/Weapon_Normal.png",
+                                  "textures/weapon/Weapon_Special.png"}),
+                        shambhala::createMaterial());
+
+  Program *program = shambhala::loader::loadProgram("programs/zdebug.fs",
+                                                    "programs/regular.vs");
+  program = pbrProgram();
+  return loadModelList(path, program, mat);
+}
+
+ModelList *loadSphere(Program *program, Material *mat) {
+  return loadModelList("internal_assets/objects/giro.obj", program, mat);
+}
+ModelList *loadPlayer() {
+
+  Program *program = shambhala::loader::loadProgram("programs/zdebug.fs",
+                                                    "programs/regular.vs");
+  program = pbrProgram();
+  return loadModelList("machine/objects/robot.obj", program, nullptr);
+}
+
+ModelList *loadWorld() {
+  ModelList *modelList = loadWeapon();
+  shambhala::setWorkingModelList(modelList);
+  shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
+  return modelList;
+}
 int main() {
 
   enginecreate();
-  setupObjects();
-  // setupPlayer();
-
-  Material *sky = createSkyBox();
-  // setupModels();
-
-  RenderCamera *renderCamera =
-      rendercamera::createBlendPass(rendercamera::createForwardPass());
-
-  shambhala::setWorldMaterial(Standard::wSky, sky);
+  RenderCamera *renderCamera = shambhala::createRenderCamera();
+  renderCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
   shambhala::setWorldMaterial(Standard::wCamera, new worldmats::DebugCamera);
 
   int frame = 0;
 
-  editor::addEditorTab(renderCamera, "mainwindow");
-  do {
+  // Program *probe =
+  // shambhala::loader::loadProgram("programs/misc/probe.fs","programs/regular.vs");
+  ModelList *scene = loadWeapon();
+  shambhala::setWorkingModelList(scene);
 
+  shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
+  RenderCamera *passThroughCamera = util::createPassThroughCamera(renderCamera);
+
+  renderCamera->setSize(200, 100);
+  renderCamera->setModelList(getWorkingModelList());
+  do {
     shambhala::loop_beginRenderContext();
 
+    passThroughCamera->render(frame++, true);
+    /*
     shambhala::loop_beginUIContext();
     editor::editorRender(frame++);
-    shambhala::loop_endUIContext();
+    shambhala::loop_endUIContext(); */
+
+    // renderCamera->render(frame++, true);
 
     shambhala::loop_endRenderContext();
 

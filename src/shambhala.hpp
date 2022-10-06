@@ -187,7 +187,7 @@ struct Material {
 
   simple_vector<Material *> childMaterials;
 
-  void addNextMaterial(Material *);
+  void addMaterial(Material *);
   void popNextMaterial();
 };
 
@@ -212,6 +212,8 @@ public:
   const glm::mat4 &getTransformMatrix() const;
   const glm::mat4 &getCombinedMatrix() const;
   void bind(Program *activeProgram) override;
+
+  Node *createInstance();
 };
 
 struct ModelConfiguration {
@@ -238,6 +240,8 @@ struct Model : public ModelConfiguration {
   bool operator<(const Model &model) const;
   void draw();
   bool ready() const;
+
+  Model *createInstance();
 };
 
 struct ModelList {
@@ -252,6 +256,7 @@ struct ModelList {
   const std::vector<int> &getRenderOrder();
 
   ModelList();
+  ModelList *createInstance();
 
 private:
   std::vector<int> modelindices;
@@ -335,23 +340,28 @@ struct RenderBinding {
   const char *uniformAttribute;
 };
 
-struct RenderCamera : public Material {
-  ModelList *modelList = nullptr;
+struct RenderCamera;
+struct IRenderable {
+  virtual RenderCamera *render(int frame, bool isRoot = false) = 0;
+};
+
+struct RenderCamera : public Material, IRenderable {
   FrameBuffer *frameBuffer = nullptr;
   simple_vector<RenderBinding> renderBindings;
   simple_vector<RenderCamera *> dummyInput;
+  ModelList *modelList;
 
   Program *overrideProgram = nullptr;
   Program *postprocessProgram = nullptr;
 
   RenderCamera();
 
-  virtual void render(int frame, bool isRoot = false);
-
   void beginRender(int frame, bool isRoot = false);
   void endRender(int frame, bool isRoot = false);
 
+  virtual RenderCamera *render(int frame, bool isRoot = false) override;
   virtual void bind(Program *activeProgram) override;
+
   void addInput(RenderCamera *child, int attachmentIndex,
                 const char *uniformAttribute);
   void addDummyInput(RenderCamera *child);
@@ -362,6 +372,12 @@ struct RenderCamera : public Material {
   void setFrameBufferConfiguration(FrameBufferDescriptorFlags);
   int getWidth();
   int getHeight();
+  void setSize(int width, int height);
+  void setModelList(ModelList *modellist);
+
+private:
+  int width;
+  int height;
 };
 
 struct RenderConfiguration {
@@ -481,6 +497,9 @@ void setActiveWindow(void *window);
 void destroyEngine();
 
 void rendertarget_prepareRender();
+void updateViewport();
+void beginViewport();
+void endViewport();
 void loop_beginRenderContext();
 void loop_endRenderContext();
 void loop_beginUIContext();
@@ -495,6 +514,37 @@ void engine_prepareDeclarativeRender();
 namespace shambhala {
 namespace loader {
 
+#include <unordered_map>
+
+using Key = unsigned long;
+template <typename T, typename Container> struct LoaderMap {
+  std::unordered_map<Key, T *> cache;
+  std::unordered_map<T *, int> countMap;
+
+  template <typename... Args> T *get(Args &&...args) {
+    Key key = Container::computeKey(std::forward<Args>(args)...);
+    auto it = cache.find(key);
+    if (it != cache.end()) {
+      int counter = countMap[it->second];
+      if (counter >= 1) {
+        countMap[it->second]++;
+        return it->second;
+      }
+    }
+    T *result = cache[key] = Container::create(std::forward<Args>(args)...);
+    countMap[result] = 1;
+    return result;
+  }
+
+  void unload(T *ptr) {
+    int count = --countMap[ptr];
+    if (count < 1) {
+      delete ptr;
+    }
+  }
+};
+
+Key computeKey(const char *);
 Program *loadProgram(const char *fragmentShader, const char *vertexShader);
 Texture *loadTexture(const char *path);
 

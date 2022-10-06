@@ -23,7 +23,7 @@ struct IIO {
   virtual void internal_freeFile(uint8_t *buffer) = 0;
 
 private:
-  std::unordered_map<const char *, io_buffer> cachedBuffers;
+  std::unordered_map<std::string, io_buffer> cachedBuffers;
 };
 
 } // namespace shambhala

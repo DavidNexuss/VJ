@@ -85,6 +85,11 @@
   "file": "/home/david/shared/Projects/ShambhalaMini/main.cpp"
 },
 {
+  "directory": "/home/david/shared/Projects/ShambhalaMini",
+  "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -O3 -O0 -g -DDEBUG -o CMakeFiles/example.dir/example.cpp.o -c /home/david/shared/Projects/ShambhalaMini/example.cpp",
+  "file": "/home/david/shared/Projects/ShambhalaMini/example.cpp"
+},
+{
   "directory": "/home/david/shared/Projects/ShambhalaMini/lib/imgui",
   "command": "/usr/bin/c++  -I/home/david/shared/Projects/ShambhalaMini/src -I/home/david/shared/Projects/ShambhalaMini/lib -I/home/david/shared/Projects/ShambhalaMini/lib/imgui -I/home/david/shared/Projects/ShambhalaMini/include -I/home/david/shared/Projects/ShambhalaMini/lib/imgui/../../src -g -o CMakeFiles/imgui.dir/imgui.cpp.o -c /home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui.cpp",
   "file": "/home/david/shared/Projects/ShambhalaMini/lib/imgui/imgui.cpp"

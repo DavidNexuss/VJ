@@ -16,7 +16,7 @@
   do {                                                                         \
   } while (0)
 
-#define TEXTURE_CACHING 0
+#define TEXTURE_CACHING 1
 
 using namespace shambhala;
 
@@ -102,6 +102,15 @@ const glm::mat4 &Node::getCombinedMatrix() const {
 
 void Node::bind(Program *activeProgram) {
   device::useUniform(Standard::uTransformMatrix, Uniform(getCombinedMatrix()));
+}
+
+Node *Node::createInstance() {
+  Node *newInstance = shambhala::createNode();
+  *newInstance = *this;
+  for (int i = 0; i < children.size(); i++) {
+    children[i] = children[i]->createInstance();
+  }
+  return newInstance;
 }
 
 //---------------------[END NODE]
@@ -212,6 +221,7 @@ GLuint device::compileShader(const char *data, GLenum type,
   glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
   if (compileStatus == GL_FALSE) {
     LOG("[DEVICE] Error compiling shader %d: %s", shader, resourcename);
+    LOG("[DEVICE] Shader data \n%s\n", data);
   } else {
     LOG("[DEVICE] Shader compiled successfully %d: %s", shader, resourcename);
   }
@@ -462,16 +472,17 @@ struct UseState {
 static UseState guseState;
 
 void device::useProgram(Program *program) {
-  if (guseState.currentProgram == program || guseState.ignoreProgramUse)
-    return;
 
-  SoftCheck(program != nullptr,
-            LOG("[Warning] Trying to use a null program!", 0););
+  // SoftCheck(program != nullptr, LOG("[Warning] Trying to use a null
+  // program!", 0););
 
   if (program == nullptr || program->errored) {
     device::useProgram(engine.defaultProgram);
     return;
   }
+
+  if (guseState.currentProgram == program || guseState.ignoreProgramUse)
+    return;
   // Check program compilation with shaders
   bool programUpdate = program->shaderProgram == -1;
   GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
@@ -862,6 +873,12 @@ void Model::draw() {
   if (depthMask)
     glDepthMask(GL_TRUE);
 }
+
+Model *Model::createInstance() {
+  Model *newInstance = shambhala::createModel();
+  *newInstance = *this;
+  return newInstance;
+}
 //---------------------[MODEL END]
 //---------------------[MODELLIST BEGIN]
 
@@ -881,11 +898,20 @@ void ModelList::forceSorting() { shouldSort = true; }
 
 int ModelList::size() const { return models.size(); }
 Model *ModelList::get(int index) const { return models[index]; }
+ModelList *ModelList::createInstance() {
+  ModelList *newInstance = shambhala::createModelList();
+  *newInstance = *this;
+  for (int i = 0; i < models.size(); i++) {
+    models[i] = models[i]->createInstance();
+  }
+  newInstance->forceSorting();
+  return newInstance;
+}
 //---------------------[MODELLIST END]
 
 //---------------------[BEGIN COMPONENT METHODS]
 
-void Material::addNextMaterial(Material *mat) { childMaterials.push(mat); }
+void Material::addMaterial(Material *mat) { childMaterials.push(mat); }
 void Material::popNextMaterial() {
   childMaterials.resize(childMaterials.size() - 1);
 }
@@ -932,9 +958,10 @@ bool Texture::needsUpdate() {
 
 RenderCamera::RenderCamera() { hasCustomBindFunction = true; }
 
-void RenderCamera::render(int frame, bool isRoot) {
+RenderCamera *RenderCamera::render(int frame, bool isRoot) {
   beginRender(frame, isRoot);
   endRender(frame, isRoot);
+  return this;
 }
 
 void RenderCamera::beginRender(int frame, bool isRoot) {
@@ -947,8 +974,12 @@ void RenderCamera::beginRender(int frame, bool isRoot) {
   }
 
   engine.currentRenderCamera = this;
-  device::useModelList(modelList);
   shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera, this);
+
+  if (width != 0 || height != 0) {
+    shambhala::viewport()->fakeViewportSize(width, height);
+    shambhala::updateViewport();
+  }
 }
 
 void RenderCamera::endRender(int frame, bool isRoot) {
@@ -978,6 +1009,7 @@ void RenderCamera::endRender(int frame, bool isRoot) {
   if (postprocessProgram) {
     device::drawCall();
   } else {
+    device::useModelList(modelList);
     device::renderPass();
   }
   if (overrideProgram) {
@@ -990,6 +1022,11 @@ void RenderCamera::endRender(int frame, bool isRoot) {
 
   shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera,
                               engine.defaultMaterial);
+
+  if (width != 0 || height != 0) {
+    viewport()->restoreViewport();
+    shambhala::updateViewport();
+  }
 }
 
 // TODO: Fix actually call this function
@@ -1011,6 +1048,10 @@ void RenderCamera::bind(Program *activeProgram) {
       device::useUniform(renderBindings[i].uniformAttribute, texture);
     }
   }
+}
+
+void RenderCamera::setModelList(ModelList *modellist) {
+  this->modelList = modellist;
 }
 
 void RenderCamera::addInput(RenderCamera *child, int attachmentIndex,
@@ -1054,6 +1095,12 @@ int RenderCamera::getHeight() {
     return frameBuffer->getHeight();
   return viewport()->screenHeight;
 }
+
+void RenderCamera::setSize(int width, int height) {
+  this->width = width;
+  this->height = height;
+}
+
 //---------------------[END RENDERCAMERA]
 //---------------------[BEGIN ENGINE]
 
@@ -1099,6 +1146,10 @@ void shambhala::engine_prepareDeclarativeRender() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+void shambhala::updateViewport() {
+  glViewport(0, 0, viewport()->screenWidth, viewport()->screenHeight);
+}
+void shambhala::endViewport() { viewport()->restoreViewport(); }
 void shambhala::loop_beginUIContext() { viewport()->imguiBeginRender(); }
 
 void shambhala::loop_endRenderContext() {
@@ -1158,11 +1209,7 @@ Program *shambhala::createProgram() { return new Program; }
 FrameBuffer *shambhala::createFramebuffer() { return new FrameBuffer; }
 Material *shambhala::createMaterial() { return new Material; }
 Node *shambhala::createNode() { return new Node; }
-RenderCamera *shambhala::createRenderCamera() {
-  RenderCamera *result = new RenderCamera;
-  result->modelList = engine.workingModelList;
-  return result;
-}
+RenderCamera *shambhala::createRenderCamera() { return new RenderCamera; }
 VertexBuffer *shambhala::createVertexBuffer() { return new VertexBuffer; }
 IndexBuffer *shambhala::createIndexBuffer() { return new IndexBuffer; }
 
@@ -1176,37 +1223,17 @@ void shambhala::buildSortPass() { engine.workingModelList->forceSorting(); }
 
 //---------------------[BEGIN HELPER]
 
-#include <unordered_map>
+loader::Key loader::computeKey(const char *str) {
 
-using Key = unsigned long;
-template <typename T, typename Container> struct LoaderMap {
-  std::unordered_map<Key, T *> cache;
-  std::unordered_map<T *, int> countMap;
+  unsigned long hash = 5381;
+  int c;
 
-  template <typename... Args> T *get(Args &&...args) {
-    Key key = Container::computeKey(std::forward<Args>(args)...);
-    auto it = cache.find(key);
-    if (it != cache.end()) {
-      int counter = countMap[it->second];
-      if (counter >= 1) {
-        countMap[it->second]++;
-        return it->second;
-      }
-    }
-    T *result = cache[key] = Container::create(std::forward<Args>(args)...);
-    countMap[result] = 1;
-    return result;
-  }
+  while (c = *str++)
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 
-  void unload(T *ptr) {
-    int count = --countMap[ptr];
-    if (count < 1) {
-      delete ptr;
-    }
-  }
-};
-
-struct ProgramContainer : public LoaderMap<Program, ProgramContainer> {
+  return hash;
+}
+struct ProgramContainer : public loader::LoaderMap<Program, ProgramContainer> {
   static Program *create(const char *fs, const char *vs) {
     Program *program = shambhala::createProgram();
     program->shaders[FRAGMENT_SHADER].file = resource::ioMemoryFile(fs);
@@ -1214,8 +1241,8 @@ struct ProgramContainer : public LoaderMap<Program, ProgramContainer> {
     return program;
   }
 
-  static Key computeKey(const char *fs, const char *vs) {
-    return Key(fs) * 5 + Key(vs) * 3;
+  static loader::Key computeKey(const char *fs, const char *vs) {
+    return loader::computeKey(fs) * 5 + loader::computeKey(vs) * 3;
   }
 };
 

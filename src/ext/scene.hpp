@@ -25,11 +25,17 @@ struct SceneDefinition {
 };
 
 struct Scene {
-  ModelList *sceneOwner;
   Node *rootNode;
-  ModelList *models;
 
+  Scene();
   Scene(const SceneDefinition &definition);
   ~Scene();
+
+  Scene createInstance();
 };
+
+namespace loader {
+Scene *loadScene(const char *path);
+void unloadScene(Scene *scene);
+} // namespace loader
 } // namespace shambhala

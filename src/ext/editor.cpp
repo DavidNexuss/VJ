@@ -17,33 +17,18 @@ void RenderCamera(RenderCamera *renderCamera) {
 }
 } // namespace ImGui
 
-struct RenderCameraTab {
-  worldmats::DebugCamera *debugCamera;
-  RenderCamera *camera;
-
-  RenderCameraTab() {}
-  RenderCameraTab(RenderCamera *camera) {
-    this->camera = camera;
-    debugCamera = new worldmats::DebugCamera;
-  }
-
-  void render(int frame, bool isRoot = false) const {
-    camera->addNextMaterial(debugCamera);
-    camera->render(frame, isRoot);
-    camera->popNextMaterial();
-  }
-};
-
 struct EditorState {
-  std::unordered_map<std::string, RenderCameraTab> tabs;
+  std::unordered_map<std::string, RenderCamera *> tabs;
 
   void renderTabs(int frame) {
-    for (const auto &tab : tabs) {
+    for (auto &tab : tabs) {
       const char *name = tab.first.c_str();
-      tab.second.render(frame);
 
       ImGui::Begin(name);
-      ImGui::RenderCamera(tab.second.camera);
+
+      ImVec2 windowsize = ImGui::GetWindowSize();
+      tab.second->setSize(windowsize.x, windowsize.y);
+      ImGui::RenderCamera(tab.second->render(frame));
       ImGui::End();
     }
   }
@@ -55,8 +40,8 @@ void editor::editorRender(int frame) { editorState.renderTabs(frame); }
 void editor::editorStep() {}
 void editor::enableEditor(bool pEnable) {}
 
-void editor::addEditorTab(RenderCamera *renderCamera, const std::string &name) {
-  editorState.tabs[name] = RenderCameraTab{renderCamera};
+void editor::addEditorTab(RenderCamera *renderTarget, const std::string &name) {
+  editorState.tabs[name] = renderTarget;
 }
 void editor::editorBeginContext() {}
 void editor::editorEndContext() {}

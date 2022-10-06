@@ -71,6 +71,7 @@ enum RenderUnits { tBaseColor = 0 };
 
 enum SpecialWorldMaterials {
   clas_worldMatRenderCamera = -1,
+  clas_worldMatRenderTarget = -2
 };
 
 const static size_t maxTextureUnits = 16;
