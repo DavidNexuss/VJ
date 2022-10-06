@@ -296,6 +296,7 @@ struct FrameBufferAttachmentDescriptor {
   GLuint internalFormat;
   GLuint externalFormat;
   GLenum type;
+  bool useNeareast;
 };
 
 class FrameBuffer {
@@ -343,6 +344,11 @@ struct RenderBinding {
 struct RenderCamera;
 struct IRenderable {
   virtual RenderCamera *render(int frame, bool isRoot = false) = 0;
+};
+
+struct RenderCameraTree {
+  int currentFrame;
+  simple_vector<ModelList> scenes;
 };
 
 struct RenderCamera : public Material, IRenderable {

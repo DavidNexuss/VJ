@@ -206,7 +206,7 @@ int main() {
 
   enginecreate();
   RenderCamera *renderCamera = shambhala::createRenderCamera();
-  renderCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
+  renderCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, true});
   shambhala::setWorldMaterial(Standard::wCamera, new worldmats::DebugCamera);
 
   int frame = 0;
