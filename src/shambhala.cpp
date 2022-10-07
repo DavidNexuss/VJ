@@ -879,8 +879,8 @@ bool Model::operator<(const Model &model) const {
          (zIndex == model.zIndex &&
           (program < model.program ||
            (program == model.program &&
-            (material < model.material ||
-             (material == model.material && mesh < model.mesh)))));
+            (mesh < model.mesh ||
+             (mesh == model.mesh && material == model.material)))));
 }
 bool Model::ready() const { return program != nullptr && mesh != nullptr; }
 
