@@ -219,7 +219,7 @@ int main() {
   shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
   RenderCamera *passThroughCamera = util::createPassThroughCamera(renderCamera);
 
-  renderCamera->setSize(200, 100);
+  renderCamera->setSize(800, 400);
   renderCamera->setModelList(getWorkingModelList());
   do {
     shambhala::loop_beginRenderContext();
