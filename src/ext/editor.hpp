@@ -2,7 +2,8 @@
 #include <string>
 namespace shambhala {
 namespace editor {
-void addEditorTab(RenderCamera *renderCamera, const std::string &name);
+void addEditorTab(RenderCamera *renderCamera, RenderShot shot,
+                  const std::string &name);
 void enableEditor(bool pEnable);
 void editorStep();
 void editorRender(int frame);

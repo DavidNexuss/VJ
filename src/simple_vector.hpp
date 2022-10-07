@@ -200,4 +200,6 @@ public:
   void debug() { debugFlag = true; }
 
   const char *str() { return (const char *)_data; }
+
+  void pop() { resize(size() - 1); }
 };

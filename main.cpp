@@ -68,7 +68,7 @@ Material *createPbrMaterial(const simple_vector<TextureResource *> &textureData,
 #include <assimp/postprocess.h>
 #include <standard.hpp>
 
-Scene loadScene(const char *path) {
+Node *loadScene(const char *path) {
   SceneLoaderConfiguration configuration;
   configuration.combineMeshes = true;
   configuration.assimpFlags =
@@ -84,13 +84,13 @@ Scene loadScene(const char *path) {
   SceneDefinition def;
   def.scenePath = path;
   def.configuration = configuration;
-  return Scene(def);
+  return loader::loadScene(path);
 }
 ModelList *setupObjects() {
 
   ModelList *weapons = shambhala::createModelList();
   shambhala::setWorkingModelList(weapons);
-  Scene weapon = loadScene("machine/objects/weapon.obj");
+  Node *weapon = loadScene("machine/objects/weapon.obj");
   Material *mat =
       createPbrMaterial(textures({"textures/weapon/Weapon_BaseColor.png",
                                   "textures/weapon/Weapon_Normal.png",
@@ -160,7 +160,7 @@ ModelList *loadModelList(const char *scenePath, Program *program,
   ModelList *scene = shambhala::createModelList();
   shambhala::setWorkingModelList(scene);
 
-  Scene *obj = shambhala::loader::loadScene(scenePath);
+  Node *obj = shambhala::loader::loadScene(scenePath);
 
   for (int i = 0; i < scene->size(); i++) {
     scene->get(i)->program = program;
@@ -169,6 +169,20 @@ ModelList *loadModelList(const char *scenePath, Program *program,
 
   shambhala::setWorkingModelList(nullptr);
   return scene;
+}
+
+Mesh *loadMesh(const char *scenePath) {
+  ModelList *list = shambhala::createModelList();
+  shambhala::setWorkingModelList(list);
+  Node *scene = loader::loadScene(scenePath);
+  Mesh *mesh = nullptr;
+  for (int i = 0; i < list->size(); i++) {
+    if (list->get(i) != nullptr)
+      mesh = list->get(i)->mesh;
+  }
+  shambhala::disposeModelList(list);
+  shambhala::setWorkingModelList(nullptr);
+  return mesh;
 }
 
 ModelList *loadWeapon() {
@@ -202,37 +216,105 @@ ModelList *loadWorld() {
   shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
   return modelList;
 }
+void loadDebugProbe(Node *rootNode) {
+  Node *ringNode = shambhala::createNode();
+  Node *arrowNode = shambhala::createNode();
+
+  Program *probe = shambhala::loader::loadProgram("programs/misc/probe.fs",
+                                                  "programs/regular.vs");
+  Material *red = shambhala::createMaterial();
+  red->set("uColor", glm::vec4(1.0, 0.3, 0.3, 1.0));
+
+  Material *blue = shambhala::createMaterial();
+  blue->set("uColor", glm::vec4(0.3, 0.3, 1.0, 1.0));
+
+  Material *green = shambhala::createMaterial();
+  green->set("uColor", glm::vec4(0.3, 1.0, 0.3, 1.0));
+
+  // Load rings
+  {
+
+    Mesh *ring = loadMesh("internal_assets/objects/giro.obj");
+    ring->invertedFaces = false;
+    Model *ringModel = shambhala::createModel();
+    ringModel->mesh = ring;
+    ringModel->program = probe;
+    ringModel->node = shambhala::createNode();
+
+    Model *ringy = ringModel->createInstance();
+    ringy->material = green;
+    shambhala::addModel(ringy);
+
+    Model *ringz = ringModel->createInstance();
+    ringz->material = blue;
+    ringz->node->setTransformMatrix(util::rotate(0, 0, 1, M_PI / 2));
+    shambhala::addModel(ringz);
+
+    Model *ringx = ringz->createInstance();
+    ringx->material = red;
+    ringx->node->transform(util::rotate(0, 1, 0, M_PI / 2));
+    shambhala::addModel(ringx);
+
+    ringx->node->setParentNode(ringNode);
+    ringy->node->setParentNode(ringNode);
+    ringz->node->setParentNode(ringNode);
+  }
+
+  // Load arrows
+  {
+    Mesh *arrow = loadMesh("internal_assets/objects/arrow.obj");
+    arrow->invertedFaces = true;
+    Model *arrowModel = shambhala::createModel();
+    arrowModel->program = probe;
+    arrowModel->node = shambhala::createNode();
+    arrowModel->mesh = arrow;
+
+    arrowModel->node->transform(util::scale(0.5));
+
+    Model *arrowz = arrowModel->createInstance();
+    arrowz->material = blue;
+
+    Model *arrowx = arrowModel->createInstance();
+    arrowx->node->transform(util::rotate(0, 1, 0, M_PI / 2));
+    arrowx->material = red;
+
+    Model *arrowy = arrowx->createInstance();
+    arrowy->node->transform(util::rotate(0, 0, 1, M_PI / 2));
+    arrowy->material = green;
+
+    shambhala::addModel(arrowz);
+    shambhala::addModel(arrowx);
+    shambhala::addModel(arrowy);
+
+    arrowz->node->setParentNode(arrowNode);
+    arrowx->node->setParentNode(arrowNode);
+    arrowy->node->setParentNode(arrowNode);
+  }
+
+  ringNode->setEnabled(false);
+  ringNode->setParentNode(rootNode);
+  arrowNode->setParentNode(rootNode);
+}
 int main() {
 
   enginecreate();
   RenderCamera *renderCamera = shambhala::createRenderCamera();
-  renderCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE, true});
+  RenderShot shot;
+  shambhala::setWorkingModelList(shambhala::createModelList());
+  shot.scenes = {shambhala::getWorkingModelList()};
+
+  loadDebugProbe(shambhala::createNode());
+
+  shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
   shambhala::setWorldMaterial(Standard::wCamera, new worldmats::DebugCamera);
 
   int frame = 0;
-
-  // Program *probe =
-  // shambhala::loader::loadProgram("programs/misc/probe.fs","programs/regular.vs");
-  ModelList *scene = loadWeapon();
-  shambhala::setWorkingModelList(scene);
-
-  shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
-  RenderCamera *passThroughCamera = util::createPassThroughCamera(renderCamera);
-
-  renderCamera->setSize(800, 400);
-  renderCamera->setModelList(getWorkingModelList());
   do {
     shambhala::loop_beginRenderContext();
-
-    passThroughCamera->render(frame++, true);
-    /*
-    shambhala::loop_beginUIContext();
-    editor::editorRender(frame++);
-    shambhala::loop_endUIContext(); */
-
-    // renderCamera->render(frame++, true);
-
+    renderCamera->render(shot);
     shambhala::loop_endRenderContext();
+
+    shot.updateFrame();
 
   } while (!shambhala::loop_shouldClose());
 }

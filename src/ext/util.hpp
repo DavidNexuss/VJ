@@ -17,8 +17,12 @@ shambhala::Mesh *meshCreateCube();
 shambhala::Mesh *createScreen();
 shambhala::Model *
 modelCreateSkyBox(const simple_vector<shambhala::TextureResource *> &textures);
-
 shambhala::RenderCamera *createPassThroughCamera(RenderCamera *input);
+
+glm::mat4 translate(float x, float y, float z);
+glm::mat4 rotate(float x, float y, float z, float angle);
+glm::mat4 scale(float x, float y, float z);
+glm::mat4 scale(float s);
 
 const char *stacked(GLuint *parameters);
 } // namespace util

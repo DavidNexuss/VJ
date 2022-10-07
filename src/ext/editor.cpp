@@ -17,8 +17,13 @@ void RenderCamera(RenderCamera *renderCamera) {
 }
 } // namespace ImGui
 
+struct RenderTarget {
+  RenderCamera *renderCamera;
+  RenderShot shot;
+};
+
 struct EditorState {
-  std::unordered_map<std::string, RenderCamera *> tabs;
+  std::unordered_map<std::string, RenderTarget> tabs;
 
   void renderTabs(int frame) {
     for (auto &tab : tabs) {
@@ -27,8 +32,9 @@ struct EditorState {
       ImGui::Begin(name);
 
       ImVec2 windowsize = ImGui::GetWindowSize();
-      tab.second->setSize(windowsize.x, windowsize.y);
-      ImGui::RenderCamera(tab.second->render(frame));
+      tab.second.renderCamera->setSize(windowsize.x, windowsize.y);
+      tab.second.shot.currentFrame = frame;
+      ImGui::RenderCamera(tab.second.renderCamera->render(tab.second.shot));
       ImGui::End();
     }
   }
@@ -40,8 +46,9 @@ void editor::editorRender(int frame) { editorState.renderTabs(frame); }
 void editor::editorStep() {}
 void editor::enableEditor(bool pEnable) {}
 
-void editor::addEditorTab(RenderCamera *renderTarget, const std::string &name) {
-  editorState.tabs[name] = renderTarget;
+void editor::addEditorTab(RenderCamera *renderTarget, RenderShot shot,
+                          const std::string &name) {
+  editorState.tabs[name] = {renderTarget, shot};
 }
 void editor::editorBeginContext() {}
 void editor::editorEndContext() {}

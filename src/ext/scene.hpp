@@ -24,18 +24,8 @@ struct SceneDefinition {
   inline operator uint32_t() const { return hash(scenePath); }
 };
 
-struct Scene {
-  Node *rootNode;
-
-  Scene();
-  Scene(const SceneDefinition &definition);
-  ~Scene();
-
-  Scene createInstance();
-};
-
 namespace loader {
-Scene *loadScene(const char *path);
-void unloadScene(Scene *scene);
+Node *loadScene(const char *path);
+void unloadScene(Node *scene);
 } // namespace loader
 } // namespace shambhala

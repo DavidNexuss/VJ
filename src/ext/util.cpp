@@ -3,6 +3,7 @@
 #include "shambhala.hpp"
 #include "simple_vector.hpp"
 #include "standard.hpp"
+#include <glm/ext/matrix_transform.hpp>
 #include <unistd.h>
 
 static const GLfloat cube_mesh[] = {
@@ -242,3 +243,17 @@ const char *util::stacked(GLuint *array) {
 
   return buffer;
 }
+
+glm::mat4 util::translate(float x, float y, float z) {
+  return glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
+}
+
+glm::mat4 util::rotate(float x, float y, float z, float angle) {
+  return glm::rotate(glm::mat4(1.0f), angle, glm::vec3(x, y, z));
+}
+
+glm::mat4 util::scale(float x, float y, float z) {
+  return glm::scale(glm::mat4(1.0f), glm::vec3(x, y, z));
+}
+
+glm::mat4 util::scale(float s) { return util::scale(s, s, s); }

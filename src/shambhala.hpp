@@ -200,15 +200,22 @@ struct Node : public Material {
 
   mutable glm::mat4 combinedMatrix;
   mutable bool clean = false;
+  mutable bool enableclean = false;
 
   void removeChildNode(Node *childNode);
 
+  bool enabled = true;
+  bool cachedenabled = true;
+
 public:
   Node();
+  bool isEnabled();
+  void setEnabled(bool pEnable);
   void setDirty();
   void setParentNode(Node *parent);
   void addChildNode(Node *childNode);
   void setTransformMatrix(const glm::mat4 &newVal);
+  void transform(const glm::mat4 &newval);
   const glm::mat4 &getTransformMatrix() const;
   const glm::mat4 &getCombinedMatrix() const;
   void bind(Program *activeProgram) override;
@@ -342,30 +349,35 @@ struct RenderBinding {
 };
 
 struct RenderCamera;
-struct IRenderable {
-  virtual RenderCamera *render(int frame, bool isRoot = false) = 0;
+
+struct RenderShot {
+  int currentFrame = 0;
+  bool isRoot = false;
+  simple_vector<ModelList *> scenes;
+
+  void updateFrame();
 };
 
-struct RenderCameraTree {
-  int currentFrame;
-  simple_vector<ModelList> scenes;
+struct IRenderable {
+  virtual RenderCamera *render(const RenderShot &shot) = 0;
 };
 
 struct RenderCamera : public Material, IRenderable {
   FrameBuffer *frameBuffer = nullptr;
+  int modelListInput = 0;
+
   simple_vector<RenderBinding> renderBindings;
   simple_vector<RenderCamera *> dummyInput;
-  ModelList *modelList;
 
   Program *overrideProgram = nullptr;
   Program *postprocessProgram = nullptr;
 
   RenderCamera();
 
-  void beginRender(int frame, bool isRoot = false);
-  void endRender(int frame, bool isRoot = false);
+  void beginRender(const RenderShot &shot);
+  void endRender(const RenderShot &shot);
 
-  virtual RenderCamera *render(int frame, bool isRoot = false) override;
+  virtual RenderCamera *render(const RenderShot &shot) override;
   virtual void bind(Program *activeProgram) override;
 
   void addInput(RenderCamera *child, int attachmentIndex,
@@ -379,11 +391,11 @@ struct RenderCamera : public Material, IRenderable {
   int getWidth();
   int getHeight();
   void setSize(int width, int height);
-  void setModelList(ModelList *modellist);
+  void setModelList(int index);
 
 private:
-  int width;
-  int height;
+  int width = 0;
+  int height = 0;
 };
 
 struct RenderConfiguration {
@@ -479,6 +491,8 @@ ModelList *createModelList();
 RenderCamera *createRenderCamera();
 VertexBuffer *createVertexBuffer();
 IndexBuffer *createIndexBuffer();
+
+void disposeModelList(ModelList *list);
 
 // DeclarativeRenderer
 void setWorldMaterial(int clas, Material *worldMaterial);

@@ -6,6 +6,17 @@
 #include <shambhala.hpp>
 #include <standard.hpp>
 using namespace shambhala;
+
+struct Scene {
+  Node *rootNode;
+
+  Scene();
+  Scene(const SceneDefinition &definition);
+  ~Scene();
+
+  Scene createInstance();
+};
+
 glm::mat4 getTransformMatrix(const aiMatrix4x4 &from) {
   glm::mat4 to;
 
@@ -364,9 +375,9 @@ Scene Scene::createInstance() {
   return instance;
 }
 
-struct SceneContainer : public loader::LoaderMap<Scene, SceneContainer> {
+struct SceneContainer : public loader::LoaderMap<Node, SceneContainer> {
 
-  static Scene *create(const char *path) {
+  static Node *create(const char *path) {
 
     SceneLoaderConfiguration configuration;
     configuration.combineMeshes = true;
@@ -383,7 +394,7 @@ struct SceneContainer : public loader::LoaderMap<Scene, SceneContainer> {
     SceneDefinition def;
     def.scenePath = path;
     def.configuration = configuration;
-    return new Scene(def);
+    return (new Scene(def))->rootNode;
   }
 
   static loader::Key computeKey(const char *path) {
@@ -392,5 +403,5 @@ struct SceneContainer : public loader::LoaderMap<Scene, SceneContainer> {
 };
 
 static SceneContainer sceneContainer;
-Scene *loader::loadScene(const char *path) { return sceneContainer.get(path); }
-void loader::unloadScene(Scene *scene) { sceneContainer.unload(scene); }
+Node *loader::loadScene(const char *path) { return sceneContainer.get(path); }
+void loader::unloadScene(Node *scene) { sceneContainer.unload(scene); }

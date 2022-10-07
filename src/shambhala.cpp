@@ -35,7 +35,7 @@ inline void clearDefault() { glClearColor(0.0, 0.0, 0.0, 1.0); }
 
 struct Engine {
   EngineControllers controllers;
-  ModelList *workingModelList;
+  simple_vector<ModelList *> workingLists;
   RenderCamera *currentRenderCamera;
   DeviceParameters gpu_params;
   RenderConfiguration *renderConfig;
@@ -49,7 +49,6 @@ struct Engine {
 
   bool prepared = false;
   void init() {
-    workingModelList = shambhala::createModelList();
     gpu_params = device::queryDeviceParameters();
 
     defaultProgram = loader::loadProgram(errorProgramFS, errorProgramVS);
@@ -71,6 +70,7 @@ void Node::removeChildNode(Node *childNode) {}
 
 void Node::setDirty() {
   clean = false;
+  enableclean = false;
   for (int i = 0; i < children.size(); i++) {
     children[i]->setDirty();
   }
@@ -88,6 +88,12 @@ void Node::setTransformMatrix(const glm::mat4 &newVal) {
   transformMatrix = newVal;
   setDirty();
 }
+
+void Node::transform(const glm::mat4 &newval) {
+  glm::mat4 oldMatrix = getTransformMatrix();
+  setTransformMatrix(newval * oldMatrix);
+}
+
 const glm::mat4 &Node::getTransformMatrix() const { return transformMatrix; }
 
 const glm::mat4 &Node::getCombinedMatrix() const {
@@ -112,6 +118,20 @@ Node *Node::createInstance() {
   }
   return newInstance;
 }
+
+bool Node::isEnabled() {
+  if (enableclean)
+    return cachedenabled;
+
+  enableclean = true;
+  if (!enabled)
+    return cachedenabled = false;
+  if (parentNode != nullptr)
+    return cachedenabled = true;
+  return cachedenabled = parentNode->isEnabled();
+}
+
+void Node::setEnabled(bool pEnable) { enabled = pEnable; }
 
 //---------------------[END NODE]
 //-----------------------[BEGIN UNIFORM]
@@ -865,6 +885,9 @@ bool Model::operator<(const Model &model) const {
 bool Model::ready() const { return program != nullptr && mesh != nullptr; }
 
 void Model::draw() {
+  if (node != nullptr && !node->isEnabled())
+    return;
+
   if (depthMask)
     glDepthMask(GL_FALSE);
   device::useModelConfiguration(this);
@@ -882,6 +905,9 @@ void Model::draw() {
 Model *Model::createInstance() {
   Model *newInstance = shambhala::createModel();
   *newInstance = *this;
+  if (newInstance->node != nullptr) {
+    newInstance->node = newInstance->node->createInstance();
+  }
   return newInstance;
 }
 //---------------------[MODEL END]
@@ -948,6 +974,10 @@ void ModelList::add(Model *model) {
   }
   model->node->setParentNode(rootnode);
   forceSorting();
+
+  if (model->mesh == nullptr) {
+    LOG("Warning, model %p does not have a mesh! ", model);
+  }
 }
 
 bool Texture::needsUpdate() {
@@ -963,19 +993,19 @@ bool Texture::needsUpdate() {
 
 RenderCamera::RenderCamera() { hasCustomBindFunction = true; }
 
-RenderCamera *RenderCamera::render(int frame, bool isRoot) {
-  beginRender(frame, isRoot);
-  endRender(frame, isRoot);
+RenderCamera *RenderCamera::render(const RenderShot &shot) {
+  beginRender(shot);
+  endRender(shot);
   return this;
 }
 
-void RenderCamera::beginRender(int frame, bool isRoot) {
+void RenderCamera::beginRender(const RenderShot &shot) {
 
-  if (frame == currentFrame)
+  if (shot.currentFrame == currentFrame)
     return;
 
   for (int i = 0; i < renderBindings.size(); i++) {
-    renderBindings[i].renderCamera->render(frame);
+    renderBindings[i].renderCamera->render(shot);
   }
 
   engine.currentRenderCamera = this;
@@ -987,14 +1017,14 @@ void RenderCamera::beginRender(int frame, bool isRoot) {
   }
 }
 
-void RenderCamera::endRender(int frame, bool isRoot) {
+void RenderCamera::endRender(const RenderShot &shot) {
 
-  if (frame == currentFrame)
+  if (shot.currentFrame == currentFrame)
     return;
 
-  currentFrame = frame;
+  currentFrame = shot.currentFrame;
 
-  bool useFrameBuffer = frameBuffer != nullptr && !isRoot;
+  bool useFrameBuffer = frameBuffer != nullptr && !shot.isRoot;
 
   if (useFrameBuffer) {
     frameBuffer->begin(viewport()->screenWidth, viewport()->screenHeight);
@@ -1014,7 +1044,7 @@ void RenderCamera::endRender(int frame, bool isRoot) {
   if (postprocessProgram) {
     device::drawCall();
   } else {
-    device::useModelList(modelList);
+    device::useModelList(shot.scenes[modelListInput]);
     device::renderPass();
   }
   if (overrideProgram) {
@@ -1055,8 +1085,8 @@ void RenderCamera::bind(Program *activeProgram) {
   }
 }
 
-void RenderCamera::setModelList(ModelList *modellist) {
-  this->modelList = modellist;
+void RenderCamera::setModelList(int modelListIndex) {
+  this->modelListInput = modelListIndex;
 }
 
 void RenderCamera::addInput(RenderCamera *child, int attachmentIndex,
@@ -1107,6 +1137,10 @@ void RenderCamera::setSize(int width, int height) {
 }
 
 //---------------------[END RENDERCAMERA]
+
+//---------------------[BEGIN RENDERSHOT]
+void RenderShot::updateFrame() { this->currentFrame++; }
+//---------------------[END RENDERSHOT]
 //---------------------[BEGIN ENGINE]
 
 void shambhala::loop_beginRenderContext() {
@@ -1185,18 +1219,18 @@ void shambhala::setWorldMaterial(int clas, Material *worldMaterial) {
   guseState.worldMaterials[clas] = worldMaterial;
 }
 
-void shambhala::addModel(Model *model) {
-  engine.workingModelList->add(model);
-
-  if (model->mesh == nullptr) {
-    LOG("Warning, model %p does not have a mesh! ", model);
-  }
-}
+void shambhala::addModel(Model *model) { getWorkingModelList()->add(model); }
 
 void shambhala::setWorkingModelList(ModelList *modelList) {
-  engine.workingModelList = modelList;
+  if (modelList == nullptr) {
+    engine.workingLists.pop();
+  } else {
+    engine.workingLists.push(modelList);
+  }
 }
-ModelList *shambhala::getWorkingModelList() { return engine.workingModelList; }
+ModelList *shambhala::getWorkingModelList() {
+  return engine.workingLists[engine.workingLists.size() - 1];
+}
 
 IViewport *shambhala::viewport() { return engine.controllers.viewport; }
 IIO *shambhala::io() { return engine.controllers.io; }
@@ -1218,11 +1252,13 @@ RenderCamera *shambhala::createRenderCamera() { return new RenderCamera; }
 VertexBuffer *shambhala::createVertexBuffer() { return new VertexBuffer; }
 IndexBuffer *shambhala::createIndexBuffer() { return new IndexBuffer; }
 
+void shambhala::disposeModelList(ModelList *list) {}
+
 //---------------------[END ENGINECREATE]
 
 //---------------------[BEGIN ENGINEUPDATE]
 
-void shambhala::buildSortPass() { engine.workingModelList->forceSorting(); }
+void shambhala::buildSortPass() { getWorkingModelList()->forceSorting(); }
 //---------------------[END ENGINEUPDATE]
 //---------------------[END ENGINE]
 
