@@ -5,10 +5,13 @@
 #include "core/core.hpp"
 #include "simple_vector.hpp"
 #include <glm/glm.hpp>
+#include <list>
 #include <memory>
 #include <standard.hpp>
+#include <string>
 #include <unordered_map>
 #include <vector>
+
 #pragma once
 #define ENUM_OPERATORS(T)                                                      \
   inline T operator~(T a) { return (T) ~(int)a; }                              \
@@ -23,6 +26,27 @@ using uint32_t = unsigned int;
 using uint8_t = unsigned char;
 
 namespace shambhala {
+
+template <typename T> struct EngineComponent {
+  inline static int indexCount = 0;
+
+  bool uiRender = false;
+  std::string stringName;
+  int indexName = 0;
+
+  EngineComponent() { indexName = indexCount++; }
+
+  std::string &getName() {
+    if (stringName.empty())
+      stringName = std::to_string(indexName);
+    return stringName;
+  }
+
+  void setName(const char *name) {
+    if (name != nullptr)
+      stringName = name;
+  }
+};
 struct IResource {
   virtual io_buffer *read() = 0;
   const char *resourcename = nullptr;
@@ -193,16 +217,14 @@ struct Material {
 
 #undef UNIFORMS_LIST
 
-struct Node : public Material {
+struct Node : public Material, public EngineComponent<Node> {
   Node *parentNode = nullptr;
-  simple_vector<Node *> children;
+  std::list<Node *> children;
   glm::mat4 transformMatrix = glm::mat4(1.0);
 
   mutable glm::mat4 combinedMatrix;
   mutable bool clean = false;
   mutable bool enableclean = false;
-
-  void removeChildNode(Node *childNode);
 
   bool enabled = true;
   bool cachedenabled = true;
@@ -219,8 +241,6 @@ public:
   const glm::mat4 &getTransformMatrix() const;
   const glm::mat4 &getCombinedMatrix() const;
   void bind(Program *activeProgram) override;
-
-  Node *createInstance();
 };
 
 struct ModelConfiguration {
@@ -253,7 +273,6 @@ struct Model : public ModelConfiguration {
 
 struct ModelList {
   simple_vector<Model *> models;
-  Node *rootnode = nullptr;
 
   void add(Model *model);
   void forceSorting();
@@ -262,7 +281,6 @@ struct ModelList {
   Model *get(int index) const;
   const std::vector<int> &getRenderOrder();
 
-  ModelList();
   ModelList *createInstance();
 
 private:
@@ -481,6 +499,10 @@ DeviceParameters queryDeviceParameters();
 } // namespace device
 
 Node *createNode();
+Node *createNode(const char *componentName);
+Node *createNode(Node *);
+Node *createNode(const char *componentName, Node *copyNode);
+
 Texture *createTexture();
 Model *createModel();
 Mesh *createMesh();
@@ -491,6 +513,8 @@ ModelList *createModelList();
 RenderCamera *createRenderCamera();
 VertexBuffer *createVertexBuffer();
 IndexBuffer *createIndexBuffer();
+
+Node *getRootNode();
 
 void disposeModelList(ModelList *list);
 

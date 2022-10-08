@@ -369,12 +369,6 @@ Scene::Scene(const SceneDefinition &def) {
 }
 Scene::~Scene() {}
 
-Scene Scene::createInstance() {
-  Scene instance;
-  instance.rootNode = instance.rootNode->createInstance();
-  return instance;
-}
-
 struct SceneContainer : public loader::LoaderMap<Node, SceneContainer> {
 
   static Node *create(const char *path) {

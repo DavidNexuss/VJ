@@ -40,9 +40,43 @@ struct EditorState {
   }
 };
 
-EditorState editorState;
+struct EditorWindow {
+  bool enabled = true;
+  const char *name;
 
-void editor::editorRender(int frame) { editorState.renderTabs(frame); }
+  virtual void render(int frame) = 0;
+  void draw(int frame) {
+    if (ImGui::Begin(name, &enabled)) {
+      render(frame);
+      ImGui::End();
+    }
+  }
+};
+
+struct NodeTreeWindow : public EditorWindow {
+
+  NodeTreeWindow() { EditorWindow::name = "Nodes"; }
+  void recursiveTreeRender(Node *node, int depth = 0) {
+    if (ImGui::TreeNode(node->getName().c_str())) {
+      for (Node *child : node->children) {
+        recursiveTreeRender(child, depth + 1);
+      }
+
+      ImGui::TreePop();
+    }
+  }
+  void render(int frame) override {
+    recursiveTreeRender(shambhala::getRootNode());
+  }
+};
+
+EditorState editorState;
+EditorWindow *nodeWindow;
+
+void editor::editorRender(int frame) {
+  editorState.renderTabs(frame);
+  nodeWindow->draw(frame);
+}
 void editor::editorStep() {}
 void editor::enableEditor(bool pEnable) {}
 
@@ -52,4 +86,7 @@ void editor::addEditorTab(RenderCamera *renderTarget, RenderShot shot,
 }
 void editor::editorBeginContext() {}
 void editor::editorEndContext() {}
-void editor::editorInit() {}
+void editor::editorInit() {
+  static NodeTreeWindow nodes = NodeTreeWindow{};
+  nodeWindow = &nodes;
+}

@@ -39,6 +39,7 @@ struct Engine {
   RenderCamera *currentRenderCamera;
   DeviceParameters gpu_params;
   RenderConfiguration *renderConfig;
+  Node *rootNode;
   GLuint vao = -1;
 
   const char *errorProgramFS = "programs/error.fs";
@@ -54,6 +55,8 @@ struct Engine {
     defaultProgram = loader::loadProgram(errorProgramFS, errorProgramVS);
     defaultMaterial = shambhala::createMaterial();
     renderConfig = new RenderConfiguration;
+    rootNode = new Node;
+    rootNode->setName("root");
   }
 
   void cleanup() { loader::unloadProgram(defaultProgram); }
@@ -66,22 +69,24 @@ Node::Node() {
   clean = false;
   hasCustomBindFunction = true;
 }
-void Node::removeChildNode(Node *childNode) {}
 
 void Node::setDirty() {
   clean = false;
   enableclean = false;
-  for (int i = 0; i < children.size(); i++) {
-    children[i]->setDirty();
+  for (Node *child : children) {
+    child->setDirty();
   }
 }
 void Node::addChildNode(Node *childNode) {
-  children.push(childNode);
+  children.push_back(childNode);
   childNode->setDirty();
 }
-void Node::setParentNode(Node *parent) {
-  parentNode = parent;
-  setDirty();
+void Node::setParentNode(Node *parentNode) {
+  if (this->parentNode) {
+    this->parentNode->children.remove(this);
+  }
+  this->parentNode = parentNode;
+  parentNode->addChildNode(this);
 }
 
 void Node::setTransformMatrix(const glm::mat4 &newVal) {
@@ -110,15 +115,6 @@ void Node::bind(Program *activeProgram) {
   device::useUniform(Standard::uTransformMatrix, Uniform(getCombinedMatrix()));
 }
 
-Node *Node::createInstance() {
-  Node *newInstance = shambhala::createNode();
-  *newInstance = *this;
-  for (int i = 0; i < children.size(); i++) {
-    children[i] = children[i]->createInstance();
-  }
-  return newInstance;
-}
-
 bool Node::isEnabled() {
   if (enableclean)
     return cachedenabled;
@@ -131,7 +127,10 @@ bool Node::isEnabled() {
   return cachedenabled = parentNode->isEnabled();
 }
 
-void Node::setEnabled(bool pEnable) { enabled = pEnable; }
+void Node::setEnabled(bool pEnable) {
+  enabled = pEnable;
+  setDirty();
+}
 
 //---------------------[END NODE]
 //-----------------------[BEGIN UNIFORM]
@@ -885,7 +884,10 @@ bool Model::operator<(const Model &model) const {
 bool Model::ready() const { return program != nullptr && mesh != nullptr; }
 
 void Model::draw() {
-  if (node != nullptr && !node->isEnabled())
+  if (node == nullptr)
+    node = shambhala::createNode();
+
+  if (!node->isEnabled())
     return;
 
   if (depthMask)
@@ -906,14 +908,13 @@ Model *Model::createInstance() {
   Model *newInstance = shambhala::createModel();
   *newInstance = *this;
   if (newInstance->node != nullptr) {
-    newInstance->node = newInstance->node->createInstance();
+    newInstance->node = shambhala::createNode(newInstance->node);
   }
   return newInstance;
 }
 //---------------------[MODEL END]
 //---------------------[MODELLIST BEGIN]
 
-ModelList::ModelList() { rootnode = shambhala::createNode(); }
 const std::vector<int> &ModelList::getRenderOrder() {
   if (shouldSort) {
     modelindices.resize(models.size());
@@ -969,10 +970,6 @@ VertexAttribute Mesh::getAttribute(int attribIndex) {
 
 void ModelList::add(Model *model) {
   this->models.push(model);
-  if (model->node == nullptr) {
-    model->node = shambhala::createNode();
-  }
-  model->node->setParentNode(rootnode);
   forceSorting();
 
   if (model->mesh == nullptr) {
@@ -1228,6 +1225,8 @@ void shambhala::setWorkingModelList(ModelList *modelList) {
     engine.workingLists.push(modelList);
   }
 }
+
+Node *shambhala::getRootNode() { return engine.rootNode; }
 ModelList *shambhala::getWorkingModelList() {
   return engine.workingLists[engine.workingLists.size() - 1];
 }
@@ -1247,7 +1246,32 @@ Mesh *shambhala::createMesh() { return new Mesh; }
 Program *shambhala::createProgram() { return new Program; }
 FrameBuffer *shambhala::createFramebuffer() { return new FrameBuffer; }
 Material *shambhala::createMaterial() { return new Material; }
-Node *shambhala::createNode() { return new Node; }
+
+Node *shambhala::createNode(const char *name, Node *old) {
+  Node *newInstance = new Node;
+  newInstance->setName(name);
+  if (old != nullptr) {
+    newInstance->transformMatrix = old->transformMatrix;
+    newInstance->children.clear();
+    for (Node *node : old->children) {
+      newInstance->children.push_back(shambhala::createNode(node));
+    }
+  } else {
+    newInstance->setParentNode(engine.rootNode);
+  }
+  return newInstance;
+}
+
+Node *shambhala::createNode() {
+  return shambhala::createNode(nullptr, nullptr);
+}
+Node *shambhala::createNode(const char *componentName) {
+  return shambhala::createNode(componentName, nullptr);
+}
+Node *shambhala::createNode(Node *old) {
+  return shambhala::createNode(nullptr, old);
+}
+
 RenderCamera *shambhala::createRenderCamera() { return new RenderCamera; }
 VertexBuffer *shambhala::createVertexBuffer() { return new VertexBuffer; }
 IndexBuffer *shambhala::createIndexBuffer() { return new IndexBuffer; }
