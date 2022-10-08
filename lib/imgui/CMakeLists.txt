@@ -1,5 +1,0 @@
-cmake_minimum_required(VERSION 3.22)
-project(imgui)
-file(GLOB_RECURSE SRCS *.cpp)
-include_directories(../../src)
-add_library(imgui ${SRCS})
