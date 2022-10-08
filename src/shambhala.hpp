@@ -27,15 +27,23 @@ using uint8_t = unsigned char;
 
 namespace shambhala {
 
-template <typename T> struct EngineComponent {
+struct UIComponent {
+  bool uiRender = false;
+  bool uiSelected = false;
+};
+
+template <typename T> struct EngineComponent : public UIComponent {
   inline static int indexCount = 0;
 
-  bool uiRender = false;
   std::string stringName;
   int indexName = 0;
 
   EngineComponent() { indexName = indexCount++; }
 
+  EngineComponent(const EngineComponent &other) {
+    indexName = indexCount++;
+    other.stringName = other.stringName + " " + std::to_string(indexName);
+  }
   std::string &getName() {
     if (stringName.empty())
       stringName = std::to_string(indexName);

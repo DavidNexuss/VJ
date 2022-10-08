@@ -217,8 +217,8 @@ ModelList *loadWorld() {
   return modelList;
 }
 void loadDebugProbe(Node *rootNode) {
-  Node *ringNode = shambhala::createNode();
-  Node *arrowNode = shambhala::createNode();
+  Node *ringNode = shambhala::createNode("ringNode");
+  Node *arrowNode = shambhala::createNode("arrowNode");
 
   Program *probe = shambhala::loader::loadProgram("programs/misc/probe.fs",
                                                   "programs/regular.vs");
@@ -244,15 +244,18 @@ void loadDebugProbe(Node *rootNode) {
     Model *ringy = ringModel->createInstance();
     ringy->material = green;
     shambhala::addModel(ringy);
+    ringy->node->setName("ringy");
 
     Model *ringz = ringModel->createInstance();
     ringz->material = blue;
     ringz->node->setTransformMatrix(util::rotate(0, 0, 1, M_PI / 2));
+    ringz->node->setName("ringz");
     shambhala::addModel(ringz);
 
     Model *ringx = ringz->createInstance();
     ringx->material = red;
     ringx->node->transform(util::rotate(0, 1, 0, M_PI / 2));
+    ringx->node->setName("ringx");
     shambhala::addModel(ringx);
 
     ringx->node->setParentNode(ringNode);
@@ -273,14 +276,17 @@ void loadDebugProbe(Node *rootNode) {
 
     Model *arrowz = arrowModel->createInstance();
     arrowz->material = blue;
+    arrowz->node->setName("arrowz");
 
     Model *arrowx = arrowModel->createInstance();
     arrowx->node->transform(util::rotate(0, 1, 0, M_PI / 2));
     arrowx->material = red;
+    arrowx->node->setName("arrowx");
 
     Model *arrowy = arrowx->createInstance();
-    arrowy->node->transform(util::rotate(0, 0, 1, M_PI / 2));
+    arrowy->node->transform(util::rotate(1, 0, 0, -M_PI / 2));
     arrowy->material = green;
+    arrowy->node->setName("arrowy");
 
     shambhala::addModel(arrowz);
     shambhala::addModel(arrowx);
@@ -303,15 +309,24 @@ int main() {
   shambhala::setWorkingModelList(shambhala::createModelList());
   shot.scenes = {shambhala::getWorkingModelList()};
 
-  loadDebugProbe(shambhala::createNode());
+  loadDebugProbe(shambhala::createNode("debugProbe"));
 
   shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
   shambhala::setWorldMaterial(Standard::wCamera, new worldmats::DebugCamera);
 
+  editor::editorInit();
   int frame = 0;
   do {
     shambhala::loop_beginRenderContext();
     renderCamera->render(shot);
+
+    shambhala::loop_beginUIContext();
+    editor::editorBeginContext();
+    editor::editorRender(shot.currentFrame);
+    editor::editorEndContext();
+    shambhala::loop_endUIContext();
+
+    shambhala::loop_shouldClose();
     shambhala::loop_endRenderContext();
 
     shot.updateFrame();

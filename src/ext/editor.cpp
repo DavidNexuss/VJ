@@ -55,9 +55,25 @@ struct EditorWindow {
 
 struct NodeTreeWindow : public EditorWindow {
 
+  Node *selected_node = nullptr;
+  Node *clicked = nullptr;
+  int id = 0;
+  ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_SpanAvailWidth;
+
   NodeTreeWindow() { EditorWindow::name = "Nodes"; }
+
   void recursiveTreeRender(Node *node, int depth = 0) {
-    if (ImGui::TreeNode(node->getName().c_str())) {
+    ImGuiTreeNodeFlags node_flags = base_flags;
+    if (node == selected_node)
+      node_flags |= ImGuiTreeNodeFlags_Selected;
+
+    if (ImGui::TreeNodeEx((void *)(intptr_t)id++, node_flags,
+                          node->getName().c_str())) {
+
+      if (ImGui::IsItemClicked() || ImGui::IsItemToggledOpen()) {
+        clicked = node;
+      }
+
       for (Node *child : node->children) {
         recursiveTreeRender(child, depth + 1);
       }
@@ -65,8 +81,29 @@ struct NodeTreeWindow : public EditorWindow {
       ImGui::TreePop();
     }
   }
+
+  void renderNodeWindow() {
+    if (ImGui::Begin("NodeEditor")) {
+      ImGui::Text("Editor node: %s \n", selected_node->getName().c_str());
+      ImGui::InputFloat3("X: ", &selected_node->transformMatrix[0][0]);
+      ImGui::InputFloat3("Y: ", &selected_node->transformMatrix[1][0]);
+      ImGui::InputFloat3("Z: ", &selected_node->transformMatrix[2][0]);
+      ImGui::InputFloat3("Offset: ", &selected_node->transformMatrix[3][0]);
+      ImGui::End();
+      selected_node->setDirty();
+    }
+  }
   void render(int frame) override {
+    id = 0;
     recursiveTreeRender(shambhala::getRootNode());
+
+    if (clicked != nullptr) {
+      selected_node = clicked;
+      clicked = nullptr;
+    }
+
+    if (selected_node != nullptr)
+      renderNodeWindow();
   }
 };
 

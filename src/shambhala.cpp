@@ -23,9 +23,10 @@ using namespace shambhala;
 void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
              GLsizei length, const GLchar *message, const void *userParam) {
 
-  std::cerr << "[GL " << severity << "] " << message << std::endl;
   if (severity >= 37190 &&
       (id == GL_INVALID_OPERATION || type == GL_INVALID_OPERATION)) {
+
+    std::cerr << "[GL " << severity << "] " << message << std::endl;
     throw std::runtime_error{"error"};
   }
 }
