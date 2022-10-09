@@ -72,9 +72,12 @@ struct DebugCamera : public Camera {
 
   int cursorStartx, cursorStarty;
   bool pressed;
+  bool middlepressed;
 
   float lastAlpha;
   float lastBeta;
+
+  glm::vec3 lastTarget;
 
   DebugCamera();
   virtual void update(float) override;

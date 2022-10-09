@@ -89,6 +89,7 @@ struct NodeTreeWindow : public EditorWindow {
       ImGui::InputFloat3("Y: ", &selected_node->transformMatrix[1][0]);
       ImGui::InputFloat3("Z: ", &selected_node->transformMatrix[2][0]);
       ImGui::InputFloat3("Offset: ", &selected_node->transformMatrix[3][0]);
+      ImGui::Checkbox("Enabled", &selected_node->enabled);
       ImGui::End();
       selected_node->setDirty();
     }

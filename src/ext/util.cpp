@@ -307,6 +307,7 @@ int util::doSelectionPass(ModelList *models) {
     selectionBuffer->addChannel({GL_R8, GL_RED, GL_UNSIGNED_BYTE});
   }
 
+  glDisable(GL_MULTISAMPLE);
   selectionBuffer->begin(viewport()->screenWidth, viewport()->screenHeight);
 
   device::useProgram(selection);
@@ -314,7 +315,7 @@ int util::doSelectionPass(ModelList *models) {
   const std::vector<int> &order = models->getRenderOrder();
   for (int i = 0; i < order.size(); i++) {
     Model *model = models->get(order[i]);
-    if (model->hint_selectionpass) {
+    if (model->hint_selectionpass && model->isEnabled()) {
 
       selectionMaterial->set("uModelID", model->hint_modelid);
       device::useMesh(model->mesh);
@@ -328,5 +329,6 @@ int util::doSelectionPass(ModelList *models) {
   glReadPixels(viewport()->xpos, viewport()->screenHeight - viewport()->ypos, 1,
                1, GL_RED, GL_UNSIGNED_BYTE, &id);
   selectionBuffer->end();
+  glEnable(GL_MULTISAMPLE);
   return id;
 }

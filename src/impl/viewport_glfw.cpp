@@ -47,11 +47,15 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
 
 void mouse_button_callback(GLFWwindow *window, int button, int action,
                            int mods) {
-  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-    currentViewport->mousePressed = true;
 
-  if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-    currentViewport->mousePressed = false;
+  if (button == GLFW_MOUSE_BUTTON_LEFT)
+    currentViewport->mousePressed = action == GLFW_PRESS;
+
+  if (button == GLFW_MOUSE_BUTTON_MIDDLE)
+    currentViewport->middleMousePressed = action == GLFW_PRESS;
+
+  if (button == GLFW_MOUSE_BUTTON_RIGHT)
+    currentViewport->rightMousePressed = action == GLFW_PRESS;
 }
 
 void ViewportGLFW::setActiveWindow(void *udata) {

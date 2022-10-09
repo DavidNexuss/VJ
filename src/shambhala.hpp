@@ -254,7 +254,6 @@ public:
 
 struct ModelConfiguration {
 
-  bool enabled = true;
   bool depthMask = false;
   bool cullFrontFace = false;
   GLuint renderMode = GL_TRIANGLES;
@@ -286,6 +285,8 @@ struct Model : public ModelConfiguration {
   bool ready() const;
 
   Model *createInstance();
+
+  bool isEnabled();
 };
 
 struct ModelList {

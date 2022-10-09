@@ -26,6 +26,8 @@ struct IViewport {
   void restoreViewport();
 
   bool isMousePressed();
+  bool isMiddleMousePressed();
+  bool isRightMousePressed();
 
   virtual void setActiveWindow(void *window) = 0;
   virtual void hideMouse(bool hide) = 0;
@@ -43,6 +45,8 @@ struct IViewport {
   std::unordered_map<int, bool> justPressed;
 
   bool mousePressed;
+  bool middleMousePressed;
+  bool rightMousePressed;
 
   glm::vec2 getMouseViewportCoords();
 

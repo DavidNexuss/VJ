@@ -29,3 +29,6 @@ double shambhala::IViewport::aspectRatio() {
 glm::vec2 shambhala::IViewport::getMouseViewportCoords() {
   return glm::vec2(xpos / screenWidth, ypos / screenHeight);
 }
+
+bool shambhala::IViewport::isMiddleMousePressed() { return middleMousePressed; }
+bool shambhala::IViewport::isRightMousePressed() { return rightMousePressed; }

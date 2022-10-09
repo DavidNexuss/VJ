@@ -110,6 +110,7 @@ DebugCamera::DebugCamera() {
   nextAlpha = 1.0;
   nextBeta = 0.0;
   pressed = false;
+  middlepressed = false;
   needsFrameUpdate = true;
 }
 
@@ -165,6 +166,8 @@ void DebugCamera::update(float deltatime) {
   }
 
   bool mousePressed = viewport()->isMousePressed();
+  bool middleMousePressed = viewport()->isMiddleMousePressed();
+
   distance += viewport()->scrollY * std::max(std::abs(distance * 0.05), 0.1);
   viewport()->scrollY = 0.0f;
 
@@ -190,6 +193,29 @@ void DebugCamera::update(float deltatime) {
 
     lastAlpha = 0.0f;
     lastBeta = 0.0f;
+  }
+
+  if (middleMousePressed) {
+    if (!middlepressed) {
+      middlepressed = true;
+      cursorStartx = viewport()->xpos;
+      cursorStarty = viewport()->ypos;
+      lastTarget = nextTarget;
+    }
+
+    glm::vec2 difference =
+        glm::vec2(cursorStartx - viewport()->xpos,
+                  viewport()->ypos - cursorStarty) /
+        glm::vec2(viewport()->screenWidth, viewport()->screenHeight);
+
+    glm::vec3 offset =
+        invViewMatrix * glm::vec4(glm::vec3(difference, 0.0), 0.0);
+
+    nextTarget = lastTarget + offset * distance;
+  }
+
+  if (!middleMousePressed && middlepressed) {
+    middlepressed = false;
   }
 
   glm::vec3 currentDirection =

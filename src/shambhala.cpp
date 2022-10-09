@@ -131,7 +131,7 @@ bool Node::isEnabled() {
   enableclean = true;
   if (!enabled)
     return cachedenabled = false;
-  if (parentNode != nullptr)
+  if (parentNode == nullptr)
     return cachedenabled = true;
   return cachedenabled = parentNode->isEnabled();
 }
@@ -719,7 +719,7 @@ void device::renderPass() {
   SoftCheck(renderOrder.size() > 0, LOG("[Warning] Empty render pass ! ", 0););
   for (int i = 0; i < renderOrder.size(); i++) {
     Model *model = guseState.currentModelList->models[renderOrder[i]];
-    if (model->enabled) {
+    if (model->isEnabled()) {
       model->draw();
     }
   }
@@ -897,12 +897,17 @@ bool Model::operator<(const Model &model) const {
 }
 bool Model::ready() const { return program != nullptr && mesh != nullptr; }
 
-void Model::draw() {
+bool Model::isEnabled() {
   if (node == nullptr)
     node = shambhala::createNode();
 
   if (!node->isEnabled())
-    return;
+    return false;
+  return true;
+}
+void Model::draw() {
+  if (node == nullptr)
+    node = shambhala::createNode();
 
   if (depthMask)
     glDepthMask(GL_FALSE);
