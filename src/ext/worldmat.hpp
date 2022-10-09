@@ -50,6 +50,7 @@ public:
   virtual void bind(Program *program) override;
 
   inline glm::mat4 getViewMatrix() const { return viewMatrix; }
+  inline glm::mat4 getProjectionMatrix() const { return projectionMatrix; }
   inline glm::mat4 getCombined() const { return combinedMatrix; }
 
   Camera();
