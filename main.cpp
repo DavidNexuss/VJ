@@ -246,17 +246,17 @@ void loadDebugProbe(Node *rootNode) {
     shambhala::addModel(ringy);
     ringy->node->setName("ringy");
 
-    Model *ringz = ringModel->createInstance();
-    ringz->material = blue;
-    ringz->node->setTransformMatrix(util::rotate(0, 0, 1, M_PI / 2));
-    ringz->node->setName("ringz");
-    shambhala::addModel(ringz);
-
-    Model *ringx = ringz->createInstance();
+    Model *ringx = ringModel->createInstance();
     ringx->material = red;
-    ringx->node->transform(util::rotate(0, 1, 0, M_PI / 2));
+    ringx->node->setTransformMatrix(util::rotate(0, 0, 1, M_PI / 2));
     ringx->node->setName("ringx");
     shambhala::addModel(ringx);
+
+    Model *ringz = ringx->createInstance();
+    ringz->material = blue;
+    ringz->node->transform(util::rotate(0, 1, 0, M_PI / 2));
+    ringz->node->setName("ringz");
+    shambhala::addModel(ringz);
 
     ringx->node->setParentNode(ringNode);
     ringy->node->setParentNode(ringNode);
@@ -274,16 +274,17 @@ void loadDebugProbe(Node *rootNode) {
 
     arrowModel->node->transform(util::scale(0.5));
 
-    Model *arrowz = arrowModel->createInstance();
-    arrowz->material = blue;
-    arrowz->node->setName("arrowz");
-
     Model *arrowx = arrowModel->createInstance();
-    arrowx->node->transform(util::rotate(0, 1, 0, M_PI / 2));
+    arrowx->node->transform(util::rotate(0, 1, 0, M_PI));
     arrowx->material = red;
     arrowx->node->setName("arrowx");
 
-    Model *arrowy = arrowx->createInstance();
+    Model *arrowz = arrowModel->createInstance();
+    arrowz->node->transform(util::rotate(0, 1, 0, M_PI / 2));
+    arrowz->material = blue;
+    arrowz->node->setName("arrowz");
+
+    Model *arrowy = arrowz->createInstance();
     arrowy->node->transform(util::rotate(1, 0, 0, -M_PI / 2));
     arrowy->material = green;
     arrowy->node->setName("arrowy");
