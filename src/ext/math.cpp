@@ -30,4 +30,10 @@ Ray ext::createRay(Camera *camera, glm::vec2 position) {
   return result;
 }
 
-float ext::rayDistance(Ray a, Ray b) {}
+float ext::rayDistance(Ray a, Ray b) {
+  glm::vec3 b1 = glm::normalize(a.rd);
+  glm::vec3 b2 = glm::normalize(b.rd);
+  glm::vec3 a1 = a.ro;
+  glm::vec3 a2 = b.ro;
+  return glm::length(b1 * b2 * (a2 - a1)) / glm::length(glm::cross(b1, b2));
+}

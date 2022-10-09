@@ -1,16 +1,20 @@
 #include "adapters/log.hpp"
 #include "ext/gi.hpp"
+#include "ext/math.hpp"
 #include "ext/util.hpp"
 #include "simple_vector.hpp"
 #include <ext.hpp>
 #include <glm/ext/matrix_transform.hpp>
+#include <glm/ext/quaternion_geometric.hpp>
 #include <impl/io_linux.hpp>
 #include <impl/logger.hpp>
 #include <impl/viewport_glfw.hpp>
 #include <iostream>
 #include <shambhala.hpp>
 #include <standard.hpp>
+
 using namespace shambhala;
+using namespace ext;
 
 simple_vector<TextureResource *>
 textures(const simple_vector<const char *> &textures) {
@@ -231,6 +235,15 @@ void loadDebugProbe(Node *rootNode) {
   Material *green = shambhala::createMaterial();
   green->set("uColor", glm::vec4(0.3, 1.0, 0.3, 1.0));
 
+  Material *selection_red = shambhala::createMaterial();
+  selection_red->set("uColor", glm::vec4(1.0, 0.6, 0.6, 1.0));
+
+  Material *selection_blue = shambhala::createMaterial();
+  selection_blue->set("uColor", glm::vec4(0.6, 0.6, 1.0, 1.0));
+
+  Material *selection_green = shambhala::createMaterial();
+  selection_green->set("uColor", glm::vec4(0.6, 1.0, 0.6, 1.0));
+
   // Load rings
   {
 
@@ -271,23 +284,32 @@ void loadDebugProbe(Node *rootNode) {
     arrowModel->program = probe;
     arrowModel->node = shambhala::createNode();
     arrowModel->mesh = arrow;
+    arrowModel->hint_raycast = true;
+    arrowModel->hint_class = 1;
+    arrowModel->hint_selectionpass = true;
 
     arrowModel->node->transform(util::scale(0.5));
 
     Model *arrowx = arrowModel->createInstance();
     arrowx->node->transform(util::rotate(0, 1, 0, M_PI));
     arrowx->material = red;
+    arrowx->hint_selection_material = selection_red;
     arrowx->node->setName("arrowx");
+    arrowx->hint_modelid = 10;
 
     Model *arrowz = arrowModel->createInstance();
     arrowz->node->transform(util::rotate(0, 1, 0, M_PI / 2));
     arrowz->material = blue;
     arrowz->node->setName("arrowz");
+    arrowz->hint_selection_material = selection_blue;
+    arrowz->hint_modelid = 100;
 
     Model *arrowy = arrowz->createInstance();
     arrowy->node->transform(util::rotate(1, 0, 0, -M_PI / 2));
     arrowy->material = green;
     arrowy->node->setName("arrowy");
+    arrowy->hint_modelid = 200;
+    arrowy->hint_selection_material = selection_green;
 
     shambhala::addModel(arrowz);
     shambhala::addModel(arrowx);
@@ -302,6 +324,34 @@ void loadDebugProbe(Node *rootNode) {
   ringNode->setParentNode(rootNode);
   arrowNode->setParentNode(rootNode);
 }
+
+void raycastEngine(Model *model, Ray mouseRay) {
+  glm::mat4 combined = model->node->getCombinedMatrix();
+  Ray ray;
+  ray.ro = glm::vec3(combined[3]);
+  ray.rd = glm::normalize(-glm::vec3(1.0, 0.0, 0.0) *
+                          glm::inverse(glm::mat3(combined)));
+  util::renderLine(ray.ro - ray.rd * 5.0f, ray.rd * 5.0f + ray.ro,
+                   model->material);
+
+  float distance = ext::rayDistance(ray, mouseRay);
+}
+
+struct ModelUpdate {
+  worldmats::Camera *screenCamrea;
+};
+
+void modelUpdate(ModelList *models, ModelUpdate updateconfiguration) {
+  Ray userRay = ext::createRay(updateconfiguration.screenCamrea,
+                               viewport()->getMouseViewportCoords());
+  for (int i = 0; i < models->size(); i++) {
+    Model *model = models->get(i);
+    if (model->hint_raycast && model->hint_class == 1) {
+      raycastEngine(model, userRay);
+    }
+  }
+}
+
 int main() {
 
   enginecreate();
@@ -310,15 +360,22 @@ int main() {
   shambhala::setWorkingModelList(shambhala::createModelList());
   shot.scenes = {shambhala::getWorkingModelList()};
 
-  loadDebugProbe(shambhala::createNode("debugProbe"));
+  Node *debugProbe = shambhala::createNode("debugProbe");
+  loadDebugProbe(debugProbe);
 
   shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
-  shambhala::setWorldMaterial(Standard::wCamera, new worldmats::DebugCamera);
+  worldmats::Camera *cam = new worldmats::DebugCamera;
+  shambhala::setWorldMaterial(Standard::wCamera, cam);
 
   editor::editorInit();
   int frame = 0;
+
+  ModelUpdate updateconfiguration;
+  updateconfiguration.screenCamrea = cam;
   do {
+
     shambhala::loop_beginRenderContext();
+    shambhala::hint_selectionpass();
     renderCamera->render(shot);
 
     shambhala::loop_beginUIContext();
@@ -328,9 +385,10 @@ int main() {
     shambhala::loop_endUIContext();
 
     shambhala::loop_shouldClose();
+
+    modelUpdate(shambhala::getWorkingModelList(), updateconfiguration);
     shambhala::loop_endRenderContext();
 
     shot.updateFrame();
-
   } while (!shambhala::loop_shouldClose());
 }

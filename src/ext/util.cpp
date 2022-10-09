@@ -259,6 +259,13 @@ glm::mat4 util::scale(float x, float y, float z) {
 glm::mat4 util::scale(float s) { return util::scale(s, s, s); }
 
 void util::renderLine(glm::vec3 start, glm::vec3 end, glm::vec3 color) {
+  static Material *mat = shambhala::createMaterial();
+  mat->set("uColor", glm::vec4(color, 1.0));
+  renderLine(start, end, mat);
+}
+
+void util::renderLine(glm::vec3 start, glm::vec3 end, Material *material) {
+
   static Model *renderModel = nullptr;
   static Program *probe = shambhala::loader::loadProgram(
       "programs/misc/probe.fs", "programs/regular.vs");
@@ -273,7 +280,6 @@ void util::renderLine(glm::vec3 start, glm::vec3 end, glm::vec3 color) {
     renderModel->mesh->vbo = shambhala::createVertexBuffer();
     renderModel->mesh->vbo->vertexBuffer = {vertex_data, 6};
     renderModel->mesh->vbo->attributes = {{Standard::aPosition, 3}};
-    renderModel->material = shambhala::createMaterial();
     renderModel->renderMode = GL_LINE_STRIP;
     renderModel->polygonMode = GL_LINE;
     renderModel->lineWidth = 15;
@@ -285,6 +291,42 @@ void util::renderLine(glm::vec3 start, glm::vec3 end, glm::vec3 color) {
   transform[3] = glm::vec4(start, 1.0);
 
   renderModel->node->setTransformMatrix(transform);
-  renderModel->material->set("uColor", glm::vec4(color, 1.0));
+  renderModel->material = material;
   renderModel->draw();
+}
+
+int util::doSelectionPass(ModelList *models) {
+  static Program *selection = shambhala::loader::loadProgram(
+      "programs/select_pass.fs", "programs/regular.vs");
+  static FrameBuffer *selectionBuffer = nullptr;
+  static Material *selectionMaterial = shambhala::createMaterial();
+
+  if (selectionBuffer == nullptr) {
+    selectionBuffer = shambhala::createFramebuffer();
+    selectionBuffer->setConfiguration(USE_RENDER_BUFFER | USE_DEPTH);
+    selectionBuffer->addChannel({GL_R8, GL_RED, GL_UNSIGNED_BYTE});
+  }
+
+  selectionBuffer->begin(viewport()->screenWidth, viewport()->screenHeight);
+
+  device::useProgram(selection);
+
+  const std::vector<int> &order = models->getRenderOrder();
+  for (int i = 0; i < order.size(); i++) {
+    Model *model = models->get(order[i]);
+    if (model->hint_selectionpass) {
+
+      selectionMaterial->set("uModelID", model->hint_modelid);
+      device::useMesh(model->mesh);
+      device::useMaterial(model->node);
+      device::useMaterial(selectionMaterial);
+      device::drawCall();
+    }
+  }
+
+  char id;
+  glReadPixels(viewport()->xpos, viewport()->screenHeight - viewport()->ypos, 1,
+               1, GL_RED, GL_UNSIGNED_BYTE, &id);
+  selectionBuffer->end();
+  return id;
 }

@@ -272,6 +272,14 @@ struct Model : public ModelConfiguration {
   Mesh *mesh = nullptr;
   Material *material = nullptr;
   Node *node = nullptr;
+  void *udata = nullptr;
+
+  int hint_class = 0;
+  bool hint_raycast = false;
+
+  bool hint_selectionpass = false;
+  int hint_modelid = 0;
+  Material *hint_selection_material = nullptr;
 
   bool operator<(const Model &model) const;
   void draw();
@@ -528,6 +536,7 @@ Node *getRootNode();
 void disposeModelList(ModelList *list);
 
 // DeclarativeRenderer
+Material *getWorldMaterial(int clas);
 void setWorldMaterial(int clas, Material *worldMaterial);
 void addWorldMaterial(Material *worldMaterial);
 void removeWorldMaterial(Material *worldMaterial);
@@ -562,6 +571,8 @@ bool loop_shouldClose();
 void engine_clearState();
 void engine_prepareRender();
 void engine_prepareDeclarativeRender();
+
+void hint_selectionpass();
 } // namespace shambhala
 
 namespace shambhala {

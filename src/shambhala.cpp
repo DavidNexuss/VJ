@@ -34,14 +34,18 @@ void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
 inline void clearFramebuffer() { glClearColor(0.0, 0.0, 0.0, 1.0); }
 inline void clearDefault() { glClearColor(0.0, 0.0, 0.0, 1.0); }
 
-struct Engine {
+struct SelectionHint {
+  int hint_selected_modelid = -1;
+};
+
+struct Engine : public SelectionHint {
   EngineControllers controllers;
   simple_vector<ModelList *> workingLists;
-  RenderCamera *currentRenderCamera;
   DeviceParameters gpu_params;
   RenderConfiguration *renderConfig;
   Node *rootNode;
   GLuint vao = -1;
+  int currentFrame;
 
   const char *errorProgramFS = "programs/error.fs";
   const char *errorProgramVS = "programs/error.vs";
@@ -685,12 +689,12 @@ void device::useUniform(const char *name, const Uniform &value) {
 void device::useMaterial(Material *material) {
   if (material == nullptr)
     return;
-  if (material->currentFrame != engine.currentRenderCamera->currentFrame &&
+  if (material->currentFrame != engine.currentFrame &&
       material->needsFrameUpdate) {
     material->update(viewport()->deltaTime);
   }
 
-  material->currentFrame = engine.currentRenderCamera->currentFrame;
+  material->currentFrame = engine.currentFrame;
   SoftCheck(material != nullptr, log()->log("[Warning] Null material use"););
 
   for (auto &uniform : material->uniforms) {
@@ -905,7 +909,12 @@ void Model::draw() {
   device::useModelConfiguration(this);
   device::useMesh(mesh);
   device::useProgram(program);
-  if (material != nullptr)
+
+  if (hint_modelid == engine.hint_selected_modelid &&
+      hint_selection_material != nullptr) {
+
+    device::useMaterial(hint_selection_material);
+  } else if (material != nullptr)
     device::useMaterial(material);
 
   device::useMaterial(node);
@@ -1015,7 +1024,6 @@ void RenderCamera::beginRender(const RenderShot &shot) {
     renderBindings[i].renderCamera->render(shot);
   }
 
-  engine.currentRenderCamera = this;
   shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera, this);
 
   if (width != 0 || height != 0) {
@@ -1030,6 +1038,7 @@ void RenderCamera::endRender(const RenderShot &shot) {
     return;
 
   currentFrame = shot.currentFrame;
+  engine.currentFrame = currentFrame;
 
   bool useFrameBuffer = frameBuffer != nullptr && !shot.isRoot;
 
@@ -1222,6 +1231,9 @@ void shambhala::setActiveWindow(void *window) {
   viewport()->setActiveWindow(window);
 }
 
+Material *shambhala::getWorldMaterial(int clas) {
+  return guseState.worldMaterials[clas];
+}
 void shambhala::setWorldMaterial(int clas, Material *worldMaterial) {
   guseState.worldMaterials[clas] = worldMaterial;
 }
@@ -1287,6 +1299,10 @@ VertexBuffer *shambhala::createVertexBuffer() { return new VertexBuffer; }
 IndexBuffer *shambhala::createIndexBuffer() { return new IndexBuffer; }
 
 void shambhala::disposeModelList(ModelList *list) {}
+
+void shambhala::hint_selectionpass() {
+  engine.hint_selected_modelid = util::doSelectionPass(getWorkingModelList());
+}
 
 //---------------------[END ENGINECREATE]
 

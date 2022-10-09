@@ -1,4 +1,5 @@
 #pragma once
+#include "math.hpp"
 #include <array>
 #include <misc/gl.hpp>
 #include <simple_vector.hpp>
