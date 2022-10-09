@@ -245,6 +245,7 @@ public:
   void setParentNode(Node *parent);
   void addChildNode(Node *childNode);
   void setTransformMatrix(const glm::mat4 &newVal);
+  void setOffset(glm::vec3 offset);
   void transform(const glm::mat4 &newval);
   const glm::mat4 &getTransformMatrix() const;
   const glm::mat4 &getCombinedMatrix() const;

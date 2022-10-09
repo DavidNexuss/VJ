@@ -1,5 +1,7 @@
 #pragma once
+#include <glm/glm.hpp>
 #include <unordered_map>
+
 namespace shambhala {
 struct WindowConfiguration {
   const char *titlename;
@@ -41,6 +43,8 @@ struct IViewport {
   std::unordered_map<int, bool> justPressed;
 
   bool mousePressed;
+
+  glm::vec2 getMouseViewportCoords();
 
 private:
   int backedWidth;

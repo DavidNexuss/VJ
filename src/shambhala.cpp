@@ -90,6 +90,10 @@ void Node::setParentNode(Node *parentNode) {
   parentNode->addChildNode(this);
 }
 
+void Node::setOffset(glm::vec3 offset) {
+  transformMatrix[3] = glm::vec4(offset, 1.0);
+  setDirty();
+}
 void Node::setTransformMatrix(const glm::mat4 &newVal) {
   transformMatrix = newVal;
   setDirty();
@@ -478,6 +482,7 @@ struct UseState {
   bool meshCullFrontFace = false;
 
   std::unordered_map<int, Material *> worldMaterials;
+  float lineWidth = 0.0f;
 
   void clearState() {
     currentProgram = nullptr;
@@ -658,6 +663,10 @@ void device::useModelConfiguration(ModelConfiguration *configuration) {
       (configuration->polygonMode !=
        guseState.currentModelConfiguration.polygonMode)) {
     glPolygonMode(GL_FRONT_AND_BACK, configuration->polygonMode);
+  }
+  if (guseState.lineWidth != configuration->lineWidth) {
+    glLineWidth(configuration->lineWidth);
+    guseState.lineWidth = configuration->lineWidth;
   }
   guseState.currentModelConfiguration = *configuration;
   guseState.hasModelConfiguration = true;

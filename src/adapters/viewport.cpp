@@ -25,3 +25,7 @@ bool shambhala::IViewport::isMousePressed() { return mousePressed; }
 double shambhala::IViewport::aspectRatio() {
   return screenWidth / screenHeight;
 }
+
+glm::vec2 shambhala::IViewport::getMouseViewportCoords() {
+  return glm::vec2(xpos / screenWidth, ypos / screenHeight);
+}

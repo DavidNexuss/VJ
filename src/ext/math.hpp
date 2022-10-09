@@ -1,5 +1,7 @@
+#pragma once
 #include <core/core.hpp>
 #include <ext.hpp>
+#include <ext/worldmat.hpp>
 #include <glm/glm.hpp>
 
 namespace shambhala {
