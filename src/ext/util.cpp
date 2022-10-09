@@ -257,3 +257,34 @@ glm::mat4 util::scale(float x, float y, float z) {
 }
 
 glm::mat4 util::scale(float s) { return util::scale(s, s, s); }
+
+void util::renderLine(glm::vec3 start, glm::vec3 end, glm::vec3 color) {
+  static Model *renderModel = nullptr;
+  static Program *probe = shambhala::loader::loadProgram(
+      "programs/misc/probe.fs", "programs/regular.vs");
+
+  if (renderModel == nullptr) {
+    static float vertex_data[] = {0.0, 0.0, 0.0, 0.0, 0.0, 1.0};
+
+    renderModel = shambhala::createModel();
+    renderModel->program = probe;
+    renderModel->node = shambhala::createNode();
+    renderModel->mesh = shambhala::createMesh();
+    renderModel->mesh->vbo = shambhala::createVertexBuffer();
+    renderModel->mesh->vbo->vertexBuffer = {vertex_data, 6};
+    renderModel->mesh->vbo->attributes = {{Standard::aPosition, 3}};
+    renderModel->material = shambhala::createMaterial();
+    renderModel->renderMode = GL_LINE_STRIP;
+    renderModel->polygonMode = GL_LINE;
+    renderModel->lineWidth = 15;
+  }
+
+  glm::vec3 offset = end - start;
+  glm::mat4 transform = glm::mat4(1.0f);
+  transform[2] = glm::vec4(offset, 0.0);
+  transform[3] = glm::vec4(start, 1.0);
+
+  renderModel->node->setTransformMatrix(transform);
+  renderModel->material->set("uColor", glm::vec4(color, 1.0));
+  renderModel->draw();
+}

@@ -24,6 +24,9 @@ glm::mat4 rotate(float x, float y, float z, float angle);
 glm::mat4 scale(float x, float y, float z);
 glm::mat4 scale(float s);
 
+void renderLine(glm::vec3 start, glm::vec3 end,
+                glm::vec3 color = glm::vec3(1.0));
+
 const char *stacked(GLuint *parameters);
 } // namespace util
 } // namespace shambhala
