@@ -327,12 +327,17 @@ GLuint device::createFramebuffer() {
   glGenFramebuffers(1, &fbo);
   return fbo;
 }
-GLuint device::createTexture(bool filter) {
+GLuint device::createTexture(bool filter, bool clamp) {
   GLuint textureId;
   glGenTextures(1, &textureId);
   device::bindTexture(textureId, GL_TEXTURE_2D);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  if (clamp) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  } else {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  }
   if (filter) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                     GL_LINEAR_MIPMAP_LINEAR);
@@ -620,9 +625,10 @@ void device::useTexture(Texture *texture) {
 
   SoftCheck(texture != nullptr, log()->log("[Warning] Null texture use", 1););
   if (texture->_textureID == -1)
-    texture->_textureID = texture->textureMode == GL_TEXTURE_CUBE_MAP
-                              ? device::createCubemap()
-                              : device::createTexture(true);
+    texture->_textureID =
+        texture->textureMode == GL_TEXTURE_CUBE_MAP
+            ? device::createCubemap()
+            : device::createTexture(!texture->useNeareast, texture->clamp);
 
   if (texture->needsUpdate()) {
     GLenum target = texture->textureMode;
@@ -1308,6 +1314,8 @@ void shambhala::disposeModelList(ModelList *list) {}
 void shambhala::hint_selectionpass() {
   engine.hint_selected_modelid = util::doSelectionPass(getWorkingModelList());
 }
+
+bool shambhala::input_mouse_free() { return engine.hint_selected_modelid <= 0; }
 
 //---------------------[END ENGINECREATE]
 

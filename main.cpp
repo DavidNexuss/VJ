@@ -348,11 +348,11 @@ void raycastEngine(Model *model, Ray mouseRay) {
 }
 
 struct ModelUpdate {
-  worldmats::Camera *screenCamrea;
+  worldmats::Camera *screenCamera;
 };
 
 void modelUpdate(ModelList *models, ModelUpdate updateconfiguration) {
-  Ray userRay = ext::createRay(updateconfiguration.screenCamrea,
+  Ray userRay = ext::createRay(updateconfiguration.screenCamera,
                                viewport()->getMouseViewportCoords());
   for (int i = 0; i < models->size(); i++) {
     Model *model = models->get(i);
@@ -362,6 +362,19 @@ void modelUpdate(ModelList *models, ModelUpdate updateconfiguration) {
   }
 }
 
+void manipulator(Node *node, worldmats::Camera *cam) {
+
+  Ray r = ext::createRay(cam, viewport()->getMouseViewportCoords());
+  Plane a = ext::zplane(0.0);
+  glm::vec3 p = ext::rayIntersection(r, a);
+  node->setOffset(p);
+
+  // TODO: Put this somewhere else
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  util::renderPlaneGrid(a.x, a.y, a.origin);
+}
 int main() {
 
   enginecreate();
@@ -381,12 +394,16 @@ int main() {
   int frame = 0;
 
   ModelUpdate updateconfiguration;
-  updateconfiguration.screenCamrea = cam;
+  updateconfiguration.screenCamera = cam;
+
   do {
 
     shambhala::loop_beginRenderContext();
-    shambhala::hint_selectionpass();
+    // shambhala::hint_selectionpass();
     renderCamera->render(shot);
+
+    modelUpdate(shambhala::getWorkingModelList(), updateconfiguration);
+    manipulator(debugProbe, cam);
 
     shambhala::loop_beginUIContext();
     editor::editorBeginContext();
@@ -394,9 +411,6 @@ int main() {
     editor::editorEndContext();
     shambhala::loop_endUIContext();
 
-    shambhala::loop_shouldClose();
-
-    modelUpdate(shambhala::getWorkingModelList(), updateconfiguration);
     shambhala::loop_endRenderContext();
 
     shot.updateFrame();

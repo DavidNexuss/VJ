@@ -165,57 +165,62 @@ void DebugCamera::update(float deltatime) {
     setDir(M_PI * 0.5f, M_PI * 0.5f);
   }
 
-  bool mousePressed = viewport()->isMousePressed();
-  bool middleMousePressed = viewport()->isMiddleMousePressed();
+  // Mouse input
+  if (shambhala::input_mouse_free()) {
+    bool mousePressed = viewport()->isMousePressed();
+    bool middleMousePressed = viewport()->isMiddleMousePressed();
 
-  distance += viewport()->scrollY * std::max(std::abs(distance * 0.05), 0.1);
-  viewport()->scrollY = 0.0f;
+    distance += viewport()->scrollY * std::max(std::abs(distance * 0.05), 0.1);
+    viewport()->scrollY = 0.0f;
 
-  if (mousePressed) {
-    if (!pressed) {
-      pressed = true;
-      cursorStartx = viewport()->xpos;
-      cursorStarty = viewport()->ypos;
+    if (mousePressed) {
+      if (!pressed) {
+        pressed = true;
+        cursorStartx = viewport()->xpos;
+        cursorStarty = viewport()->ypos;
+      }
+
+      lastAlpha =
+          ((viewport()->xpos - cursorStartx) / viewport()->screenWidth) * M_PI *
+          2.0;
+      lastBeta =
+          ((viewport()->ypos - cursorStarty) / viewport()->screenHeight) *
+          M_PI * 2.0;
+    }
+    if (!mousePressed && pressed) {
+      pressed = false;
+      currentAlpha += lastAlpha;
+      nextAlpha += lastAlpha;
+
+      currentBeta += lastBeta;
+      nextBeta += lastBeta;
+
+      lastAlpha = 0.0f;
+      lastBeta = 0.0f;
     }
 
-    lastAlpha = ((viewport()->xpos - cursorStartx) / viewport()->screenWidth) *
-                M_PI * 2.0;
-    lastBeta = ((viewport()->ypos - cursorStarty) / viewport()->screenHeight) *
-               M_PI * 2.0;
-  }
-  if (!mousePressed && pressed) {
-    pressed = false;
-    currentAlpha += lastAlpha;
-    nextAlpha += lastAlpha;
+    if (middleMousePressed) {
+      if (!middlepressed) {
+        middlepressed = true;
+        cursorStartx = viewport()->xpos;
+        cursorStarty = viewport()->ypos;
+        lastTarget = nextTarget;
+      }
 
-    currentBeta += lastBeta;
-    nextBeta += lastBeta;
+      glm::vec2 difference =
+          glm::vec2(cursorStartx - viewport()->xpos,
+                    viewport()->ypos - cursorStarty) /
+          glm::vec2(viewport()->screenWidth, viewport()->screenHeight);
 
-    lastAlpha = 0.0f;
-    lastBeta = 0.0f;
-  }
+      glm::vec3 offset =
+          invViewMatrix * glm::vec4(glm::vec3(difference, 0.0), 0.0);
 
-  if (middleMousePressed) {
-    if (!middlepressed) {
-      middlepressed = true;
-      cursorStartx = viewport()->xpos;
-      cursorStarty = viewport()->ypos;
-      lastTarget = nextTarget;
+      nextTarget = lastTarget + offset * distance;
     }
 
-    glm::vec2 difference =
-        glm::vec2(cursorStartx - viewport()->xpos,
-                  viewport()->ypos - cursorStarty) /
-        glm::vec2(viewport()->screenWidth, viewport()->screenHeight);
-
-    glm::vec3 offset =
-        invViewMatrix * glm::vec4(glm::vec3(difference, 0.0), 0.0);
-
-    nextTarget = lastTarget + offset * distance;
-  }
-
-  if (!middleMousePressed && middlepressed) {
-    middlepressed = false;
+    if (!middleMousePressed && middlepressed) {
+      middlepressed = false;
+    }
   }
 
   glm::vec3 currentDirection =

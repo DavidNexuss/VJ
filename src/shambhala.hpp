@@ -258,30 +258,38 @@ struct ModelConfiguration {
   bool cullFrontFace = false;
   GLuint renderMode = GL_TRIANGLES;
   GLuint polygonMode = GL_FILL;
-  int pointSize = 10;
-  int lineWidth = 10;
+  int pointSize = 5;
+  int lineWidth = 5;
 
   uint32_t skipRenderMask = 0;
 
   int zIndex = 0;
 };
 
+struct EditorInfo {
+  Ray mouseRay;
+};
+
+// TODO make model inherit material...
 struct Model : public ModelConfiguration {
   Program *program = nullptr;
   Mesh *mesh = nullptr;
   Material *material = nullptr;
   Node *node = nullptr;
-  void *udata = nullptr;
 
   int hint_class = 0;
   bool hint_raycast = false;
+  bool hint_editor = false;
 
   bool hint_selectionpass = false;
   int hint_modelid = 0;
   Material *hint_selection_material = nullptr;
 
   bool operator<(const Model &model) const;
-  void draw();
+
+  virtual void draw();
+  virtual void editorStep(EditorInfo info) {}
+
   bool ready() const;
 
   Model *createInstance();
@@ -318,6 +326,8 @@ struct Texture {
 
   GLenum textureMode = GL_TEXTURE_2D;
   GLuint _textureID = -1;
+  bool useNeareast = false;
+  bool clamp = false;
 
   bool needsUpdate();
   void addTextureResource(TextureResource *textureData);
@@ -464,7 +474,7 @@ GLuint createVAO();
 GLuint createVBO(const simple_vector<uint8_t> &vertexBuffer, GLuint *vbo);
 GLuint createEBO(const simple_vector<Standard::meshIndex> &indexBuffer,
                  GLuint *ebo);
-GLuint createTexture(bool filter);
+GLuint createTexture(bool filter, bool clamp = false);
 GLuint createCubemap();
 GLuint createRenderBuffer();
 GLuint createFramebuffer();
@@ -574,6 +584,8 @@ void engine_prepareRender();
 void engine_prepareDeclarativeRender();
 
 void hint_selectionpass();
+
+bool input_mouse_free();
 } // namespace shambhala
 
 namespace shambhala {

@@ -58,8 +58,9 @@ static const GLfloat cube_mesh[] = {
 };
 
 static const int cube_mesh_size = sizeof(cube_mesh) / sizeof(float);
-const static float screen_mesh[] = {-1.0, 1.0, 1.0, 1.0,  -1.0, -1.0,
-                                    1.0,  1.0, 1.0, -1.0, -1.0, -1.0};
+const static float screen_mesh[] = {-1.0, 1.0,  0.0, 1.0,  1.0,  0.0,
+                                    -1.0, -1.0, 0.0, 1.0,  1.0,  0.0,
+                                    1.0,  -1.0, 0.0, -1.0, -1.0, 0.0};
 
 static const int screen_mesh_size = sizeof(screen_mesh) / sizeof(float);
 
@@ -107,7 +108,7 @@ simple_vector<uint8_t> util::createCube() {
 static vector<VertexAttribute> primitiveLayout = {
     {Standard::aPosition, 3}, {Standard::aNormal, 3}, {Standard::aUV, 2}};
 
-static vector<VertexAttribute> screenLayout = {{Standard::aPosition, 2}};
+static vector<VertexAttribute> screenLayout = {{Standard::aPosition, 3}};
 
 Mesh *util::meshCreateCube() {
   static Mesh *result = nullptr;
@@ -187,6 +188,12 @@ Program *util::createPassthroughEffect() {
     result->shaders[VERTEX_SHADER] = util::createScreenVertexShader();
   }
   return result;
+}
+
+Program *util::createBasicColored() {
+  static Program *basic = shambhala::loader::loadProgram(
+      "programs/misc/probe.fs", "programs/regular.vs");
+  return basic;
 }
 
 static Program *getSkyboxProgram() {
@@ -295,6 +302,36 @@ void util::renderLine(glm::vec3 start, glm::vec3 end, Material *material) {
   renderModel->draw();
 }
 
+void util::renderPoint(glm::vec3 start, glm::vec3 color) {
+
+  static Model *renderModel = nullptr;
+  static Program *probe = shambhala::loader::loadProgram(
+      "programs/misc/probe.fs", "programs/regular.vs");
+
+  if (renderModel == nullptr) {
+    static float vertex_data[] = {0.0, 0.0, 0.0};
+
+    renderModel = shambhala::createModel();
+    renderModel->program = probe;
+    renderModel->node = shambhala::createNode();
+    renderModel->mesh = shambhala::createMesh();
+    renderModel->mesh->vbo = shambhala::createVertexBuffer();
+    renderModel->mesh->vbo->vertexBuffer = {vertex_data, 6};
+    renderModel->mesh->vbo->attributes = {{Standard::aPosition, 3}};
+    renderModel->renderMode = GL_LINE_STRIP;
+    renderModel->polygonMode = GL_POINT;
+    renderModel->lineWidth = 15;
+  }
+
+  glm::mat4 transform = glm::mat4(1.0f);
+  transform[3] = glm::vec4(start, 1.0);
+
+  renderModel->node->setTransformMatrix(transform);
+  renderModel->material = shambhala::createMaterial();
+  renderModel->material->set("uColor", glm::vec4(color, 1.0));
+  renderModel->draw();
+}
+
 int util::doSelectionPass(ModelList *models) {
   static Program *selection = shambhala::loader::loadProgram(
       "programs/select_pass.fs", "programs/regular.vs");
@@ -331,4 +368,26 @@ int util::doSelectionPass(ModelList *models) {
   selectionBuffer->end();
   glEnable(GL_MULTISAMPLE);
   return id;
+}
+
+void util::renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
+                           glm::vec4 color) {
+  static Model *planeModel = nullptr;
+  if (planeModel == nullptr) {
+    planeModel = shambhala::createModel();
+    planeModel->program =
+        loader::loadProgram("programs/grid.fs", "programs/regular.vs");
+    planeModel->material = shambhala::createMaterial();
+    planeModel->material->set("uColor", color);
+    planeModel->mesh = createScreen();
+    planeModel->node = shambhala::createNode();
+  }
+  glm::mat4 transform = planeModel->node->transformMatrix;
+  transform[0] = glm::vec4(x, 0.0);
+  transform[1] = glm::vec4(y, 0.0);
+  transform[2] = glm::vec4(glm::normalize(glm::cross(x, y)), 0.0);
+  transform[3] = glm::vec4(origin, 1.0);
+  planeModel->node->setTransformMatrix(transform);
+  planeModel->node->transform(util::scale(50.0));
+  planeModel->draw();
 }
