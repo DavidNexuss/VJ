@@ -220,121 +220,140 @@ ModelList *loadWorld() {
   shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
   return modelList;
 }
-void loadDebugProbe(Node *rootNode) {
-  Node *ringNode = shambhala::createNode("ringNode");
-  Node *arrowNode = shambhala::createNode("arrowNode");
 
-  Program *probe = shambhala::loader::loadProgram("programs/misc/probe.fs",
-                                                  "programs/regular.vs");
-  Material *red = shambhala::createMaterial();
-  red->set("uColor", glm::vec4(1.0, 0.3, 0.3, 1.0));
+struct ManipulatorProbe : public LogicComponent {
+  Node *rootNode;
+  ManipulatorProbe() {
+    rootNode = shambhala::createNode("Manipulator");
+    Node *ringNode = shambhala::createNode("ringNode");
+    Node *arrowNode = shambhala::createNode("arrowNode");
 
-  Material *blue = shambhala::createMaterial();
-  blue->set("uColor", glm::vec4(0.3, 0.3, 1.0, 1.0));
+    Program *probe = shambhala::loader::loadProgram("programs/misc/probe.fs",
+                                                    "programs/regular.vs");
+    Material *red = shambhala::createMaterial();
+    red->set("uColor", glm::vec4(1.0, 0.3, 0.3, 1.0));
 
-  Material *green = shambhala::createMaterial();
-  green->set("uColor", glm::vec4(0.3, 1.0, 0.3, 1.0));
+    Material *blue = shambhala::createMaterial();
+    blue->set("uColor", glm::vec4(0.3, 0.3, 1.0, 1.0));
 
-  Material *selection_red = shambhala::createMaterial();
-  selection_red->set("uColor", glm::vec4(1.0, 0.6, 0.6, 1.0));
+    Material *green = shambhala::createMaterial();
+    green->set("uColor", glm::vec4(0.3, 1.0, 0.3, 1.0));
 
-  Material *selection_blue = shambhala::createMaterial();
-  selection_blue->set("uColor", glm::vec4(0.6, 0.6, 1.0, 1.0));
+    Material *selection_red = shambhala::createMaterial();
+    selection_red->set("uColor", glm::vec4(1.0, 0.6, 0.6, 1.0));
 
-  Material *selection_green = shambhala::createMaterial();
-  selection_green->set("uColor", glm::vec4(0.6, 1.0, 0.6, 1.0));
+    Material *selection_blue = shambhala::createMaterial();
+    selection_blue->set("uColor", glm::vec4(0.6, 0.6, 1.0, 1.0));
 
-  // Load rings
-  {
+    Material *selection_green = shambhala::createMaterial();
+    selection_green->set("uColor", glm::vec4(0.6, 1.0, 0.6, 1.0));
 
-    Mesh *ring = loadMesh("internal_assets/objects/giro.obj");
-    ring->invertedFaces = false;
-    Model *ringModel = shambhala::createModel();
-    ringModel->mesh = ring;
-    ringModel->program = probe;
-    ringModel->node = shambhala::createNode();
+    // Load rings
+    {
 
-    Model *ringy = ringModel->createInstance();
-    ringy->material = green;
-    ringy->node->setName("ringy");
-    ringy->hint_selection_material = selection_green;
-    ringy->hint_selectionpass = true;
-    ringy->hint_modelid = 4;
+      Mesh *ring = loadMesh("internal_assets/objects/giro.obj");
+      ring->invertedFaces = false;
+      Model *ringModel = shambhala::createModel();
+      ringModel->mesh = ring;
+      ringModel->program = probe;
+      ringModel->node = shambhala::createNode();
 
-    Model *ringx = ringModel->createInstance();
-    ringx->material = red;
-    ringx->node->setTransformMatrix(util::rotate(0, 0, 1, M_PI / 2));
-    ringx->node->setName("ringx");
-    ringx->hint_selection_material = selection_red;
-    ringx->hint_selectionpass = true;
-    ringx->hint_modelid = 5;
+      Model *ringy = ringModel->createInstance();
+      ringy->material = green;
+      ringy->node->setName("ringy");
+      ringy->hint_selection_material = selection_green;
+      ringy->hint_selectionpass = true;
+      ringy->hint_modelid = 4;
 
-    Model *ringz = ringx->createInstance();
-    ringz->material = blue;
-    ringz->node->transform(util::rotate(0, 1, 0, M_PI / 2));
-    ringz->node->setName("ringz");
-    ringz->hint_selection_material = selection_blue;
-    ringz->hint_selectionpass = true;
-    ringz->hint_modelid = 6;
+      Model *ringx = ringModel->createInstance();
+      ringx->material = red;
+      ringx->node->setTransformMatrix(util::rotate(0, 0, 1, M_PI / 2));
+      ringx->node->setName("ringx");
+      ringx->hint_selection_material = selection_red;
+      ringx->hint_selectionpass = true;
+      ringx->hint_modelid = 5;
 
-    shambhala::addModel(ringy);
-    shambhala::addModel(ringx);
-    shambhala::addModel(ringz);
+      Model *ringz = ringx->createInstance();
+      ringz->material = blue;
+      ringz->node->transform(util::rotate(0, 1, 0, M_PI / 2));
+      ringz->node->setName("ringz");
+      ringz->hint_selection_material = selection_blue;
+      ringz->hint_selectionpass = true;
+      ringz->hint_modelid = 6;
 
-    ringx->node->setParentNode(ringNode);
-    ringy->node->setParentNode(ringNode);
-    ringz->node->setParentNode(ringNode);
+      shambhala::addModel(ringy);
+      shambhala::addModel(ringx);
+      shambhala::addModel(ringz);
+
+      ringx->node->setParentNode(ringNode);
+      ringy->node->setParentNode(ringNode);
+      ringz->node->setParentNode(ringNode);
+    }
+
+    // Load arrows
+    {
+      Mesh *arrow = loadMesh("internal_assets/objects/arrow.obj");
+      arrow->invertedFaces = true;
+      Model *arrowModel = shambhala::createModel();
+      arrowModel->program = probe;
+      arrowModel->node = shambhala::createNode();
+      arrowModel->mesh = arrow;
+      arrowModel->hint_raycast = true;
+      arrowModel->hint_class = 1;
+      arrowModel->hint_selectionpass = true;
+
+      arrowModel->node->transform(util::scale(0.5));
+
+      Model *arrowx = arrowModel->createInstance();
+      arrowx->node->transform(util::rotate(0, 1, 0, M_PI));
+      arrowx->material = red;
+      arrowx->hint_selection_material = selection_red;
+      arrowx->node->setName("arrowx");
+      arrowx->hint_modelid = 1;
+
+      Model *arrowz = arrowModel->createInstance();
+      arrowz->node->transform(util::rotate(0, 1, 0, M_PI / 2));
+      arrowz->material = blue;
+      arrowz->node->setName("arrowz");
+      arrowz->hint_selection_material = selection_blue;
+      arrowz->hint_modelid = 2;
+
+      Model *arrowy = arrowz->createInstance();
+      arrowy->node->transform(util::rotate(1, 0, 0, -M_PI / 2));
+      arrowy->material = green;
+      arrowy->node->setName("arrowy");
+      arrowy->hint_modelid = 3;
+      arrowy->hint_selection_material = selection_green;
+
+      shambhala::addModel(arrowz);
+      shambhala::addModel(arrowx);
+      shambhala::addModel(arrowy);
+
+      arrowz->node->setParentNode(arrowNode);
+      arrowx->node->setParentNode(arrowNode);
+      arrowy->node->setParentNode(arrowNode);
+    }
+
+    ringNode->setEnabled(false);
+    ringNode->setParentNode(rootNode);
+    arrowNode->setParentNode(rootNode);
   }
 
-  // Load arrows
-  {
-    Mesh *arrow = loadMesh("internal_assets/objects/arrow.obj");
-    arrow->invertedFaces = true;
-    Model *arrowModel = shambhala::createModel();
-    arrowModel->program = probe;
-    arrowModel->node = shambhala::createNode();
-    arrowModel->mesh = arrow;
-    arrowModel->hint_raycast = true;
-    arrowModel->hint_class = 1;
-    arrowModel->hint_selectionpass = true;
+  void step(StepInfo info) override {
 
-    arrowModel->node->transform(util::scale(0.5));
+    Ray r = info.mouseRay;
+    Plane a = ext::zplane(0.0);
+    glm::vec3 p = ext::rayIntersection(r, a);
+    rootNode->setOffset(p);
 
-    Model *arrowx = arrowModel->createInstance();
-    arrowx->node->transform(util::rotate(0, 1, 0, M_PI));
-    arrowx->material = red;
-    arrowx->hint_selection_material = selection_red;
-    arrowx->node->setName("arrowx");
-    arrowx->hint_modelid = 1;
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    Model *arrowz = arrowModel->createInstance();
-    arrowz->node->transform(util::rotate(0, 1, 0, M_PI / 2));
-    arrowz->material = blue;
-    arrowz->node->setName("arrowz");
-    arrowz->hint_selection_material = selection_blue;
-    arrowz->hint_modelid = 2;
-
-    Model *arrowy = arrowz->createInstance();
-    arrowy->node->transform(util::rotate(1, 0, 0, -M_PI / 2));
-    arrowy->material = green;
-    arrowy->node->setName("arrowy");
-    arrowy->hint_modelid = 3;
-    arrowy->hint_selection_material = selection_green;
-
-    shambhala::addModel(arrowz);
-    shambhala::addModel(arrowx);
-    shambhala::addModel(arrowy);
-
-    arrowz->node->setParentNode(arrowNode);
-    arrowx->node->setParentNode(arrowNode);
-    arrowy->node->setParentNode(arrowNode);
+    util::renderPlaneGrid(a.x, a.y, a.origin);
   }
+};
 
-  ringNode->setEnabled(false);
-  ringNode->setParentNode(rootNode);
-  arrowNode->setParentNode(rootNode);
-}
-
+/*
 void raycastEngine(Model *model, Ray mouseRay) {
   glm::mat4 combined = model->node->getCombinedMatrix();
   Ray ray;
@@ -361,20 +380,7 @@ void modelUpdate(ModelList *models, ModelUpdate updateconfiguration) {
     }
   }
 }
-
-void manipulator(Node *node, worldmats::Camera *cam) {
-
-  Ray r = ext::createRay(cam, viewport()->getMouseViewportCoords());
-  Plane a = ext::zplane(0.0);
-  glm::vec3 p = ext::rayIntersection(r, a);
-  node->setOffset(p);
-
-  // TODO: Put this somewhere else
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  util::renderPlaneGrid(a.x, a.y, a.origin);
-}
+ */
 int main() {
 
   enginecreate();
@@ -383,28 +389,19 @@ int main() {
   shambhala::setWorkingModelList(shambhala::createModelList());
   shot.scenes = {shambhala::getWorkingModelList()};
 
-  Node *debugProbe = shambhala::createNode("debugProbe");
-  loadDebugProbe(debugProbe);
-
   shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
-  worldmats::Camera *cam = new worldmats::DebugCamera;
-  shambhala::setWorldMaterial(Standard::wCamera, cam);
+  shambhala::setWorldMaterial(Standard::wCamera, new worldmats::DebugCamera);
+  shambhala::addComponent(new ManipulatorProbe);
 
   editor::editorInit();
   int frame = 0;
-
-  ModelUpdate updateconfiguration;
-  updateconfiguration.screenCamera = cam;
 
   do {
 
     shambhala::loop_beginRenderContext();
     // shambhala::hint_selectionpass();
     renderCamera->render(shot);
-
-    modelUpdate(shambhala::getWorkingModelList(), updateconfiguration);
-    manipulator(debugProbe, cam);
-
+    shambhala::loop_componentUpdate();
     shambhala::loop_beginUIContext();
     editor::editorBeginContext();
     editor::editorRender(shot.currentFrame);

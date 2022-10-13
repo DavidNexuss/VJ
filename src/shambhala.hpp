@@ -266,11 +266,6 @@ struct ModelConfiguration {
   int zIndex = 0;
 };
 
-struct EditorInfo {
-  Ray mouseRay;
-};
-
-// TODO make model inherit material...
 struct Model : public ModelConfiguration {
   Program *program = nullptr;
   Mesh *mesh = nullptr;
@@ -288,13 +283,19 @@ struct Model : public ModelConfiguration {
   bool operator<(const Model &model) const;
 
   virtual void draw();
-  virtual void editorStep(EditorInfo info) {}
-
   bool ready() const;
 
   Model *createInstance();
 
   bool isEnabled();
+};
+
+struct StepInfo {
+  Ray mouseRay;
+};
+
+struct LogicComponent {
+  virtual void step(StepInfo info) {}
 };
 
 struct ModelList {
@@ -573,6 +574,8 @@ void rendertarget_prepareRender();
 void updateViewport();
 void beginViewport();
 void endViewport();
+
+void loop_componentUpdate();
 void loop_beginRenderContext();
 void loop_endRenderContext();
 void loop_beginUIContext();
@@ -584,6 +587,7 @@ void engine_prepareRender();
 void engine_prepareDeclarativeRender();
 
 void hint_selectionpass();
+void addComponent(LogicComponent *component);
 
 bool input_mouse_free();
 } // namespace shambhala

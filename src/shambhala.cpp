@@ -1,6 +1,7 @@
 #include "shambhala.hpp"
 #include "adapters/log.hpp"
 #include "core/core.hpp"
+#include "ext/math.hpp"
 #include "simple_vector.hpp"
 #include "standard.hpp"
 #include <algorithm>
@@ -44,6 +45,7 @@ struct Engine : public SelectionHint {
   DeviceParameters gpu_params;
   RenderConfiguration *renderConfig;
   Node *rootNode;
+  simple_vector<LogicComponent *> components;
   GLuint vao = -1;
   int currentFrame;
 
@@ -1227,6 +1229,17 @@ void shambhala::loop_endUIContext() { viewport()->imguiEndRender(); }
 
 bool shambhala::loop_shouldClose() { return viewport()->shouldClose(); }
 
+void shambhala::loop_componentUpdate() {
+  StepInfo info;
+  // TODO: Hard cast
+  info.mouseRay =
+      ext::createRay((worldmats::Camera *)getWorldMaterial(Standard::wCamera),
+                     viewport()->getMouseViewportCoords());
+
+  for (int i = 0; i < engine.components.size(); i++) {
+    engine.components[i]->step(info);
+  }
+}
 void shambhala::destroyEngine() {}
 
 //---------------------[BEGIN ENGINECONFIGURATION]
@@ -1303,6 +1316,9 @@ Node *shambhala::createNode(const char *componentName) {
 }
 Node *shambhala::createNode(Node *old) {
   return shambhala::createNode(nullptr, old);
+}
+void shambhala::addComponent(LogicComponent *component) {
+  engine.components.push(component);
 }
 
 RenderCamera *shambhala::createRenderCamera() { return new RenderCamera; }
