@@ -298,6 +298,11 @@ struct LogicComponent {
   virtual void step(StepInfo info) {}
 };
 
+struct UpdateLayer {
+  int classMask;
+  virtual void step(Model *model);
+};
+
 struct ModelList {
   simple_vector<Model *> models;
 

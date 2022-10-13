@@ -353,34 +353,6 @@ struct ManipulatorProbe : public LogicComponent {
   }
 };
 
-/*
-void raycastEngine(Model *model, Ray mouseRay) {
-  glm::mat4 combined = model->node->getCombinedMatrix();
-  Ray ray;
-  ray.ro = glm::vec3(combined[3]);
-  ray.rd = glm::normalize(-glm::vec3(1.0, 0.0, 0.0) *
-                          glm::inverse(glm::mat3(combined)));
-  util::renderLine(ray.ro - ray.rd * 5.0f, ray.rd * 5.0f + ray.ro,
-                   model->material);
-
-  float distance = ext::rayDistance(ray, mouseRay);
-}
-
-struct ModelUpdate {
-  worldmats::Camera *screenCamera;
-};
-
-void modelUpdate(ModelList *models, ModelUpdate updateconfiguration) {
-  Ray userRay = ext::createRay(updateconfiguration.screenCamera,
-                               viewport()->getMouseViewportCoords());
-  for (int i = 0; i < models->size(); i++) {
-    Model *model = models->get(i);
-    if (model->hint_raycast && model->hint_class == 1) {
-      raycastEngine(model, userRay);
-    }
-  }
-}
- */
 int main() {
 
   enginecreate();
