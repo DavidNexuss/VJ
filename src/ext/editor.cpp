@@ -8,14 +8,26 @@
 using namespace shambhala::editor;
 using namespace shambhala;
 
-namespace ImGui {
-void RenderCamera(RenderCamera *renderCamera) {
+namespace shambhala {
+namespace gui {
+
+ImVec2 vec2(glm::vec2 v) { return ImVec2{v.x, v.y}; }
+
+void renderCamera(RenderCamera *renderCamera) {
   ImVec2 size{float(renderCamera->getWidth()),
               float(renderCamera->getHeight())};
   ImGui::Image((void *)(intptr_t)renderCamera->frameBuffer->colorAttachments[0],
                size);
 }
-} // namespace ImGui
+
+void texture(Texture *texture, glm::vec2 uv, glm::vec2 uv2) {
+  auto id = (void *)(intptr_t)texture->_textureID;
+  std::swap(uv.y, uv2.y);
+  ImGui::Image(id, vec2(glm::vec2(64.0f)), vec2(uv), vec2(uv2));
+}
+
+} // namespace gui
+} // namespace shambhala
 
 struct RenderTarget {
   RenderCamera *renderCamera;
@@ -34,7 +46,7 @@ struct EditorState {
       ImVec2 windowsize = ImGui::GetWindowSize();
       tab.second.renderCamera->setSize(windowsize.x, windowsize.y);
       tab.second.shot.currentFrame = frame;
-      ImGui::RenderCamera(tab.second.renderCamera->render(tab.second.shot));
+      gui::renderCamera(tab.second.renderCamera->render(tab.second.shot));
       ImGui::End();
     }
   }
@@ -53,6 +65,45 @@ struct EditorWindow {
   }
 };
 
+struct ComponentWindow : public EditorWindow {
+  LogicComponent *selected = nullptr;
+  ImGuiTreeNodeFlags base_flags =
+      ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Leaf;
+
+  ComponentWindow() { EditorWindow::name = "Components"; }
+  void renderComponentWindow(LogicComponent *selected) {
+    selected->editorStep(shambhala::getStepInfo());
+    selected->editorRender();
+  }
+  void renderWindow() {
+    int id = 0;
+    for (int i = 0; i < shambhala::componentCount(); i++) {
+      ImGuiTreeNodeFlags node_flags = base_flags;
+      LogicComponent *comp = shambhala::getComponent(i);
+      if (comp == selected) {
+        node_flags |= ImGuiTreeNodeFlags_Selected;
+      }
+
+      ImGui::TreeNodeEx((void *)(intptr_t)id++, node_flags,
+                        comp->getName().c_str());
+
+      if (ImGui::IsItemClicked() || ImGui::IsItemToggledOpen()) {
+        if (selected == comp) {
+          selected = nullptr;
+        } else
+          selected = comp;
+      }
+      ImGui::TreePop();
+    }
+  }
+
+  void render(int frame) override {
+    renderWindow();
+    if (selected != nullptr) {
+      renderComponentWindow(selected);
+    }
+  }
+};
 struct NodeTreeWindow : public EditorWindow {
 
   Node *selected_node = nullptr;
@@ -110,10 +161,12 @@ struct NodeTreeWindow : public EditorWindow {
 
 EditorState editorState;
 EditorWindow *nodeWindow;
+EditorWindow *componentWindow;
 
 void editor::editorRender(int frame) {
   editorState.renderTabs(frame);
   nodeWindow->draw(frame);
+  componentWindow->draw(frame);
 }
 void editor::editorStep() {}
 void editor::enableEditor(bool pEnable) {}
@@ -126,5 +179,7 @@ void editor::editorBeginContext() {}
 void editor::editorEndContext() {}
 void editor::editorInit() {
   static NodeTreeWindow nodes = NodeTreeWindow{};
+  static ComponentWindow components = ComponentWindow{};
   nodeWindow = &nodes;
+  componentWindow = &components;
 }

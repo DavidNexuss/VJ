@@ -8,17 +8,19 @@ Tile StaticTile::getTile(int tileindex) {
   Tile tile;
   float p = 16.0f / 512.0f;
   tile.xstart = (tileindex % 32) * p;
-  tile.yend = (float(tileindex) / 32) * p;
+  tile.ystart = float(tileindex / 32) * p;
   tile.xend = tile.xstart + p;
   tile.yend = tile.ystart + p;
   std::swap(tile.yend, tile.ystart);
   return tile;
 }
 
-TileMap::TileMap(int tileMapSize, TileAtlas *atlas, Texture *text) {
-  tiles.resize(tileMapSize * tileMapSize);
-  this->tileMapSize = tileMapSize;
+TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
+  tiles.resize(sizex * sizey);
+  this->sizex = sizex;
+  this->sizey = sizey;
   this->atlas = atlas;
+  this->text = text;
 
   model = shambhala::createModel();
   model->mesh = shambhala::createMesh();
@@ -136,12 +138,12 @@ void TileMap::updateMesh() {
   simple_vector<int> indices;
 
   indices.resize(0);
-  vertices.resize(4 * tileMapSize * tileMapSize);
+  vertices.resize(4 * sizex * sizey);
 
   int count = 0;
   for (int i = 0; i < tiles.size(); i++) {
-    int x = i % tileMapSize;
-    int y = i / tileMapSize;
+    int x = i % sizex;
+    int y = i / sizex;
     if (tiles[i]) {
       Tile tile = atlas->getTile(tiles[i]);
       vertices[count] = {glm::vec3(x, y, 0.0),
@@ -175,31 +177,18 @@ void TileMap::updateMesh() {
 }
 
 void TileMap::set(int i, int j, int type) {
-  tiles[i + j * tileMapSize] = type;
+  tiles[i + j * sizex] = type;
   needsUpdate = true;
 }
 
 void TileMap::step(shambhala::StepInfo info) {
-
-  glm::mat4 transform = model->node->getCombinedMatrix();
-
-  Plane plane;
-  plane.x = glm::vec3(transform[0]);
-  plane.y = glm::vec3(transform[1]);
-  plane.origin = glm::vec3(transform[3]);
-  util::renderPlaneGrid(plane.x, plane.y,
-                        plane.origin - glm::vec3(0.0, 0.0, 0.01));
-
-  if (viewport()->isRightMousePressed()) {
-
-    glm::vec3 intersection = ext::rayIntersection(info.mouseRay, plane);
-    int x = intersection.x;
-    int y = intersection.y;
-    if (x >= 0 && y >= 0 && x < tileMapSize && y < tileMapSize) {
-      set(x, y, 1);
-    }
-  }
-
   if (needsUpdate)
     updateMesh();
+}
+
+void TileMap::serialize() {
+  printf("%d %d\n", sizex, sizey);
+  for (int i = 0; i < tiles.size(); i++) {
+    printf("%d ", tiles[i]);
+  }
 }

@@ -371,7 +371,7 @@ int util::doSelectionPass(ModelList *models) {
 }
 
 void util::renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
-                           glm::vec4 color) {
+                           glm::vec4 color, glm::vec2 size) {
   static Model *planeModel = nullptr;
   if (planeModel == nullptr) {
     planeModel = shambhala::createModel();
@@ -383,10 +383,9 @@ void util::renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
     planeModel->node = shambhala::createNode();
   }
   glm::mat4 transform = planeModel->node->transformMatrix;
-  float scale = 50.0f;
-  transform[0] = glm::vec4(x * scale, 0.0);
-  transform[1] = glm::vec4(y * scale, 0.0);
-  transform[2] = glm::vec4(glm::normalize(glm::cross(x, y)) * scale, 0.0);
+  transform[0] = glm::vec4(x * size.x, 0.0);
+  transform[1] = glm::vec4(y * size.y, 0.0);
+  transform[2] = glm::vec4(glm::normalize(glm::cross(x, y)), 0.0);
   transform[3] = glm::vec4(origin, 1.0);
   planeModel->node->setTransformMatrix(transform);
   planeModel->draw();

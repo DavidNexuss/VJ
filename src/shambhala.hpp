@@ -298,6 +298,8 @@ struct StepInfo {
 struct LogicComponent : EngineComponent<LogicComponent> {
 
   virtual void step(StepInfo info) {}
+  virtual void editorStep(StepInfo info) {}
+  virtual void editorRender() {}
   virtual void setName(const char *name) override;
   void add(Model *model);
 
@@ -554,6 +556,7 @@ ModelList *createModelList();
 RenderCamera *createRenderCamera();
 VertexBuffer *createVertexBuffer();
 IndexBuffer *createIndexBuffer();
+StepInfo getStepInfo();
 
 Node *getRootNode();
 

@@ -12,4 +12,9 @@ void editorBeginContext();
 void editorEndContext();
 void editorInit();
 } // namespace editor
+
+namespace gui {
+void renderCamera(RenderCamera *renderCamera);
+void texture(Texture *texture, glm::vec2 uv, glm::vec2 uv2);
+} // namespace gui
 } // namespace shambhala

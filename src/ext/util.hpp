@@ -33,7 +33,8 @@ void renderLine(glm::vec3 start, glm::vec3 end,
 void renderLine(glm::vec3 start, glm::vec3 end, Material *material);
 void renderPoint(glm::vec3 start, glm::vec3 color = glm::vec3(1.0));
 void renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
-                     glm::vec4 color = glm::vec4(1.0));
+                     glm::vec4 color = glm::vec4(1.0),
+                     glm::vec2 size = glm::vec2(50.0f));
 const char *stacked(GLuint *parameters);
 } // namespace util
 } // namespace shambhala

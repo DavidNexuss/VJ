@@ -1252,13 +1252,18 @@ void shambhala::loop_endUIContext() { viewport()->imguiEndRender(); }
 
 bool shambhala::loop_shouldClose() { return viewport()->shouldClose(); }
 
-void shambhala::loop_componentUpdate() {
+StepInfo shambhala::getStepInfo() {
+
   StepInfo info;
   // TODO: Hard cast
   info.mouseRay =
       ext::createRay((worldmats::Camera *)getWorldMaterial(Standard::wCamera),
                      viewport()->getMouseViewportCoords());
+  return info;
+}
+void shambhala::loop_componentUpdate() {
 
+  StepInfo info;
   for (int i = 0; i < engine.components.size(); i++) {
     engine.components[i]->step(info);
   }
@@ -1343,6 +1348,11 @@ Node *shambhala::createNode(Node *old) {
 void shambhala::addComponent(LogicComponent *component) {
   engine.components.push(component);
 }
+
+LogicComponent *shambhala::getComponent(int index) {
+  return engine.components[index];
+}
+int shambhala::componentCount() { return engine.components.size(); }
 
 RenderCamera *shambhala::createRenderCamera() { return new RenderCamera; }
 VertexBuffer *shambhala::createVertexBuffer() { return new VertexBuffer; }

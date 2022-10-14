@@ -23,13 +23,15 @@ struct TileAttribute {
 };
 
 struct TileMap : public shambhala::LogicComponent {
-  TileMap(int tileMapSize, TileAtlas *atlas, shambhala::Texture *text);
+  TileMap(int sizex, int sizey, TileAtlas *atlas, shambhala::Texture *text);
 
 private:
   TileAtlas *atlas;
   shambhala::Model *model;
+  shambhala::Texture *text;
   simple_vector<int> tiles;
-  int tileMapSize;
+  int sizex;
+  int sizey;
   bool needsUpdate = false;
 
   static int spawnFace(simple_vector<TileAttribute> &vertexBuffer,
@@ -46,7 +48,13 @@ private:
 
   void updateMesh();
 
+  // editor stuff
+  int editorMaterial = 1;
+
 public:
   void set(int i, int j, int mat);
   void step(shambhala::StepInfo info) override;
+  void editorStep(shambhala::StepInfo info) override;
+  void editorRender() override;
+  void serialize();
 };
