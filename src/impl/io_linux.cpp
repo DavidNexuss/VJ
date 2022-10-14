@@ -10,8 +10,9 @@ static int getFileSize(const char *path) {
   return st.st_size * (ret == 0);
 }
 
-io_buffer shambhala::LinuxIO::internal_readFile(const char *path) {
+io_buffer shambhala::LinuxIO::internal_readFile(const std::string &path_s) {
 
+  const char *path = path_s.c_str();
   int fileSize = getFileSize(path);
   if (fileSize == 0) {
     return io_buffer();

@@ -3,9 +3,9 @@ namespace shambhala {
 namespace resource {
 
 IResource *createFromNullTerminatedString(const char *data,
-                                          const char *resourcename);
-MemoryResource *ioMemoryFile(const char *path);
+                                          const std::string &name);
+MemoryResource *ioMemoryFile(const std::string &path);
 TextureResource *stbiTextureMemory(MemoryResource *memoryResource);
-TextureResource *stbiTextureFile(const char *path, int desiredChannels);
+TextureResource *stbiTextureFile(const std::string &path, int desiredChannels);
 } // namespace resource
 } // namespace shambhala

@@ -243,17 +243,18 @@ GLuint device::getShaderType(int shaderType) {
   return shaderTypes[shaderType];
 }
 GLuint device::compileShader(const char *data, GLenum type,
-                             const char *resourcename) {
+                             const std::string &resourcename) {
   GLuint shader = glCreateShader(type);
   glShaderSource(shader, 1, &data, NULL);
   glCompileShader(shader);
   GLint compileStatus = 0;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
   if (compileStatus == GL_FALSE) {
-    LOG("[DEVICE] Error compiling shader %d: %s", shader, resourcename);
+    LOG("[DEVICE] Error compiling shader %d: %s", shader, resourcename.c_str());
     LOG("[DEVICE] Shader data \n%s\n", data);
   } else {
-    LOG("[DEVICE] Shader compiled successfully %d: %s", shader, resourcename);
+    LOG("[DEVICE] Shader compiled successfully %d: %s", shader,
+        resourcename.c_str());
   }
   return shader;
 }
@@ -521,23 +522,36 @@ void device::useProgram(Program *program) {
     return;
   // Check program compilation with shaders
   bool programUpdate = program->shaderProgram == -1;
-  GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
-  int currentShader = 0;
-  for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
-    if (program->shaders[i].file != nullptr) {
-      bool shaderUpdate = program->shaders[i].file->claim();
-      programUpdate |= shaderUpdate;
-      if (shaderUpdate) {
-        program->shaders[i].shader = device::compileShader(
-            (const char *)program->shaders[i].file->read()->data,
-            device::getShaderType(i), program->shaders[i].file->resourcename);
-      }
 
-      shaders[currentShader++] = program->shaders[i].shader;
+  if (!programUpdate) {
+    for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
+      if (program->shaders[i].file != nullptr)
+        programUpdate |= program->shaders[i].file->needsUpdate ||
+                         program->shaders[i].shader == -1;
     }
   }
 
   if (programUpdate) {
+
+    GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
+
+    int currentShader = 0;
+    /// Compile shaders
+    for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
+      if (program->shaders[i].file != nullptr) {
+        bool shaderUpdate = program->shaders[i].file->needsUpdate ||
+                            program->shaders[i].shader == -1;
+        if (shaderUpdate) {
+          program->shaders[i].shader = device::compileShader(
+              (const char *)program->shaders[i].file->read()->data,
+              device::getShaderType(i), program->shaders[i].file->resourcename);
+        }
+
+        shaders[currentShader++] = program->shaders[i].shader;
+        program->shaders[i].file->needsUpdate = false;
+      }
+    }
+    // Link program
     GLint status;
     program->shaderProgram = device::compileProgram(shaders, &status);
     program->errored = !status;
@@ -651,7 +665,7 @@ void device::useTexture(Texture *texture) {
     GLenum target = texture->textureMode;
     device::bindTexture(texture->_textureID, target);
     for (int i = 0; i < texture->textureData.size(); i++) {
-      if (texture->textureData[i]->claim()) {
+      if (texture->textureData[i]->needsUpdate) {
         GLenum target = texture->textureMode == GL_TEXTURE_CUBE_MAP
                             ? (GL_TEXTURE_CUBE_MAP_POSITIVE_X + i)
                             : GL_TEXTURE_2D;
@@ -660,6 +674,7 @@ void device::useTexture(Texture *texture) {
                               texture->textureData[i]->height,
                               texture->textureData[i]->components,
                               texture->textureData[i]->hdrSpace);
+        texture->textureData[i]->needsUpdate = false;
       }
     }
     glGenerateMipmap(target);
@@ -1034,7 +1049,7 @@ void ModelList::add(Model *model) {
 
 bool Texture::needsUpdate() {
   for (int i = 0; i < textureData.size(); i++) {
-    if (textureData[i]->needsUpdate())
+    if (textureData[i]->needsUpdate)
       return true;
   }
   return false;

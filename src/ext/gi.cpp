@@ -166,7 +166,7 @@ Texture *gi::bakeAmbientOcclusion(ModelList *modelList, int size, int bounces) {
 
     lmImageDilate(lightmap, tmp, size, size, components);
     lmImageDilate(tmp, lightmap, size, size, components);
-    lightmapResource->forceUpdate();
+    lightmapResource->needsUpdate = true;
     lightmapResource->textureBuffer = (uint8_t *)lightmap;
     lightmapResource->width = size;
     lightmapResource->height = size;

@@ -50,7 +50,12 @@ void TileMap::editorRender() {
     Tile tile = atlas->getTile(this->editorMaterial);
     glm::vec2 uv = {tile.xstart, tile.ystart};
     glm::vec2 uv2 = {tile.xend, tile.yend};
-    gui::texture(text, uv, uv2);
+    gui::texture(text, uv, uv2, glm::vec2(64.0));
     ImGui::End();
+  }
+
+  if (ImGui::Begin("TileMap")) {
+    gui::texture(text, glm::vec2(0.0, 1.0), glm::vec2(1.0, 0.0),
+                 glm::vec2(512.0));
   }
 }

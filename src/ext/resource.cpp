@@ -5,11 +5,11 @@ using namespace shambhala;
 
 static io_buffer nullResource = {nullptr, 0};
 
-TextureResource *resource::stbiTextureFile(const char *path,
+TextureResource *resource::stbiTextureFile(const std::string &path,
                                            int desired_channels) {
   TextureResource *resource = new TextureResource;
-  io_buffer *buff = io()->readFile(path);
-
+  MemoryResource *memresource = io()->readFile(path);
+  io_buffer *buff = memresource->read();
   stbi_info_from_memory(buff->data, buff->length, &resource->width,
                         &resource->height, &resource->components);
 
@@ -18,36 +18,21 @@ TextureResource *resource::stbiTextureFile(const char *path,
       &resource->components, resource->components);
 
   resource->resourcename = path;
+
+  io()->freeFile(memresource);
   return resource;
 }
 
-MemoryResource *resource::ioMemoryFile(const char *path) {
-  MemoryResource *resource = new MemoryResource;
-  resource->buffer = io()->readFile(path);
-  resource->resourcename = path;
-  return resource;
+MemoryResource *resource::ioMemoryFile(const std::string &path) {
+  return io()->readFile(path);
 }
 
 io_buffer *TextureResource::read() { return &nullResource; }
-io_buffer *MemoryResource::read() { return buffer; }
+io_buffer *MemoryResource::read() { return &buffer; }
 
-bool IResource::claim() {
-  bool ret = this->_needsUpdate;
-  this->_needsUpdate = false;
-  return ret;
-}
-
-bool IResource::needsUpdate() { return this->_needsUpdate; }
-
-void IResource::forceUpdate() { _needsUpdate = true; }
-struct StaticMemoryResource : public IResource {
-  io_buffer buffer;
-  io_buffer *read() override { return &buffer; }
-};
-IResource *
-shambhala::resource::createFromNullTerminatedString(const char *data,
-                                                    const char *resourcename) {
-  StaticMemoryResource *resource = new StaticMemoryResource;
+IResource *shambhala::resource::createFromNullTerminatedString(
+    const char *data, const std::string &resourcename) {
+  MemoryResource *resource = new MemoryResource;
   resource->buffer = {(uint8_t *)data, Standard::resourceNullTerminated};
   resource->resourcename = resourcename;
   return resource;

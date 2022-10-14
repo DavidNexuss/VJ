@@ -20,10 +20,10 @@ void renderCamera(RenderCamera *renderCamera) {
                size);
 }
 
-void texture(Texture *texture, glm::vec2 uv, glm::vec2 uv2) {
+void texture(Texture *texture, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size) {
   auto id = (void *)(intptr_t)texture->_textureID;
   std::swap(uv.y, uv2.y);
-  ImGui::Image(id, vec2(glm::vec2(64.0f)), vec2(uv), vec2(uv2));
+  ImGui::Image(id, vec2(size), vec2(uv), vec2(uv2));
 }
 
 } // namespace gui

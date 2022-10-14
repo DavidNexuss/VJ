@@ -55,21 +55,6 @@ template <typename T> struct EngineComponent : public UIComponent {
       stringName = name;
   }
 };
-struct IResource {
-  virtual io_buffer *read() = 0;
-  const char *resourcename = nullptr;
-  bool claim();
-  bool needsUpdate();
-  void forceUpdate();
-
-private:
-  bool _needsUpdate = true;
-};
-
-struct MemoryResource : public IResource {
-  io_buffer *buffer;
-  virtual io_buffer *read() override;
-};
 
 struct Shader {
   GLuint shader = -1;
@@ -483,7 +468,8 @@ namespace shambhala {
 
 namespace device {
 
-GLuint compileShader(const char *data, GLenum type, const char *resourcename);
+GLuint compileShader(const char *data, GLenum type,
+                     const std::string &resourcename);
 GLuint compileProgram(GLuint *shaders, GLint *status);
 GLuint createVAO();
 GLuint createVBO(const simple_vector<uint8_t> &vertexBuffer, GLuint *vbo);

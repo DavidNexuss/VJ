@@ -1,52 +1,53 @@
 #include "io.hpp"
 #include <adapters/log.hpp>
-void shambhala::IIO::freeFile(io_buffer *buffer) {
-  buffer->useCount--;
-  if (buffer->useCount < 1)
-    cachedBuffers.erase(buffer->resourcename);
+
+using namespace shambhala;
+void shambhala::IIO::freeFile(MemoryResource *resource) {
+  resource->useCount--;
+  if (resource->useCount < 1)
+    cachedBuffers.erase(resource->resourcename);
 }
 
 // TODO: Fix something
-std::string shambhala::IIO::findFile(const char *path) {
+std::string shambhala::IIO::findFile(const std::string &path) {}
 
-  for (int i = 0; i < translators.size(); i++) {
-  }
-}
-io_buffer *shambhala::IIO::readFile(const char *path) {
-  LOG("Reading %s:", path);
+MemoryResource *shambhala::IIO::readFile(const std::string &path) {
+  LOG("Reading %s:", path.c_str());
   auto it = cachedBuffers.find(path);
   if (it != cachedBuffers.end()) {
     it->second.useCount++;
     return &it->second;
   }
 
-  auto read = [&](const char *path) -> io_buffer * {
-    io_buffer buffer = internal_readFile(path);
-    if (buffer.length > 0) {
-      buffer.useCount++;
-      auto it = cachedBuffers.insert({path, buffer});
+  auto read = [&](const std::string &path) -> MemoryResource * {
+    MemoryResource resource;
+    resource.buffer = internal_readFile(path);
+    resource.resourcename = path;
+    if (resource.buffer.length > 0) {
+      resource.useCount++;
+      auto it = cachedBuffers.insert({path, resource});
       return &it.first->second;
     }
     return nullptr;
   };
 
-  auto resolvePath = [&](const char *path, const char *translator) {
+  auto resolvePath = [&](const std::string &path, const char *translator) {
     static char buffer[4096] = {0};
-    int n = sprintf(buffer, translator, path);
+    int n = sprintf(buffer, translator, path.c_str());
     return std::string(buffer, n);
   };
 
   for (int i = 0; i < translators.size(); i++) {
     std::string localPath = resolvePath(path, translators[i]);
-    io_buffer *result;
+    MemoryResource *result;
     if ((result = read(localPath.c_str())) != nullptr) {
       return result;
     }
   }
 
-  io_buffer *buff = read(path);
+  MemoryResource *buff = read(path);
   if (buff == nullptr) {
-    LOG("[IO] %s not found!", path);
+    LOG("[IO] %s not found!", path.c_str());
   }
 
   return buff;

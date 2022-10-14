@@ -15,6 +15,6 @@ void editorInit();
 
 namespace gui {
 void renderCamera(RenderCamera *renderCamera);
-void texture(Texture *texture, glm::vec2 uv, glm::vec2 uv2);
+void texture(Texture *texture, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size);
 } // namespace gui
 } // namespace shambhala
