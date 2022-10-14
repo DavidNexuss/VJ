@@ -50,7 +50,7 @@ template <typename T> struct EngineComponent : public UIComponent {
     return stringName;
   }
 
-  void setName(const char *name) {
+  virtual void setName(const char *name) {
     if (name != nullptr)
       stringName = name;
   }
@@ -296,7 +296,13 @@ struct StepInfo {
 };
 
 struct LogicComponent : EngineComponent<LogicComponent> {
+
   virtual void step(StepInfo info) {}
+  virtual void setName(const char *name) override;
+  void add(Model *model);
+
+private:
+  shambhala::Node *rootNode;
 };
 
 struct UpdateLayer {
@@ -594,6 +600,8 @@ void engine_prepareDeclarativeRender();
 
 void hint_selectionpass();
 void addComponent(LogicComponent *component);
+LogicComponent *getComponent(int index);
+int componentCount();
 
 bool input_mouse_free();
 } // namespace shambhala

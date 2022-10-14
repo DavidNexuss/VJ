@@ -25,7 +25,6 @@ TileMap::TileMap(int tileMapSize, TileAtlas *atlas, Texture *text) {
   model->mesh->vbo = shambhala::createVertexBuffer();
   model->mesh->ebo = shambhala::createIndexBuffer();
   model->mesh->vbo->attributes = {{Standard::aPosition, 3}, {Standard::aUV, 2}};
-  model->node = shambhala::createNode("tilemap");
   model->program =
       loader::loadProgram("programs/tiled.fs", "programs/regular.vs");
   DynamicTexture dyn;
@@ -33,10 +32,10 @@ TileMap::TileMap(int tileMapSize, TileAtlas *atlas, Texture *text) {
   dyn.unit = 0;
   model->material = shambhala::createMaterial();
   model->material->set("uBaseColor", dyn);
-
+  model->node = shambhala::createNode("tileMap");
   // setDebug(model);
-  shambhala::addModel(model);
   setName("tileMap");
+  addModel(model);
 }
 
 int TileMap::spawnFace(simple_vector<TileAttribute> &vertexBuffer,
@@ -182,11 +181,17 @@ void TileMap::set(int i, int j, int type) {
 
 void TileMap::step(shambhala::StepInfo info) {
 
-  util::renderPlaneGrid(glm::vec3(1, 0, 0), glm::vec3(0, 1, 0),
-                        glm::vec3(0.0, 0.0, -0.001));
+  glm::mat4 transform = model->node->getCombinedMatrix();
+
+  Plane plane;
+  plane.x = glm::vec3(transform[0]);
+  plane.y = glm::vec3(transform[1]);
+  plane.origin = glm::vec3(transform[3]);
+  util::renderPlaneGrid(plane.x, plane.y,
+                        plane.origin - glm::vec3(0.0, 0.0, 0.01));
 
   if (viewport()->isRightMousePressed()) {
-    Plane plane = ext::zplane(0.0);
+
     glm::vec3 intersection = ext::rayIntersection(info.mouseRay, plane);
     int x = intersection.x;
     int y = intersection.y;

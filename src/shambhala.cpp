@@ -988,6 +988,14 @@ ModelList *ModelList::createInstance() {
 }
 //---------------------[MODELLIST END]
 
+//---------------------[LOGIC COMPONENT BEGIN]
+
+void LogicComponent::setName(const char *name) {
+  EngineComponent<LogicComponent>::setName(name);
+}
+void LogicComponent::add(Model *model) { shambhala::addModel(model); }
+//---------------------[LOGIC COMPONENT END]
+
 //---------------------[BEGIN COMPONENT METHODS]
 
 void Material::addMaterial(Material *mat) { childMaterials.push(mat); }

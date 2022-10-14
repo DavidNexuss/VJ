@@ -40,11 +40,17 @@ void Joc::enginecreate() {
 }
 
 void Joc::loop() {
+  editor::editorInit();
   do {
 
     shambhala::loop_beginRenderContext();
     shambhala::loop_componentUpdate();
     mainCamera->render(mainShot);
+    shambhala::loop_beginUIContext();
+    editor::editorBeginContext();
+    editor::editorRender(mainShot.currentFrame);
+    editor::editorEndContext();
+    shambhala::loop_endUIContext();
     shambhala::loop_endRenderContext();
     mainShot.updateFrame();
 
