@@ -12,7 +12,7 @@ add_subdirectory(lib/stbimage)
 add_subdirectory(lib/lightmapper)
 add_subdirectory(lib/xatlas)
 target_include_directories(shambhala PRIVATE include src)
-target_link_libraries(shambhala imgui imguiText stbimage file_watcher lightmapper xatlas)
+target_link_libraries(shambhala imgui imguiText stbimage lightmapper xatlas)
 add_executable(main main.cpp)
 target_link_libraries(main shambhala stbimage GL GLEW glfw assimp)
 
