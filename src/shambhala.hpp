@@ -167,6 +167,7 @@ struct VertexBuffer {
   simple_vector<uint8_t> vertexBuffer;
   simple_vector<VertexAttribute> attributes;
   GLuint vbo = -1;
+  int vboSize = 0;
 
   bool hint_allocation_dynamic = false;
   bool hint_allocation_stream = false;
@@ -294,7 +295,7 @@ struct StepInfo {
   Ray mouseRay;
 };
 
-struct LogicComponent {
+struct LogicComponent : EngineComponent<LogicComponent> {
   virtual void step(StepInfo info) {}
 };
 

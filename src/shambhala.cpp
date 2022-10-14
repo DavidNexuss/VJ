@@ -574,23 +574,38 @@ void device::useIndexBuffer(IndexBuffer *indexBuffer) {
 
 void device::useVertexBuffer(VertexBuffer *vertexbuffer) {
 
-  if (vertexbuffer == guseState.currentVertexBuffer)
+  // Skip if buffer is already bound and updated
+  if (vertexbuffer == guseState.currentVertexBuffer &&
+      !vertexbuffer->updateData)
     return;
 
   guseState.currentVertexBuffer = vertexbuffer;
-  if (vertexbuffer->vertexBuffer.size() && (vertexbuffer->vbo == -1)) {
-    device::createVBO(vertexbuffer->vertexBuffer, &vertexbuffer->vbo);
-    vertexbuffer->updateData = false;
-  }
 
-  if (vertexbuffer->updateData) {
+  SoftCheck(vertexbuffer->vertexBuffer.size() > 0,
+            { LOG("Vertex buffer empty!\n", 0); });
+
+  if (vertexbuffer->vertexBuffer.size() == 0)
+    return;
+
+  // Create vertexBuffer
+  if (vertexbuffer->vbo == -1 ||
+      vertexbuffer->vboSize < vertexbuffer->vertexBuffer.size()) {
+
+    device::createVBO(vertexbuffer->vertexBuffer, &vertexbuffer->vbo);
+    vertexbuffer->vboSize = vertexbuffer->vertexBuffer.size();
+
+    // Reallocate buffer memory
+  } else if (vertexbuffer->updateData &&
+             vertexbuffer->vertexBuffer.size() <= vertexbuffer->vboSize) {
     device::bindVbo(vertexbuffer->vbo);
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertexbuffer->vertexBuffer.size(),
                     vertexbuffer->vertexBuffer.data());
   }
 
+  vertexbuffer->updateData = false;
   device::bindVbo(vertexbuffer->vbo);
 
+  // Bind attributes
   SoftCheck(vertexbuffer->attributes.size() != 0, {
     LOG("[Warning] Vertexbuffer with not attributes! %d",
         (int)vertexbuffer->attributes.size());

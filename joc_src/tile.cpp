@@ -1,4 +1,6 @@
 #include "tile.hpp"
+#include "ext/math.hpp"
+#include "ext/util.hpp"
 #include "shambhala.hpp"
 using namespace shambhala;
 
@@ -34,6 +36,7 @@ TileMap::TileMap(int tileMapSize, TileAtlas *atlas, Texture *text) {
 
   // setDebug(model);
   shambhala::addModel(model);
+  setName("tileMap");
 }
 
 int TileMap::spawnFace(simple_vector<TileAttribute> &vertexBuffer,
@@ -130,42 +133,43 @@ int TileMap::spawnVoxel(simple_vector<TileAttribute> &vertexBuffer,
   return count;
 }
 void TileMap::updateMesh() {
-  simple_vector<TileAttribute> tiles_buffer =
-      model->mesh->vbo->vertexBuffer.drop();
-  simple_vector<int> tile_indices = model->mesh->ebo->indexBuffer.drop();
+  simple_vector<TileAttribute> vertices;
+  simple_vector<int> indices;
 
-  tiles_buffer.resize(4 * tileMapSize * tileMapSize);
+  indices.resize(0);
+  vertices.resize(4 * tileMapSize * tileMapSize);
+
   int count = 0;
   for (int i = 0; i < tiles.size(); i++) {
     int x = i % tileMapSize;
     int y = i / tileMapSize;
     if (tiles[i]) {
       Tile tile = atlas->getTile(tiles[i]);
-      tiles_buffer[count] = {glm::vec3(x, y, 0.0),
-                             glm::vec2(tile.xstart, tile.ystart)};
+      vertices[count] = {glm::vec3(x, y, 0.0),
+                         glm::vec2(tile.xstart, tile.ystart)};
 
-      tiles_buffer[count + 1] = {glm::vec3(x + 1, y, 0.0),
-                                 glm::vec2(tile.xend, tile.ystart)};
+      vertices[count + 1] = {glm::vec3(x + 1, y, 0.0),
+                             glm::vec2(tile.xend, tile.ystart)};
 
-      tiles_buffer[count + 2] = {glm::vec3(x, y + 1, 0.0),
-                                 glm::vec2(tile.xstart, tile.yend)};
+      vertices[count + 2] = {glm::vec3(x, y + 1, 0.0),
+                             glm::vec2(tile.xstart, tile.yend)};
 
-      tiles_buffer[count + 3] = {glm::vec3(x + 1, y + 1, 0.0),
-                                 glm::vec2(tile.xend, tile.yend)};
+      vertices[count + 3] = {glm::vec3(x + 1, y + 1, 0.0),
+                             glm::vec2(tile.xend, tile.yend)};
 
-      tile_indices.push(count);
-      tile_indices.push(count + 1);
-      tile_indices.push(count + 2);
+      indices.push(count);
+      indices.push(count + 1);
+      indices.push(count + 2);
 
-      tile_indices.push(count + 3);
-      tile_indices.push(count + 2);
-      tile_indices.push(count + 1);
+      indices.push(count + 3);
+      indices.push(count + 2);
+      indices.push(count + 1);
       count += 4;
     };
   }
-  tiles_buffer.resize(count);
-  model->mesh->vbo->vertexBuffer = tiles_buffer.drop();
-  model->mesh->ebo->indexBuffer = tile_indices.drop();
+  vertices.resize(count);
+  model->mesh->vbo->vertexBuffer = vertices.drop();
+  model->mesh->ebo->indexBuffer = indices.drop();
   model->mesh->vbo->updateData = true;
   model->mesh->ebo->updateData = true;
   needsUpdate = false;
@@ -177,6 +181,20 @@ void TileMap::set(int i, int j, int type) {
 }
 
 void TileMap::step(shambhala::StepInfo info) {
+
+  util::renderPlaneGrid(glm::vec3(1, 0, 0), glm::vec3(0, 1, 0),
+                        glm::vec3(0.0, 0.0, -0.001));
+
+  if (viewport()->isRightMousePressed()) {
+    Plane plane = ext::zplane(0.0);
+    glm::vec3 intersection = ext::rayIntersection(info.mouseRay, plane);
+    int x = intersection.x;
+    int y = intersection.y;
+    if (x >= 0 && y >= 0 && x < tileMapSize && y < tileMapSize) {
+      set(x, y, 1);
+    }
+  }
+
   if (needsUpdate)
     updateMesh();
 }
