@@ -1,3 +1,4 @@
+#include "shambhala.hpp"
 #include <string>
 #define GLFW_STATIC
 #include "viewport_glfw.hpp"
@@ -20,8 +21,8 @@ ViewportGLFW::ViewportGLFW() {
 }
 
 void cursor_position_callback(Window *window, double x, double y) {
-  /* if (GUI::isMouseOnGUI())
-    return; */
+  if (!currentViewport->isInputEnabled())
+    return;
 
   currentViewport->xpos = x;
   currentViewport->ypos = y;

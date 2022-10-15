@@ -1255,8 +1255,6 @@ void shambhala::engine_prepareRender() {
   if (engine.vao == -1) {
     engine.vao = device::createVAO();
 
-    viewport()->imguiInit(4, 2);
-
 #ifdef DEBUG
     glDebugMessageCallback(glError, nullptr);
     glEnable(GL_DEBUG_OUTPUT);
@@ -1323,6 +1321,7 @@ void *shambhala::createWindow(const WindowConfiguration &configuration) {
 }
 void shambhala::setActiveWindow(void *window) {
   viewport()->setActiveWindow(window);
+  viewport()->imguiInit(4, 2);
 }
 
 Material *shambhala::getWorldMaterial(int clas) {

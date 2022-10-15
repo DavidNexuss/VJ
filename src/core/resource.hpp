@@ -13,5 +13,6 @@ struct IResource {
 
   std::string resourcename;
   bool needsUpdate = true;
+  bool readOnly = false;
   int useCount = 0;
 };

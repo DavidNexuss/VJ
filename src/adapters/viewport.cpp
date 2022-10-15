@@ -36,3 +36,5 @@ bool shambhala::IViewport::isMiddleMousePressed() { return middleMousePressed; }
 bool shambhala::IViewport::isRightMousePressed() { return rightMousePressed; }
 
 void shambhala::IViewport::enableInput(bool enable) { inputEnabled = enable; }
+
+bool shambhala::IViewport::isInputEnabled() { return inputEnabled; }

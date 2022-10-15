@@ -35,5 +35,6 @@ IResource *shambhala::resource::createFromNullTerminatedString(
   MemoryResource *resource = new MemoryResource;
   resource->buffer = {(uint8_t *)data, Standard::resourceNullTerminated};
   resource->resourcename = resourcename;
+  resource->readOnly = true;
   return resource;
 }

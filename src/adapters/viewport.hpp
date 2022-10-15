@@ -51,6 +51,8 @@ struct IViewport {
 
   glm::vec2 getMouseViewportCoords();
 
+  bool isInputEnabled();
+
 private:
   int backedWidth;
   int backedHeight;
