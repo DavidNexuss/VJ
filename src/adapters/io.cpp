@@ -4,8 +4,9 @@
 using namespace shambhala;
 void shambhala::IIO::freeFile(MemoryResource *resource) {
   resource->useCount--;
-  if (resource->useCount < 1)
-    cachedBuffers.erase(resource->resourcename);
+  if (resource->useCount < 1) {
+    eraseFile(resource->resourcename);
+  }
 }
 
 // TODO: Fix something
@@ -25,8 +26,10 @@ MemoryResource *shambhala::IIO::readFile(const std::string &path) {
     resource.resourcename = path;
     if (resource.buffer.length > 0) {
       resource.useCount++;
-      auto it = cachedBuffers.insert({path, resource});
-      return &it.first->second;
+      resource.time = std::filesystem::last_write_time(path);
+      insertFile(path, resource);
+      auto it = cachedBuffers.find(path);
+      return &it->second;
     }
     return nullptr;
   };
@@ -51,4 +54,29 @@ MemoryResource *shambhala::IIO::readFile(const std::string &path) {
   }
 
   return buff;
+}
+
+void shambhala::IIO::eraseFile(const std::string &name) {
+  cachedBuffers.erase(name);
+}
+void shambhala::IIO::insertFile(const std::string &name,
+                                MemoryResource resource) {
+
+  auto it = cachedBuffers.insert({name, resource});
+  addWatch(name, &it.first->second);
+}
+
+void shambhala::IIO::addWatch(const std::string &name,
+                              MemoryResource *resource) {}
+
+//------------------[FILE WATCHER]
+#include <filesystem>
+void shambhala::IIO::filewatchMonitor() {
+  for (auto &it : cachedBuffers) {
+    auto last_write_time = std::filesystem::last_write_time(it.first);
+    if (last_write_time > it.second.time) {
+      it.second.needsUpdate = true;
+      it.second.time = last_write_time;
+    }
+  }
 }

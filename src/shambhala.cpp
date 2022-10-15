@@ -1302,6 +1302,7 @@ StepInfo shambhala::getStepInfo() {
                      viewport()->getMouseViewportCoords());
   return info;
 }
+void shambhala::loop_io_sync_step() { io()->filewatchMonitor(); }
 void shambhala::loop_componentUpdate() {
 
   StepInfo info;

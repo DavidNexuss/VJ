@@ -1,11 +1,11 @@
 #include "viewport.hpp"
 
 bool shambhala::IViewport::isKeyPressed(int keyCode) {
-  return pressed[keyCode];
+  return pressed[keyCode] && inputEnabled;
 }
 
 bool shambhala::IViewport::isKeyJustPressed(int keyCode) {
-  return justPressed[keyCode];
+  return justPressed[keyCode] && inputEnabled;
 }
 
 void shambhala::IViewport::fakeViewportSize(int width, int height) {
@@ -20,7 +20,9 @@ void shambhala::IViewport::restoreViewport() {
   screenHeight = backedHeight;
 }
 
-bool shambhala::IViewport::isMousePressed() { return mousePressed; }
+bool shambhala::IViewport::isMousePressed() {
+  return inputEnabled && mousePressed;
+}
 
 double shambhala::IViewport::aspectRatio() {
   return screenWidth / screenHeight;
@@ -32,3 +34,5 @@ glm::vec2 shambhala::IViewport::getMouseViewportCoords() {
 
 bool shambhala::IViewport::isMiddleMousePressed() { return middleMousePressed; }
 bool shambhala::IViewport::isRightMousePressed() { return rightMousePressed; }
+
+void shambhala::IViewport::enableInput(bool enable) { inputEnabled = enable; }

@@ -444,6 +444,15 @@ lib/imguiText/CMakeFiles/imguiText.dir/TextEditor.cpp.o: lib/imguiText/TextEdito
   /usr/include/glm/detail/type_half.inl \
   /usr/include/glm/integer.hpp \
   /usr/include/glm/detail/func_integer.inl \
+  src/core/resource.hpp \
+  /usr/include/c++/12.2.0/filesystem \
+  /usr/include/c++/12.2.0/bits/fs_fwd.h \
+  /usr/include/c++/12.2.0/bits/fs_path.h \
+  /usr/include/c++/12.2.0/iomanip \
+  /usr/include/c++/12.2.0/bits/quoted_string.h \
+  /usr/include/c++/12.2.0/codecvt \
+  /usr/include/c++/12.2.0/bits/fs_dir.h \
+  /usr/include/c++/12.2.0/bits/fs_ops.h \
   src/misc/gl.hpp \
   /usr/include/GL/glew.h \
   /usr/include/GL/glu.h \
@@ -463,6 +472,10 @@ lib/imguiText/CMakeFiles/imguiText.dir/TextEditor.cpp.o: lib/imguiText/TextEdito
 /usr/include/GL/glew.h:
 
 src/misc/gl.hpp:
+
+/usr/include/c++/12.2.0/bits/fs_dir.h:
+
+src/core/resource.hpp:
 
 /usr/include/glm/integer.hpp:
 
@@ -554,11 +567,17 @@ src/misc/gl.hpp:
 
 /usr/include/glm/mat2x2.hpp:
 
+/usr/include/c++/12.2.0/iomanip:
+
 /usr/include/glm/detail/type_mat3x3.inl:
 
 /usr/include/glm/ext/vector_uint4_sized.hpp:
 
+/usr/include/c++/12.2.0/bits/fs_path.h:
+
 /usr/include/glm/ext/vector_int4_sized.hpp:
+
+/usr/include/c++/12.2.0/filesystem:
 
 /usr/include/glm/ext/vector_int4.hpp:
 
@@ -874,6 +893,8 @@ src/misc/debug.hpp:
 
 /usr/include/bits/types/clock_t.h:
 
+/usr/include/c++/12.2.0/bits/quoted_string.h:
+
 /usr/include/bits/mathcalls.h:
 
 /usr/include/c++/12.2.0/string:
@@ -974,6 +995,8 @@ src/misc/debug.hpp:
 
 /usr/include/c++/12.2.0/debug/debug.h:
 
+/usr/include/c++/12.2.0/codecvt:
+
 /usr/include/c++/12.2.0/type_traits:
 
 /usr/include/c++/12.2.0/x86_64-pc-linux-gnu/bits/c++locale.h:
@@ -1009,6 +1032,8 @@ lib/imguiText/TextEditor.cpp:
 /usr/include/bits/time.h:
 
 /usr/include/c++/12.2.0/bits/stl_construct.h:
+
+/usr/include/c++/12.2.0/bits/fs_ops.h:
 
 /usr/include/bits/struct_rwlock.h:
 
@@ -1255,6 +1280,8 @@ src/simple_vector.hpp:
 /usr/include/bits/typesizes.h:
 
 /usr/include/c++/12.2.0/x86_64-pc-linux-gnu/bits/messages_members.h:
+
+/usr/include/c++/12.2.0/bits/fs_fwd.h:
 
 /usr/include/c++/12.2.0/bits/codecvt.h:
 

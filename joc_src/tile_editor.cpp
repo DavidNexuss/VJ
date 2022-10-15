@@ -33,7 +33,7 @@ void TileMap::editorStep(shambhala::StepInfo info) {
       set(x, y, this->editorMaterial);
     }
 
-    if (viewport()->isKeyJustPressed(KEY_X)) {
+    if (viewport()->isKeyPressed(KEY_X)) {
       set(x, y, 0);
     }
   }

@@ -26,6 +26,29 @@ void texture(Texture *texture, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size) {
   ImGui::Image(id, vec2(size), vec2(uv), vec2(uv2));
 }
 
+void toggleButton(const char *name, bool *enable) {
+  static float b = 1.0f;
+  static float c = 0.5f;
+  static int i = 3;
+
+  if (*enable) {
+    ImGui::PushID(name);
+    ImColor color;
+    color.SetHSV(2.8f, 0.8f, 0.6);
+    ImGui::PushStyleColor(ImGuiCol_Button, color.Value);
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, color.Value);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, color.Value);
+    ImGui::Button(name);
+    if (ImGui::IsItemClicked(0)) {
+      *enable = !*enable;
+    }
+    ImGui::PopStyleColor(3);
+    ImGui::PopID();
+  } else if (ImGui::Button(name)) {
+    *enable = true;
+  }
+}
+
 } // namespace gui
 } // namespace shambhala
 
@@ -58,9 +81,11 @@ struct EditorWindow {
 
   virtual void render(int frame) = 0;
   void draw(int frame) {
-    if (ImGui::Begin(name, &enabled)) {
-      render(frame);
-      ImGui::End();
+    if (enabled) {
+      if (ImGui::Begin(name, &enabled)) {
+        render(frame);
+        ImGui::End();
+      }
     }
   }
 };
@@ -159,14 +184,61 @@ struct NodeTreeWindow : public EditorWindow {
   }
 };
 
-EditorState editorState;
-EditorWindow *nodeWindow;
-EditorWindow *componentWindow;
+static EditorState editorState;
+static EditorWindow *nodeWindow;
+static EditorWindow *componentWindow;
+static int toolbarSize = 30;
+static void dockspace() {
+  ImGuiViewport *viewport = ImGui::GetMainViewport();
+  ImGui::SetNextWindowPos(
+      ImVec2(viewport->Pos.x, toolbarSize + viewport->Pos.y));
+  ImGui::SetNextWindowSize(
+      ImVec2(-viewport->Size.x, viewport->Size.y - toolbarSize));
+  ImGuiWindowFlags window_flags =
+      0 | ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoTitleBar |
+      ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+      ImGuiWindowFlags_NoNavFocus;
+
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+  ImGui::Begin("Master DockSpace", NULL, window_flags);
+  ImGuiID dockMain = ImGui::GetID("MyDockspace");
+
+  // Save off menu bar height for later.
+
+  gui::toggleButton("Nodes", &nodeWindow->enabled);
+  gui::toggleButton("Comps", &componentWindow->enabled);
+  ImGui::End();
+  ImGui::PopStyleVar(3);
+}
+static void toolbar() {
+  ImGuiViewport *viewport = ImGui::GetMainViewport();
+  ImGui::SetNextWindowPos(ImVec2(viewport->Pos.x, viewport->Pos.y));
+  ImGui::SetNextWindowSize(ImVec2(viewport->Size.x, toolbarSize));
+
+  ImGuiWindowFlags window_flags =
+      0 | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+      ImGuiWindowFlags_NoSavedSettings;
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
+  ImGui::Begin("TOOLBAR", NULL, window_flags);
+  ImGui::PopStyleVar();
+
+  ImGui::End();
+}
 
 void editor::editorRender(int frame) {
   editorState.renderTabs(frame);
   nodeWindow->draw(frame);
   componentWindow->draw(frame);
+
+  dockspace();
+  toolbar();
+
+  ImGuiIO &io = ImGui::GetIO();
+  viewport()->enableInput(!io.WantCaptureMouse);
 }
 void editor::editorStep() {}
 void editor::enableEditor(bool pEnable) {}

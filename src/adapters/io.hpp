@@ -13,9 +13,14 @@ struct IIO {
   MemoryResource *readFile(const std::string &path);
   void freeFile(MemoryResource *resource);
 
+  virtual void filewatchMonitor();
+
 private:
   static void addWatch(const std::string &path, MemoryResource *resource);
   std::unordered_map<std::string, MemoryResource> cachedBuffers;
+
+  void insertFile(const std::string &name, MemoryResource resource);
+  void eraseFile(const std::string &name);
 
 protected:
   virtual io_buffer internal_readFile(const std::string &path) = 0;

@@ -29,6 +29,7 @@ struct IViewport {
   bool isMiddleMousePressed();
   bool isRightMousePressed();
 
+  void enableInput(bool enable);
   virtual void setActiveWindow(void *window) = 0;
   virtual void hideMouse(bool hide) = 0;
 
@@ -53,6 +54,7 @@ struct IViewport {
 private:
   int backedWidth;
   int backedHeight;
+  bool inputEnabled = true;
 };
 } // namespace shambhala
 

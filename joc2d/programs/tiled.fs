@@ -4,5 +4,5 @@ out vec4 color;
 uniform sampler2D uBaseColor;
 
 void main() { 
-  color = texture2D(uBaseColor,vUV);
+  color = texture2D(uBaseColor,vUV) * vec4(1.0);
 }

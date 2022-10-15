@@ -43,6 +43,8 @@ void Joc::loop() {
   editor::editorInit();
   do {
 
+    shambhala::loop_io_sync_step();
+
     shambhala::loop_beginRenderContext();
     shambhala::loop_componentUpdate();
     mainCamera->render(mainShot);

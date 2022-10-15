@@ -445,6 +445,15 @@ lib/imguiText/CMakeFiles/imguiText.dir/TextEditor.cpp.o
  /usr/include/glm/detail/type_half.inl
  /usr/include/glm/integer.hpp
  /usr/include/glm/detail/func_integer.inl
+ /home/david/shared/Projects/ShambhalaMini/src/core/resource.hpp
+ /usr/include/c++/12.2.0/filesystem
+ /usr/include/c++/12.2.0/bits/fs_fwd.h
+ /usr/include/c++/12.2.0/bits/fs_path.h
+ /usr/include/c++/12.2.0/iomanip
+ /usr/include/c++/12.2.0/bits/quoted_string.h
+ /usr/include/c++/12.2.0/codecvt
+ /usr/include/c++/12.2.0/bits/fs_dir.h
+ /usr/include/c++/12.2.0/bits/fs_ops.h
  /home/david/shared/Projects/ShambhalaMini/src/misc/gl.hpp
  /usr/include/GL/glew.h
  /usr/include/GL/glu.h
