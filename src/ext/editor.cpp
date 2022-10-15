@@ -189,9 +189,19 @@ struct NodeTreeWindow : public EditorWindow {
       renderNodeWindow();
   }
 };
-
+#include <imguiText/TextEditor.h>
+static void editResource(IResource *resource) {
+  static TextEditor editor;
+  if (ImGui::Begin(resource->resourcename.c_str())) {
+    editor.SetText((const char *)resource->read()->data);
+    editor.Render(resource->resourcename.c_str());
+    ImGui::End();
+  }
+}
 struct ProgramWindow : public EditorWindow {
 
+  Shader *selectedShader = nullptr;
+  Program *selectedProgram = nullptr;
   ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_SpanAvailWidth;
   ProgramWindow() { EditorWindow::name = "Programs"; }
   void render(int frame) override {
@@ -207,20 +217,35 @@ struct ProgramWindow : public EditorWindow {
       std::string base_filename = name.substr(name.find_last_of("/\\") + 1);
 
       ImGuiTreeNodeFlags node_flags = base_flags;
+      if (selectedProgram == current) {
+        node_flags |= ImGuiTreeNodeFlags_Selected;
+      }
       if (ImGui::TreeNodeEx((void *)intptr_t(id++), node_flags,
                             base_filename.c_str())) {
         for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
+          node_flags = base_flags;
           Shader *sh = current->shaders[i];
           if (sh != nullptr) {
             node_flags |= ImGuiTreeNodeFlags_Leaf;
+            if (sh == selectedShader)
+              node_flags |= ImGuiTreeNodeFlags_Selected;
             if (ImGui::TreeNodeEx((void *)intptr_t(id++), node_flags,
                                   sh->file->resourcename.c_str())) {
+
+              if (ImGui::IsItemClicked() || ImGui::IsItemToggledOpen()) {
+                selectedShader = sh;
+                selectedProgram = current;
+              }
               ImGui::TreePop();
             }
           }
         }
         ImGui::TreePop();
       }
+    }
+
+    if (selectedShader != nullptr) {
+      editResource(selectedShader->file);
     }
   }
 };
