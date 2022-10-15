@@ -9,13 +9,9 @@ struct io_buffer {
 
 struct IResource {
   virtual io_buffer *read() = 0;
+  virtual void write() {}
+
   std::string resourcename;
   bool needsUpdate = true;
   int useCount = 0;
-  std::filesystem::file_time_type time;
-};
-
-struct MemoryResource : public IResource {
-  io_buffer buffer;
-  virtual io_buffer *read() override;
 };

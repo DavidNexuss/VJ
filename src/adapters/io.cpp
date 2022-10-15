@@ -1,4 +1,5 @@
 #include "io.hpp"
+#include "shambhala.hpp"
 #include <adapters/log.hpp>
 
 using namespace shambhala;
@@ -55,6 +56,9 @@ MemoryResource *shambhala::IIO::readFile(const std::string &path) {
 
   return buff;
 }
+void shambhala::IIO::writeFile(MemoryResource *resource) {
+  internal_writeFile(resource->resourcename, resource->buffer);
+}
 
 void shambhala::IIO::eraseFile(const std::string &name) {
   cachedBuffers.erase(name);
@@ -69,14 +73,28 @@ void shambhala::IIO::insertFile(const std::string &name,
 void shambhala::IIO::addWatch(const std::string &name,
                               MemoryResource *resource) {}
 
+#include <fstream>
+void shambhala::IIO::internal_writeFile(const std::string &name,
+                                        io_buffer buffer) {
+  std::ofstream file(name);
+  file.write((const char *)buffer.data, buffer.length);
+  file.close();
+}
 //------------------[FILE WATCHER]
 #include <filesystem>
 void shambhala::IIO::filewatchMonitor() {
   for (auto &it : cachedBuffers) {
     auto last_write_time = std::filesystem::last_write_time(it.first);
     if (last_write_time > it.second.time) {
-      it.second.needsUpdate = true;
-      it.second.time = last_write_time;
+      MemoryResource *resource = &it.second;
+      delete[] resource->buffer.data;
+      resource->buffer = internal_readFile(resource->resourcename);
+      resource->needsUpdate = true;
+      resource->time = last_write_time;
     }
   }
 }
+
+//------------------[MEMORY RESOURCE]
+
+void MemoryResource::write() { shambhala::io()->writeFile(this); }

@@ -592,6 +592,7 @@ void engine_prepareDeclarativeRender();
 
 void hint_selectionpass();
 void addComponent(LogicComponent *component);
+
 LogicComponent *getComponent(int index);
 int componentCount();
 
@@ -606,6 +607,7 @@ namespace loader {
 using Key = unsigned long;
 template <typename T, typename Container> struct LoaderMap {
   std::unordered_map<Key, T *> cache;
+  simple_vector<T *> linearCache;
   std::unordered_map<T *, int> countMap;
 
   template <typename... Args> T *get(Args &&...args) {
@@ -618,7 +620,9 @@ template <typename T, typename Container> struct LoaderMap {
         return it->second;
       }
     }
+
     T *result = cache[key] = Container::create(std::forward<Args>(args)...);
+    linearCache.push(result);
     countMap[result] = 1;
     return result;
   }
@@ -627,6 +631,15 @@ template <typename T, typename Container> struct LoaderMap {
     int count = --countMap[ptr];
     if (count < 1) {
       delete ptr;
+      buildVector();
+    }
+  }
+
+  void buildVector() {
+    linearCache.resize(cache.size());
+    int count = 0;
+    for (auto &it : cache) {
+      linearCache[count++] = it.second;
     }
   }
 };
@@ -640,6 +653,12 @@ Texture *loadTexture(const char *path);
 
 void unloadProgram(Program *program);
 void unloadTexture(Texture *texture);
+
+Program *getProgram(int index);
+int programCount();
+
+Shader *getShader(int index);
+int shaderCount();
 
 } // namespace loader
 } // namespace shambhala

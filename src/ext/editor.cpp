@@ -49,6 +49,12 @@ void toggleButton(const char *name, bool *enable) {
   }
 }
 
+int tree(int id, const char *name) {
+  static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_SpanAvailWidth;
+  ImGui::TreeNodeEx((void *)intptr_t(id), base_flags, name);
+  return id + 1;
+}
+
 } // namespace gui
 } // namespace shambhala
 
@@ -184,9 +190,45 @@ struct NodeTreeWindow : public EditorWindow {
   }
 };
 
+struct ProgramWindow : public EditorWindow {
+
+  ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_SpanAvailWidth;
+  ProgramWindow() { EditorWindow::name = "Programs"; }
+  void render(int frame) override {
+    int n = loader::programCount();
+    int id = 0;
+    for (int i = 0; i < n; i++) {
+      Program *current = loader::getProgram(i);
+      Shader *fs = current->shaders[FRAGMENT_SHADER];
+      std::string name;
+      if (fs != nullptr) {
+        name = fs->file->resourcename;
+      }
+      std::string base_filename = name.substr(name.find_last_of("/\\") + 1);
+
+      ImGuiTreeNodeFlags node_flags = base_flags;
+      if (ImGui::TreeNodeEx((void *)intptr_t(id++), node_flags,
+                            base_filename.c_str())) {
+        for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
+          Shader *sh = current->shaders[i];
+          if (sh != nullptr) {
+            node_flags |= ImGuiTreeNodeFlags_Leaf;
+            if (ImGui::TreeNodeEx((void *)intptr_t(id++), node_flags,
+                                  sh->file->resourcename.c_str())) {
+              ImGui::TreePop();
+            }
+          }
+        }
+        ImGui::TreePop();
+      }
+    }
+  }
+};
+
 static EditorState editorState;
 static EditorWindow *nodeWindow;
 static EditorWindow *componentWindow;
+static EditorWindow *programWindow;
 static int toolbarSize = 30;
 static void dockspace() {
   ImGuiViewport *viewport = ImGui::GetMainViewport();
@@ -210,6 +252,7 @@ static void dockspace() {
 
   gui::toggleButton("Nodes", &nodeWindow->enabled);
   gui::toggleButton("Comps", &componentWindow->enabled);
+  gui::toggleButton("Progs", &programWindow->enabled);
   ImGui::End();
   ImGui::PopStyleVar(3);
 }
@@ -233,7 +276,7 @@ void editor::editorRender(int frame) {
   editorState.renderTabs(frame);
   nodeWindow->draw(frame);
   componentWindow->draw(frame);
-
+  programWindow->draw(frame);
   dockspace();
   toolbar();
 
@@ -252,6 +295,8 @@ void editor::editorEndContext() {}
 void editor::editorInit() {
   static NodeTreeWindow nodes = NodeTreeWindow{};
   static ComponentWindow components = ComponentWindow{};
+  static ProgramWindow programs = ProgramWindow{};
   nodeWindow = &nodes;
   componentWindow = &components;
+  programWindow = &programs;
 }

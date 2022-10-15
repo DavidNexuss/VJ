@@ -1472,3 +1472,14 @@ Shader *loader::loadShader(IResource *resource) {
 void loader::unloadProgram(Program *program) {
   programContainer.unload(program);
 }
+
+Program *loader::getProgram(int index) {
+  return programContainer.linearCache[index];
+}
+
+int loader::programCount() { return programContainer.linearCache.size(); }
+
+Shader *loader::getShader(int index) {
+  return shaderContainer.linearCache[index];
+}
+int loader::shaderCount() { return shaderContainer.linearCache.size(); }
