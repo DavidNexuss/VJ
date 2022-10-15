@@ -38,12 +38,7 @@ Material *createSkyBox() {
 Program *pbrProgram() {
   static Program *def = nullptr;
   if (def == nullptr) {
-
-    def = createProgram();
-    def->shaders[VERTEX_SHADER].file =
-        resource::ioMemoryFile("programs/regular.vs");
-    def->shaders[FRAGMENT_SHADER].file =
-        resource::ioMemoryFile("programs/pbr.fs");
+    return def = loader::loadProgram("programs/regular.vs", "programs/pbr.fs");
   }
   return def;
 }
@@ -339,13 +334,16 @@ struct ManipulatorProbe : public LogicComponent {
     arrowNode->setParentNode(rootNode);
   }
 
-  void step(StepInfo info) override {
-
+  void editorStep(StepInfo info) override {
     Ray r = info.mouseRay;
     Plane a = ext::zplane(0.0);
     glm::vec3 p = ext::rayIntersection(r, a);
     rootNode->setOffset(p);
+  }
 
+  void step(StepInfo info) override {
+
+    Plane a = ext::zplane(0.0);
     glEnable(GL_BLEND);
     glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

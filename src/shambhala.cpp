@@ -250,8 +250,17 @@ GLuint device::compileShader(const char *data, GLenum type,
   GLint compileStatus = 0;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &compileStatus);
   if (compileStatus == GL_FALSE) {
-    LOG("[DEVICE] Error compiling shader %d: %s", shader, resourcename.c_str());
-    LOG("[DEVICE] Shader data \n%s\n", data);
+
+    GLint errorSize;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &errorSize);
+    char *errorLog = new char[errorSize];
+    glGetShaderInfoLog(shader, errorSize, &errorSize, errorLog);
+    glDeleteShader(shader);
+
+    LOG("[DEVICE] Error compiling shader %d: %s, code: \n%s\n error: \n%s",
+        shader, resourcename.c_str(), data, errorLog);
+    delete[] errorLog;
+
   } else {
     LOG("[DEVICE] Shader compiled successfully %d: %s", shader,
         resourcename.c_str());
@@ -260,6 +269,10 @@ GLuint device::compileShader(const char *data, GLenum type,
 }
 
 GLuint device::compileProgram(GLuint *shaders, GLint *status) {
+  if (*shaders == 0) {
+    LOG("[DEVICE] Null program !! ", 0);
+    return -1;
+  }
   GLuint program = glCreateProgram();
   GLuint *shaderPtr = shaders;
   while (*shaderPtr) {
@@ -269,13 +282,17 @@ GLuint device::compileProgram(GLuint *shaders, GLint *status) {
   glGetProgramiv(program, GL_LINK_STATUS, status);
   GLint InfoLogLength;
   glGetProgramiv(program, GL_INFO_LOG_LENGTH, &InfoLogLength);
+
   if (InfoLogLength > 0) {
     std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
     glGetProgramInfoLog(program, InfoLogLength, NULL, &ProgramErrorMessage[0]);
     LOG("%s", &ProgramErrorMessage[0]);
   }
+
   if (*status == GL_FALSE) {
     LOG("[DEVICE] Program link error %d : %s", program, util::stacked(shaders));
+
+    glDeleteProgram(program);
   } else {
     LOG("[DEVICE] Program link success %d : %s", program,
         util::stacked(shaders));
@@ -508,6 +525,20 @@ struct UseState {
 };
 static UseState guseState;
 
+bool device::useShader(Shader *shader, GLint type) {
+  if (shader->shader == -1 || shader->file->needsUpdate) {
+    if (shader->shader != -1) {
+      device::disposeShader(shader->shader);
+    }
+
+    shader->shader =
+        device::compileShader((const char *)shader->file->read()->data, type,
+                              shader->file->resourcename);
+    shader->file->needsUpdate = false;
+    return true;
+  }
+  return false;
+}
 void device::useProgram(Program *program) {
 
   // SoftCheck(program != nullptr, LOG("[Warning] Trying to use a null
@@ -523,36 +554,31 @@ void device::useProgram(Program *program) {
   // Check program compilation with shaders
   bool programUpdate = program->shaderProgram == -1;
 
-  if (!programUpdate) {
-    for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
-      if (program->shaders[i].file != nullptr)
-        programUpdate |= program->shaders[i].file->needsUpdate ||
-                         program->shaders[i].shader == -1;
+  /// Compile shaders
+  for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
+    if (program->shaders[i] != nullptr) {
+      programUpdate |=
+          device::useShader(program->shaders[i], i + GL_FRAGMENT_SHADER);
     }
   }
 
+  // Link program
   if (programUpdate) {
 
     GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
-
     int currentShader = 0;
-    /// Compile shaders
-    for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
-      if (program->shaders[i].file != nullptr) {
-        bool shaderUpdate = program->shaders[i].file->needsUpdate ||
-                            program->shaders[i].shader == -1;
-        if (shaderUpdate) {
-          program->shaders[i].shader = device::compileShader(
-              (const char *)program->shaders[i].file->read()->data,
-              device::getShaderType(i), program->shaders[i].file->resourcename);
-        }
 
-        shaders[currentShader++] = program->shaders[i].shader;
-        program->shaders[i].file->needsUpdate = false;
+    for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
+      if (program->shaders[i] != nullptr) {
+        shaders[currentShader++] = program->shaders[i]->shader;
       }
     }
-    // Link program
     GLint status;
+
+    if (program->shaderProgram != -1) {
+      device::disposeProgram(program->shaderProgram);
+    }
+
     program->shaderProgram = device::compileProgram(shaders, &status);
     program->errored = !status;
   }
@@ -1333,6 +1359,7 @@ Texture *shambhala::createTexture() { return new Texture; }
 Model *shambhala::createModel() { return new Model; }
 Mesh *shambhala::createMesh() { return new Mesh; }
 Program *shambhala::createProgram() { return new Program; }
+Shader *shambhala::createShader() { return new Shader; }
 FrameBuffer *shambhala::createFramebuffer() { return new FrameBuffer; }
 Material *shambhala::createMaterial() { return new Material; }
 
@@ -1401,11 +1428,24 @@ loader::Key loader::computeKey(const char *str) {
 
   return hash;
 }
+
+struct ShaderContainer : public loader::LoaderMap<Shader, ShaderContainer> {
+
+  static Shader *create(IResource *resource) {
+    Shader *shader = shambhala::createShader();
+    shader->file = resource;
+    return shader;
+  }
+
+  static loader::Key computeKey(IResource *resource) {
+    return loader::Key(resource);
+  }
+};
 struct ProgramContainer : public loader::LoaderMap<Program, ProgramContainer> {
   static Program *create(const char *fs, const char *vs) {
     Program *program = shambhala::createProgram();
-    program->shaders[FRAGMENT_SHADER].file = resource::ioMemoryFile(fs);
-    program->shaders[VERTEX_SHADER].file = resource::ioMemoryFile(vs);
+    program->shaders[FRAGMENT_SHADER] = loader::loadShader(fs);
+    program->shaders[VERTEX_SHADER] = loader::loadShader(vs);
     return program;
   }
 
@@ -1415,10 +1455,19 @@ struct ProgramContainer : public loader::LoaderMap<Program, ProgramContainer> {
 };
 
 static ProgramContainer programContainer;
+static ShaderContainer shaderContainer;
 
 Program *loader::loadProgram(const char *fs, const char *vs) {
   return programContainer.get(fs, vs);
 }
+Shader *loader::loadShader(const char *path) {
+  return loader::loadShader(resource::ioMemoryFile(path));
+}
+
+Shader *loader::loadShader(IResource *resource) {
+  return shaderContainer.get(resource);
+}
+
 void loader::unloadProgram(Program *program) {
   programContainer.unload(program);
 }

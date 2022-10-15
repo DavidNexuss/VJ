@@ -7,10 +7,10 @@
 namespace shambhala {
 namespace util {
 simple_vector<uint8_t> createCube();
-shambhala::Shader createScreenVertexShader();
-shambhala::Shader createRegularVertexShader();
-shambhala::Shader createEmptyFragmentShader();
-shambhala::Shader createPassThroughShader();
+shambhala::Shader *createScreenVertexShader();
+shambhala::Shader *createRegularVertexShader();
+shambhala::Shader *createEmptyFragmentShader();
+shambhala::Shader *createPassThroughShader();
 shambhala::Program *createScreenProgram(IResource *fragmentShader);
 shambhala::Program *createDepthOnlyProgram();
 shambhala::Program *createRegularShaderProgram(IResource *fragmentShader);

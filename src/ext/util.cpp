@@ -134,35 +134,31 @@ Mesh *util::createScreen() {
   return result;
 }
 
-Shader util::createScreenVertexShader() {
-  Shader shader;
-  shader.file = resource::createFromNullTerminatedString(
+Shader *util::createScreenVertexShader() {
+  IResource *resource = resource::createFromNullTerminatedString(
       screenVertexShader, "internal:screen_vertex_shader");
-  return shader;
+  return loader::loadShader(resource);
 }
-Shader util::createEmptyFragmentShader() {
-  Shader shader;
-  shader.file = resource::createFromNullTerminatedString(
+Shader *util::createEmptyFragmentShader() {
+  IResource *file = resource::createFromNullTerminatedString(
       emptyFragShader, "internal:empty_frag_shader");
-  return shader;
+  return loader::loadShader(file);
 }
-Shader util::createRegularVertexShader() {
-  Shader shader;
-  shader.file = resource::createFromNullTerminatedString(
+Shader *util::createRegularVertexShader() {
+  IResource *file = resource::createFromNullTerminatedString(
       regularVertexShader, "internal:regular_vert_shader");
-  return shader;
+  return loader::loadShader(file);
 }
-Shader util::createPassThroughShader() {
-  Shader shader;
-  shader.file = resource::createFromNullTerminatedString(
+Shader *util::createPassThroughShader() {
+  IResource *file = resource::createFromNullTerminatedString(
       passShader, "internal:pass_frag_effect");
-  return shader;
+  return loader::loadShader(file);
 }
 
 Program *util::createScreenProgram(IResource *resource) {
   Program *result = shambhala::createProgram();
   result->shaders[VERTEX_SHADER] = createScreenVertexShader();
-  result->shaders[FRAGMENT_SHADER].file = resource;
+  result->shaders[FRAGMENT_SHADER] = loader::loadShader(resource);
   return result;
 }
 
@@ -176,7 +172,7 @@ Program *util::createDepthOnlyProgram() {
 Program *util::createRegularShaderProgram(IResource *fragmentShader) {
   Program *result = shambhala::createProgram();
   result->shaders[VERTEX_SHADER] = util::createRegularVertexShader();
-  result->shaders[FRAGMENT_SHADER].file = fragmentShader;
+  result->shaders[FRAGMENT_SHADER] = loader::loadShader(fragmentShader);
   return result;
 }
 
@@ -201,14 +197,9 @@ static Program *getSkyboxProgram() {
   if (skyProgram != nullptr)
     return skyProgram;
 
-  skyProgram = createProgram();
-  skyProgram->shaders[FRAGMENT_SHADER].file =
-      resource::ioMemoryFile("programs/cubemap.frag");
-  skyProgram->shaders[VERTEX_SHADER].file =
-      resource::ioMemoryFile("programs/cubemap.vert");
-
+  skyProgram =
+      loader::loadProgram("programs/cubemap.frag", "programs/cubemap.vert");
   skyProgram->hint_skybox = true;
-
   return skyProgram;
 }
 

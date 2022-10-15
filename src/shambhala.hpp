@@ -56,11 +56,6 @@ template <typename T> struct EngineComponent : public UIComponent {
   }
 };
 
-struct Shader {
-  GLuint shader = -1;
-  IResource *file = nullptr;
-};
-
 enum ShaderType {
   FRAGMENT_SHADER = 0,
   VERTEX_SHADER,
@@ -70,8 +65,13 @@ enum ShaderType {
   SHADER_TYPE_COUNT
 };
 
+struct Shader {
+  GLuint shader = -1;
+  IResource *file = nullptr;
+};
+
 struct Program {
-  Shader shaders[SHADER_TYPE_COUNT];
+  Shader *shaders[SHADER_TYPE_COUNT] = {0};
   GLuint shaderProgram = -1;
 
   bool hint_skybox = false;
@@ -512,6 +512,7 @@ void useModelConfiguration(ModelConfiguration *configuration);
 void useTexture(UTexture texture);
 void useTexture(DynamicTexture texture);
 void useTexture(Texture *texture);
+bool useShader(Shader *shader, GLint type);
 void useProgram(Program *program);
 void useVertexBuffer(VertexBuffer *vertexbuffer);
 void useIndexBuffer(IndexBuffer *indexBuffer);
@@ -536,6 +537,7 @@ Texture *createTexture();
 Model *createModel();
 Mesh *createMesh();
 Program *createProgram();
+Shader *createShader();
 FrameBuffer *createFramebuffer();
 Material *createMaterial();
 ModelList *createModelList();
@@ -629,6 +631,9 @@ template <typename T, typename Container> struct LoaderMap {
 };
 
 Key computeKey(const char *);
+Shader *loadShader(const char *path);
+Shader *loadShader(IResource *resource);
+Program *loadProgram(IResource *fs, IResource *vs);
 Program *loadProgram(const char *fragmentShader, const char *vertexShader);
 Texture *loadTexture(const char *path);
 

@@ -47,10 +47,10 @@ Program *getAmbientOcclusionProgram() {
   static Program *ao = nullptr;
   if (ao == nullptr) {
     ao = shambhala::createProgram();
-    ao->shaders[FRAGMENT_SHADER].file =
-        resource::createFromNullTerminatedString(fp, "internal:ao_bake.fs");
-    ao->shaders[VERTEX_SHADER].file =
-        resource::createFromNullTerminatedString(vp, "internal:ao_bake.vs");
+    ao->shaders[FRAGMENT_SHADER] = loader::loadShader(
+        resource::createFromNullTerminatedString(fp, "internal:ao_bake.fs"));
+    ao->shaders[VERTEX_SHADER] = loader::loadShader(
+        resource::createFromNullTerminatedString(vp, "internal:ao_bake.vs"));
   }
   return ao;
 }
