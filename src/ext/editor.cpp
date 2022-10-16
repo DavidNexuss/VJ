@@ -200,7 +200,7 @@ io_buffer toIoBuffer(const std::string &text) {
   return buffer;
 }
 #include <imguiText/TextEditor.h>
-static void editResource(IResource *resource) {
+void gui::textEditor(IResource *resource, const char *windowName) {
   static TextEditor editor;
   static IResource *currentResource = nullptr;
 
@@ -211,7 +211,7 @@ static void editResource(IResource *resource) {
     editor.SetShowWhitespaces(false);
   }
 
-  ImGui::Begin("ShaderEditor", nullptr,
+  ImGui::Begin(windowName, nullptr,
                ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
 
   ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
@@ -331,7 +331,7 @@ struct ProgramWindow : public EditorWindow {
     }
 
     if (selectedShader != nullptr) {
-      editResource(selectedShader->file);
+      gui::textEditor(selectedShader->file, "ShaderEditor");
     }
   }
 };

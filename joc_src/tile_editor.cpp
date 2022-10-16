@@ -58,4 +58,7 @@ void TileMap::editorRender() {
     gui::texture(text, glm::vec2(0.0, 1.0), glm::vec2(1.0, 0.0),
                  glm::vec2(512.0));
   }
+
+  if (this->levelResource)
+    gui::textEditor(this->levelResource, "LevelResource");
 }

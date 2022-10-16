@@ -194,8 +194,11 @@ void TileMap::initmap(IResource *resource) {
   getline(ss, trash); // READ TILES IN TILESHEET
   tiles.resize(sizex * sizey);
   for (int i = sizey - 1; i >= 0; i--) {
+    std::string meshline;
+    getline(ss, meshline);
+    std::stringstream ss2(meshline);
     for (int j = 0; j < sizex; j++) {
-      ss >> tiles[i * sizex + j];
+      ss2 >> tiles[i * sizex + j];
     }
   }
   resource->needsUpdate = false;
