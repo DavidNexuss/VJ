@@ -2,6 +2,7 @@
 #include "ext/math.hpp"
 #include "ext/util.hpp"
 #include "shambhala.hpp"
+#include <cstdio>
 using namespace shambhala;
 
 Tile StaticTile::getTile(int tileindex) {
@@ -180,8 +181,31 @@ void TileMap::set(int i, int j, int type) {
   tiles[i + j * sizex] = type;
   needsUpdate = true;
 }
-
+#include <sstream>
+void TileMap::initmap(IResource *resource) {
+  io_buffer *buff = resource->read();
+  std::stringstream ss(std::string((const char *)buff->data));
+  std::string trash;
+  getline(ss, trash); // READ MARKUP
+  ss >> this->sizex >> this->sizey;
+  getline(ss, trash); // READ SIZE
+  getline(ss, trash); // READ TILE SIZE
+  getline(ss, trash); // READ TILENAME
+  getline(ss, trash); // READ TILES IN TILESHEET
+  tiles.resize(sizex * sizey);
+  for (int i = sizey - 1; i >= 0; i--) {
+    for (int j = 0; j < sizex; j++) {
+      ss >> tiles[i * sizex + j];
+    }
+  }
+  resource->needsUpdate = false;
+}
 void TileMap::step(shambhala::StepInfo info) {
+
+  if (levelResource && levelResource->needsUpdate) {
+    initmap(levelResource);
+    needsUpdate = true;
+  }
   if (needsUpdate)
     updateMesh();
 }
@@ -191,4 +215,8 @@ void TileMap::serialize() {
   for (int i = 0; i < tiles.size(); i++) {
     printf("%d ", tiles[i]);
   }
+}
+
+void TileMap::loadLevel(IResource *leveldata) {
+  this->levelResource = leveldata;
 }

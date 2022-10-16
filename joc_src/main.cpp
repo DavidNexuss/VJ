@@ -13,18 +13,8 @@ void loadTestScene() {
       resource::stbiTextureFile("textures/green_tile.png", 4));
 
   TileMap *tiles = new TileMap(200, 20, new StaticTile, baseColor);
-  tiles->set(0, 0, 1);
   shambhala::addComponent(tiles);
-
-  tiles = new TileMap(200, 20, new StaticTile, baseColor);
-
-  tiles->set(0, 0, 1);
-  shambhala::addComponent(tiles);
-
-  tiles = new TileMap(200, 20, new StaticTile, baseColor);
-
-  tiles->set(0, 0, 1);
-  shambhala::addComponent(tiles);
+  tiles->loadLevel(resource::ioMemoryFile("levels/level01.txt"));
 }
 int main() {
   Joc joc;

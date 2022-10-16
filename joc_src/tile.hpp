@@ -26,6 +26,7 @@ struct TileMap : public shambhala::LogicComponent {
   TileMap(int sizex, int sizey, TileAtlas *atlas, shambhala::Texture *text);
 
 private:
+  IResource *levelResource = nullptr;
   TileAtlas *atlas;
   shambhala::Model *model;
   shambhala::Texture *text;
@@ -46,6 +47,7 @@ private:
                         simple_vector<int> &indexBuffer, int count, Tile tile,
                         int x, int y);
 
+  void initmap(IResource *resource);
   void updateMesh();
 
   // editor stuff
@@ -57,4 +59,5 @@ public:
   void editorStep(shambhala::StepInfo info) override;
   void editorRender() override;
   void serialize();
+  void loadLevel(IResource *leveldata);
 };
