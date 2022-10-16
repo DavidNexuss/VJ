@@ -578,6 +578,7 @@ void updateViewport();
 void beginViewport();
 void endViewport();
 
+void loop_begin(int frame);
 void loop_io_sync_step();
 void loop_componentUpdate();
 void loop_beginRenderContext();

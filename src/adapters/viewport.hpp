@@ -30,6 +30,7 @@ struct IViewport {
   bool isRightMousePressed();
 
   void enableInput(bool enable);
+  void notifyFrame(int frame);
   virtual void setActiveWindow(void *window) = 0;
   virtual void hideMouse(bool hide) = 0;
 
@@ -42,9 +43,6 @@ struct IViewport {
   virtual void imguiBeginRender() = 0;
   virtual void imguiEndRender() = 0;
 
-  std::unordered_map<int, bool> pressed;
-  std::unordered_map<int, bool> justPressed;
-
   bool mousePressed;
   bool middleMousePressed;
   bool rightMousePressed;
@@ -53,10 +51,15 @@ struct IViewport {
 
   bool isInputEnabled();
 
+  void setKeyPressed(int keycode, bool active);
+
 private:
   int backedWidth;
   int backedHeight;
   bool inputEnabled = true;
+  int currentFrame;
+
+  std::unordered_map<int, int> pressed;
 };
 } // namespace shambhala
 

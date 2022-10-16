@@ -368,6 +368,7 @@ int main() {
 
   do {
 
+    shambhala::loop_begin(shot.currentFrame);
     shambhala::loop_beginRenderContext();
     // shambhala::hint_selectionpass();
     renderCamera->render(shot);

@@ -1,11 +1,12 @@
 #include "viewport.hpp"
-
+#include <stdio.h>
 bool shambhala::IViewport::isKeyPressed(int keyCode) {
   return pressed[keyCode] && inputEnabled;
 }
 
 bool shambhala::IViewport::isKeyJustPressed(int keyCode) {
-  return justPressed[keyCode] && inputEnabled;
+  int difference = currentFrame - pressed[keyCode];
+  return (difference < 2) && inputEnabled;
 }
 
 void shambhala::IViewport::fakeViewportSize(int width, int height) {
@@ -38,3 +39,13 @@ bool shambhala::IViewport::isRightMousePressed() { return rightMousePressed; }
 void shambhala::IViewport::enableInput(bool enable) { inputEnabled = enable; }
 
 bool shambhala::IViewport::isInputEnabled() { return inputEnabled; }
+
+void shambhala::IViewport::setKeyPressed(int keycode, bool active) {
+  if (active) {
+    pressed[keycode] = currentFrame;
+  } else {
+    pressed[keycode] = 0;
+  }
+}
+
+void shambhala::IViewport::notifyFrame(int frame) { currentFrame = frame; }
