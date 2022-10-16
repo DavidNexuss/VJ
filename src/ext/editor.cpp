@@ -56,6 +56,52 @@ int tree(int id, const char *name) {
   return id + 1;
 }
 
+void materialEditor(Material *material) {
+  for (auto &it : material->uniforms) {
+    const char *name = it.first.c_str();
+    Uniform &val = it.second;
+    switch (it.second.type) {
+    case UniformType::INT:
+      ImGui::InputInt(name, &val.INT);
+      break;
+    case shambhala::UniformType::FLOAT:
+      ImGui::InputFloat(name, &val.FLOAT);
+      break;
+    case shambhala::UniformType::VEC2:
+      ImGui::InputFloat2(name, &val.VEC2[0]);
+      break;
+    case shambhala::UniformType::VEC3:
+      ImGui::InputFloat3(name, &val.VEC3[0]);
+      break;
+    case shambhala::UniformType::VEC4:
+      ImGui::InputFloat4(name, &val.VEC4[0]);
+      break;
+    }
+  }
+}
+
+int selectableList(simple_vector<std::string> &list, int last_selected) {
+
+  ImGuiTreeNodeFlags base_flags =
+      ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_Leaf;
+
+  for (int i = 0; i < list.size(); i++) {
+
+    ImGuiTreeNodeFlags node_flags = base_flags;
+    if (i == last_selected) {
+      node_flags |= ImGuiTreeNodeFlags_Selected;
+    }
+
+    if (ImGui::IsItemClicked() || ImGui::IsItemToggledOpen()) {
+      last_selected = i;
+    }
+
+    ImGui::TreeNodeEx((void *)(intptr_t)i, node_flags, list[i].c_str());
+    ImGui::TreePop();
+  }
+  return last_selected;
+}
+
 } // namespace gui
 } // namespace shambhala
 
@@ -334,6 +380,11 @@ struct ProgramWindow : public EditorWindow {
       gui::textEditor(selectedShader->file, "ShaderEditor");
     }
   }
+};
+
+struct GlobalMaterial : public EditorWindow {
+
+  void render(int frame) override { simple_vector<std::string> mats; };
 };
 
 static EditorState editorState;

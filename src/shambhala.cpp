@@ -1254,6 +1254,8 @@ void shambhala::engine_prepareRender() {
   glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   if (engine.vao == -1) {
     engine.vao = device::createVAO();
 
@@ -1456,8 +1458,22 @@ struct ProgramContainer : public loader::LoaderMap<Program, ProgramContainer> {
   }
 };
 
+struct TextureContainer : public loader::LoaderMap<Texture, TextureContainer> {
+  static Texture *create(const char *path, int channelCount) {
+    Texture *texture = shambhala::createTexture();
+    TextureResource *resource = resource::stbiTextureFile(path, channelCount);
+    texture->addTextureResource(resource);
+    return texture;
+  }
+
+  static loader::Key computeKey(const char *path, int channelCount) {
+    return loader::computeKey(path) + channelCount;
+  }
+};
+
 static ProgramContainer programContainer;
 static ShaderContainer shaderContainer;
+static TextureContainer textureContainer;
 
 Program *loader::loadProgram(const char *fs, const char *vs) {
   return programContainer.get(fs, vs);
@@ -1484,3 +1500,38 @@ Shader *loader::getShader(int index) {
   return shaderContainer.linearCache[index];
 }
 int loader::shaderCount() { return shaderContainer.linearCache.size(); }
+
+Texture *loader::loadTexture(const char *path, int channelCount) {
+  return textureContainer.get(path, channelCount);
+}
+
+void shambhala::setupMaterial(Material *material, Program *program) {
+  device::useProgram(program);
+  int uniformCount;
+  glGetProgramiv(program->shaderProgram, GL_ACTIVE_UNIFORMS, &uniformCount);
+  static int buffer_size = 128;
+  static char buffer[128];
+  for (int i = 0; i < uniformCount; i++) {
+    GLsizei length;
+    GLint size;
+    GLenum type;
+    glGetActiveUniform(program->shaderProgram, (GLuint)i, buffer_size, &length,
+                       &size, &type, buffer);
+    std::string name(buffer);
+
+    switch (type) {
+    case GL_FLOAT:
+      material->set(name, 0.0f);
+      break;
+    case GL_INT:
+      material->set(name, 0);
+      break;
+    case GL_FLOAT_VEC2:
+      material->set(name, glm::vec2(0.0f));
+      break;
+    case GL_FLOAT_VEC3:
+      material->set(name, glm::vec3(0.0f));
+      break;
+    }
+  }
+}

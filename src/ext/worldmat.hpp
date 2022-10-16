@@ -4,13 +4,13 @@ namespace shambhala {
 namespace worldmats {
 struct Camera : public Material {
 
-  glm::vec3 origin;
-  glm::vec3 target;
+  glm::vec3 origin = glm::vec3(0, 0, 1);
+  glm::vec3 target = glm::vec3(0, 0, 0);
 
-  glm::mat4 viewMatrix;
-  glm::mat4 invViewMatrix;
-  glm::mat4 projectionMatrix;
-  glm::mat4 combinedMatrix;
+  glm::mat4 viewMatrix = glm::mat4(1.0f);
+  glm::mat4 invViewMatrix = glm::mat4(1.0f);
+  glm::mat4 projectionMatrix = glm::mat4(1.0f);
+  glm::mat4 combinedMatrix = glm::mat4(1.0f);
 
   Node *parentNode = nullptr;
 
@@ -59,27 +59,26 @@ public:
 struct DebugCamera : public Camera {
 
   constexpr static float aproxTime = 0.4f;
-  glm::vec3 currentTarget;
-  float currentAlpha;
-  float currentBeta;
+  glm::vec3 currentTarget = glm::vec3(0.0);
+  float currentAlpha = 1.0;
+  float currentBeta = 0.0;
 
-  glm::vec3 nextTarget;
-  float nextAlpha;
-  float nextBeta;
+  glm::vec3 nextTarget = glm::vec3(0.0);
+  float nextAlpha = 1.0;
+  float nextBeta = 0.0;
 
-  float distance;
-  float time;
+  float distance = 10.0;
+  float time = 0.0;
 
-  int cursorStartx, cursorStarty;
-  bool pressed;
-  bool middlepressed;
+  int cursorStartx = 0, cursorStarty = 0;
+  bool pressed = false;
+  bool middlepressed = false;
 
-  float lastAlpha;
-  float lastBeta;
+  float lastAlpha = 0.0;
+  float lastBeta = 0.0;
 
-  glm::vec3 lastTarget;
+  glm::vec3 lastTarget = glm::vec3(0.0);
 
-  DebugCamera();
   virtual void update(float) override;
 };
 
@@ -107,6 +106,14 @@ struct Camera2D : public Material {
 
 private:
   glm::mat4 cameraMatrix;
+};
+
+struct Clock : public Material {
+  Clock();
+  void update(float deltatime) override;
+
+private:
+  float globalTime = 0.0f;
 };
 } // namespace worldmats
 } // namespace shambhala

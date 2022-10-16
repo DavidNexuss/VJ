@@ -548,12 +548,15 @@ StepInfo getStepInfo();
 
 Node *getRootNode();
 
+void setupMaterial(Material *material, Program *program);
 void disposeModelList(ModelList *list);
 
 // DeclarativeRenderer
 Material *getWorldMaterial(int clas);
 void setWorldMaterial(int clas, Material *worldMaterial);
 void addWorldMaterial(Material *worldMaterial);
+const std::unordered_map<Material *, int> &getWorldMaterials();
+
 void removeWorldMaterial(Material *worldMaterial);
 void pushRenderConfiguration(RenderConfiguration *configuration);
 void popRenderConfiguration();
@@ -650,7 +653,7 @@ Shader *loadShader(const char *path);
 Shader *loadShader(IResource *resource);
 Program *loadProgram(IResource *fs, IResource *vs);
 Program *loadProgram(const char *fragmentShader, const char *vertexShader);
-Texture *loadTexture(const char *path);
+Texture *loadTexture(const char *path, int channelCount);
 
 void unloadProgram(Program *program);
 void unloadTexture(Texture *texture);

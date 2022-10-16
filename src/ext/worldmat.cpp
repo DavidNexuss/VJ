@@ -100,20 +100,6 @@ void Camera::setProjectionMatrix(const glm::mat4 &_projectionMatrix) {
   projectionMatrix = _projectionMatrix;
 }
 
-DebugCamera::DebugCamera() {
-  distance = 10.0f;
-  time = 0.0;
-  currentTarget = glm::vec3(0.0);
-  currentAlpha = 1.0;
-  currentBeta = 0.0;
-  nextTarget = currentTarget;
-  nextAlpha = 1.0;
-  nextBeta = 0.0;
-  pressed = false;
-  middlepressed = false;
-  needsFrameUpdate = true;
-}
-
 glm::vec3 createViewDir(float a, float b) {
   glm::vec3 viewDir;
   viewDir.x = cos(a) * cos(b);
@@ -235,7 +221,6 @@ void DebugCamera::update(float deltatime) {
                     currentBeta * (1.0f - p) + nextBeta * p + lastBeta);
   glm::vec3 target = currentTarget * (1.0f - p) + nextTarget * p;
   glm::vec3 viewpos = target - interpDirection * distance;
-  // target - (currentDirection * (1.0f - p) + nextDirection * p) * distance;
 
   lookAt(viewpos, target);
   Camera::update(deltatime);
@@ -262,4 +247,10 @@ void Camera2D::update(float deltatime) {
                             zoom * height, -1.0f, 1.0f);
   cameraMatrix =
       glm::translate(cameraMatrix, glm::vec3(-offset.x, -offset.y, 0.0));
+}
+
+Clock::Clock() { Material::needsFrameUpdate = true; }
+void Clock::update(float deltatime) {
+  globalTime += deltatime;
+  set("uTime", globalTime);
 }
