@@ -43,17 +43,19 @@ void Joc::loop() {
   editor::editorInit();
   do {
 
-    shambhala::loop_io_sync_step();
-
-    shambhala::loop_beginRenderContext();
-    shambhala::loop_componentUpdate();
-    mainCamera->render(mainShot);
-    shambhala::loop_beginUIContext();
-    editor::editorBeginContext();
-    editor::editorRender(mainShot.currentFrame);
-    editor::editorEndContext();
-    shambhala::loop_endUIContext();
-    shambhala::loop_endRenderContext();
+    shambhala::loop_begin(mainShot.currentFrame);
+    {
+      shambhala::loop_io_sync_step();
+      shambhala::loop_beginRenderContext();
+      shambhala::loop_componentUpdate();
+      mainCamera->render(mainShot);
+      shambhala::loop_beginUIContext();
+      editor::editorBeginContext();
+      editor::editorRender(mainShot.currentFrame);
+      editor::editorEndContext();
+      shambhala::loop_endUIContext();
+      shambhala::loop_endRenderContext();
+    }
     mainShot.updateFrame();
 
   } while (!shambhala::loop_shouldClose());

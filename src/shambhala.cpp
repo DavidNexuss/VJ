@@ -1236,6 +1236,7 @@ void RenderShot::updateFrame() { this->currentFrame++; }
 //---------------------[END RENDERSHOT]
 //---------------------[BEGIN ENGINE]
 
+void shambhala::loop_begin(int frame) { viewport()->notifyFrame(frame); }
 void shambhala::loop_beginRenderContext() {
   engine_clearState();
   engine_prepareRender();

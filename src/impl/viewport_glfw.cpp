@@ -42,8 +42,9 @@ void scroll_callback(Window *window, double xoffset, double yoffset) {
 void key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mods) {
   bool pressed = action == GLFW_PRESS || action == GLFW_REPEAT;
-  currentViewport->justPressed[key] = !currentViewport->pressed[key] && pressed;
-  currentViewport->pressed[key] = pressed;
+  if (pressed) {
+    currentViewport->setKeyPressed(key, true);
+  }
 }
 
 void mouse_button_callback(GLFWwindow *window, int button, int action,
