@@ -511,7 +511,7 @@ struct UseState {
   bool modelCullFrontFace = false;
   bool meshCullFrontFace = false;
 
-  std::unordered_map<int, Material *> worldMaterials;
+  WorldMatCollection worldMaterials;
   float lineWidth = 0.0f;
 
   void clearState() {
@@ -1328,10 +1328,10 @@ void shambhala::setActiveWindow(void *window) {
   viewport()->imguiInit(4, 2);
 }
 
-Material *shambhala::getWorldMaterial(int clas) {
+Material *shambhala::getWorldMaterial(WorldMatID clas) {
   return guseState.worldMaterials[clas];
 }
-void shambhala::setWorldMaterial(int clas, Material *worldMaterial) {
+void shambhala::setWorldMaterial(WorldMatID clas, Material *worldMaterial) {
   guseState.worldMaterials[clas] = worldMaterial;
 }
 
@@ -1380,6 +1380,10 @@ Node *shambhala::createNode(const char *name, Node *old) {
     newInstance->setParentNode(engine.rootNode);
   }
   return newInstance;
+}
+
+const WorldMatCollection &shambhala::getWorldMaterials() {
+  return guseState.worldMaterials;
 }
 
 Node *shambhala::createNode() {

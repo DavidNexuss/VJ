@@ -45,6 +45,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action,
   if (pressed) {
     currentViewport->setKeyPressed(key, true);
   }
+  if (action == GLFW_RELEASE) {
+    currentViewport->setKeyPressed(key, false);
+  }
 }
 
 void mouse_button_callback(GLFWwindow *window, int button, int action,

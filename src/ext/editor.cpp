@@ -5,6 +5,7 @@
 #include <imgui/imgui.h>
 #include <shambhala.hpp>
 #include <standard.hpp>
+#include <string>
 
 using namespace shambhala::editor;
 using namespace shambhala;
@@ -384,7 +385,20 @@ struct ProgramWindow : public EditorWindow {
 
 struct GlobalMaterial : public EditorWindow {
 
-  void render(int frame) override { simple_vector<std::string> mats; };
+  void render(int frame) override {
+
+    static simple_vector<int> indices;
+    static simple_vector<std::string> names;
+
+    indices.resize(shambhala::getWorldMaterials().size());
+    names.resize(shambhala::getWorldMaterials().size());
+
+    int index = 0;
+    for (const auto &it : shambhala::getWorldMaterials()) {
+      names[index] = "Mat" + std::to_string(index);
+      indices[index++] = it.first;
+    }
+  };
 };
 
 static EditorState editorState;

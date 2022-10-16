@@ -27,6 +27,10 @@ using uint8_t = unsigned char;
 
 namespace shambhala {
 
+struct Material;
+using WorldMatID = int;
+using WorldMatCollection = std::unordered_map<WorldMatID, Material *>;
+
 struct UIComponent {
   bool uiRender = false;
   bool uiSelected = false;
@@ -552,10 +556,10 @@ void setupMaterial(Material *material, Program *program);
 void disposeModelList(ModelList *list);
 
 // DeclarativeRenderer
-Material *getWorldMaterial(int clas);
-void setWorldMaterial(int clas, Material *worldMaterial);
+Material *getWorldMaterial(WorldMatID);
+void setWorldMaterial(WorldMatID clas, Material *worldMaterial);
 void addWorldMaterial(Material *worldMaterial);
-const std::unordered_map<Material *, int> &getWorldMaterials();
+const WorldMatCollection &getWorldMaterials();
 
 void removeWorldMaterial(Material *worldMaterial);
 void pushRenderConfiguration(RenderConfiguration *configuration);
