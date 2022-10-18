@@ -24,19 +24,18 @@ void cursor_position_callback(Window *window, double x, double y) {
   if (!currentViewport->isInputEnabled())
     return;
 
-  currentViewport->xpos = x;
-  currentViewport->ypos = y;
+  currentViewport->setX(x);
+  currentViewport->setY(y);
 }
 
 void framebuffer_size_callback(Window *window, int width, int height) {
-  currentViewport->screenWidth = width;
-  currentViewport->screenHeight = height;
-  glViewport(0, 0, width, height);
+  currentViewport->setWidth(width);
+  currentViewport->setHeight(height);
 }
 
 void scroll_callback(Window *window, double xoffset, double yoffset) {
-  currentViewport->scrollX = xoffset;
-  currentViewport->scrollY = yoffset;
+  currentViewport->setScrollX(xoffset);
+  currentViewport->setScrollY(yoffset);
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action,

@@ -49,3 +49,30 @@ void shambhala::IViewport::setKeyPressed(int keycode, bool active) {
 }
 
 void shambhala::IViewport::notifyFrame(int frame) { currentFrame = frame; }
+
+float shambhala::IViewport::getScrolllX() {
+  if (isInputEnabled())
+    return scrollX;
+  return 0.0f;
+}
+
+float shambhala::IViewport::getScrolllY() {
+  if (isInputEnabled())
+    return scrollY;
+  return 0.0f;
+}
+
+float shambhala::IViewport::getScreenWidth() { return screenWidth; }
+float shambhala::IViewport::getScreenHeight() { return screenHeight; }
+
+float shambhala::IViewport::getX() { return xpos; }
+float shambhala::IViewport::getY() { return ypos; }
+
+void shambhala::IViewport::setX(float x) { xpos = x; }
+void shambhala::IViewport::setY(float y) { ypos = y; }
+
+void shambhala::IViewport::setWidth(float x) { screenWidth = x; }
+void shambhala::IViewport::setHeight(float y) { screenHeight = y; }
+
+void shambhala::IViewport::setScrollX(float x) { scrollX = x; }
+void shambhala::IViewport::setScrollY(float y) { scrollY = y; }

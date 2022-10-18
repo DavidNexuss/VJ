@@ -52,14 +52,14 @@ glm::mat4 Camera::createProjectionMatrix() {
 
   if (useZoom) {
     const auto deltaTime = 0.1f;
-    zoomSpeed += viewport()->scrollY * deltaTime;
+    zoomSpeed += viewport()->getScrolllY() * deltaTime;
     zoomFactor -= zoomSpeed * deltaTime;
     zoomSpeed -= zoomSpeed * deltaTime * zoomDamping;
     zoomFactor = std::max(zoomFactor, 0.0f);
   }
   return glm::perspective(glm::radians(fov * zoom),
-                          float(shambhala::viewport()->screenWidth) /
-                              float(shambhala::viewport()->screenHeight),
+                          float(shambhala::viewport()->getScreenWidth()) /
+                              float(shambhala::viewport()->getScreenHeight()),
                           zNear, zFar);
 }
 glm::mat4 Camera::createOrthoMatrix() {
@@ -175,22 +175,22 @@ void DebugCamera::update(float deltatime) {
     bool mousePressed = viewport()->isMousePressed();
     bool middleMousePressed = viewport()->isMiddleMousePressed();
 
-    distance += viewport()->scrollY * std::max(std::abs(distance * 0.05), 0.1);
-    viewport()->scrollY = 0.0f;
+    distance +=
+        viewport()->getScrolllY() * std::max(std::abs(distance * 0.05), 0.1);
 
     if (mousePressed) {
       if (!pressed) {
         pressed = true;
-        cursorStartx = viewport()->xpos;
-        cursorStarty = viewport()->ypos;
+        cursorStartx = viewport()->getX();
+        cursorStarty = viewport()->getY();
       }
 
       lastAlpha =
-          ((viewport()->xpos - cursorStartx) / viewport()->screenWidth) * M_PI *
-          2.0;
-      lastBeta =
-          ((viewport()->ypos - cursorStarty) / viewport()->screenHeight) *
+          ((viewport()->getX() - cursorStartx) / viewport()->getScreenWidth()) *
           M_PI * 2.0;
+      lastBeta = ((viewport()->getY() - cursorStarty) /
+                  viewport()->getScreenHeight()) *
+                 M_PI * 2.0;
     }
     if (!mousePressed && pressed) {
       pressed = false;
@@ -207,15 +207,15 @@ void DebugCamera::update(float deltatime) {
     if (middleMousePressed) {
       if (!middlepressed) {
         middlepressed = true;
-        cursorStartx = viewport()->xpos;
-        cursorStarty = viewport()->ypos;
+        cursorStartx = viewport()->getX();
+        cursorStarty = viewport()->getY();
         lastTarget = nextTarget;
       }
 
-      glm::vec2 difference =
-          glm::vec2(cursorStartx - viewport()->xpos,
-                    viewport()->ypos - cursorStarty) /
-          glm::vec2(viewport()->screenWidth, viewport()->screenHeight);
+      glm::vec2 difference = glm::vec2(cursorStartx - viewport()->getX(),
+                                       viewport()->getY() - cursorStarty) /
+                             glm::vec2(viewport()->getScreenWidth(),
+                                       viewport()->getScreenHeight());
 
       glm::vec3 offset =
           invViewMatrix * glm::vec4(glm::vec3(difference, 0.0), 0.0);
@@ -257,8 +257,8 @@ void Camera2D::bind(Program *activeProgram) {
 }
 
 void Camera2D::update(float deltatime) {
-  float width = shambhala::viewport()->screenWidth * 0.5;
-  float height = shambhala::viewport()->screenHeight * 0.5;
+  float width = shambhala::viewport()->getScreenWidth() * 0.5;
+  float height = shambhala::viewport()->getScreenHeight() * 0.5;
 
   width /= 500.0f;
   height /= 500.0f;

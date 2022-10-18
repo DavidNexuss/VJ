@@ -352,7 +352,8 @@ int util::doSelectionPass(ModelList *models) {
   }
 
   glDisable(GL_MULTISAMPLE);
-  selectionBuffer->begin(viewport()->screenWidth, viewport()->screenHeight);
+  selectionBuffer->begin(viewport()->getScreenWidth(),
+                         viewport()->getScreenHeight());
 
   device::useProgram(selection);
 
@@ -370,8 +371,9 @@ int util::doSelectionPass(ModelList *models) {
   }
 
   char id;
-  glReadPixels(viewport()->xpos, viewport()->screenHeight - viewport()->ypos, 1,
-               1, GL_RED, GL_UNSIGNED_BYTE, &id);
+  glReadPixels(viewport()->getX(),
+               viewport()->getScreenHeight() - viewport()->getY(), 1, 1, GL_RED,
+               GL_UNSIGNED_BYTE, &id);
   selectionBuffer->end();
   glEnable(GL_MULTISAMPLE);
   return id;

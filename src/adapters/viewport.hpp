@@ -13,11 +13,6 @@ struct WindowConfiguration {
 };
 struct IViewport {
 
-  double screenWidth, screenHeight;
-  double xpos, ypos;
-  double scrollX, scrollY;
-  double deltaTime;
-
   double aspectRatio();
   bool isKeyPressed(int keyCode);
   bool isKeyJustPressed(int keyCode);
@@ -53,11 +48,34 @@ struct IViewport {
 
   void setKeyPressed(int keycode, bool active);
 
-private:
+  float getScrolllX();
+  float getScrolllY();
+
+  float getScreenWidth();
+  float getScreenHeight();
+
+  float getX();
+  float getY();
+
+  float deltaTime;
+
+  void setX(float x);
+  void setY(float y);
+  void setWidth(float x);
+  void setHeight(float y);
+
+  void setScrollX(float x);
+  void setScrollY(float y);
+
+protected:
+  float scrollX, scrollY;
   int backedWidth;
   int backedHeight;
   bool inputEnabled = true;
   int currentFrame;
+
+  float screenWidth, screenHeight;
+  float xpos, ypos;
 
   std::unordered_map<int, int> pressed;
 };

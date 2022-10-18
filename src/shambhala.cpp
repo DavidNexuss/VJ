@@ -1124,7 +1124,8 @@ void RenderCamera::endRender(const RenderShot &shot) {
   bool useFrameBuffer = frameBuffer != nullptr && !shot.isRoot;
 
   if (useFrameBuffer) {
-    frameBuffer->begin(viewport()->screenWidth, viewport()->screenHeight);
+    frameBuffer->begin(viewport()->getScreenWidth(),
+                       viewport()->getScreenHeight());
   }
 
   if (overrideProgram) {
@@ -1220,12 +1221,12 @@ void RenderCamera::setFrameBufferConfiguration(
 int RenderCamera::getWidth() {
   if (frameBuffer != nullptr)
     return frameBuffer->getWidth();
-  return viewport()->screenWidth;
+  return viewport()->getScreenWidth();
 }
 int RenderCamera::getHeight() {
   if (frameBuffer != nullptr)
     return frameBuffer->getHeight();
-  return viewport()->screenHeight;
+  return viewport()->getScreenHeight();
 }
 
 void RenderCamera::setSize(int width, int height) {
@@ -1279,12 +1280,12 @@ void shambhala::engine_prepareDeclarativeRender() {
   viewport()->fakeViewportSize(engine.renderConfig->virtualWidth,
                                engine.renderConfig->virtualHeight);
 
-  glViewport(0, 0, viewport()->screenWidth, viewport()->screenHeight);
+  glViewport(0, 0, viewport()->getScreenWidth(), viewport()->getScreenHeight());
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void shambhala::updateViewport() {
-  glViewport(0, 0, viewport()->screenWidth, viewport()->screenHeight);
+  glViewport(0, 0, viewport()->getScreenWidth(), viewport()->getScreenHeight());
 }
 void shambhala::endViewport() { viewport()->restoreViewport(); }
 void shambhala::loop_beginUIContext() { viewport()->imguiBeginRender(); }
