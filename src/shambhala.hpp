@@ -588,14 +588,15 @@ void updateViewport();
 void beginViewport();
 void endViewport();
 
-void loop_begin(int frame);
+void loop_begin();
 void loop_io_sync_step();
 void loop_componentUpdate();
-void loop_beginRenderContext();
+void loop_beginRenderContext(int frame);
 void loop_endRenderContext();
 void loop_beginUIContext();
 void loop_endUIContext();
 bool loop_shouldClose();
+void loop_end();
 
 void engine_clearState();
 void engine_prepareRender();

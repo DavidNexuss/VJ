@@ -25,7 +25,11 @@ struct IViewport {
   bool isRightMousePressed();
 
   void enableInput(bool enable);
+
+  // TODO: This should be abstracted
   void notifyFrame(int frame);
+  void notifyFrameEnd();
+
   virtual void setActiveWindow(void *window) = 0;
   virtual void hideMouse(bool hide) = 0;
 

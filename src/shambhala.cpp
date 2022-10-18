@@ -1241,11 +1241,14 @@ void RenderShot::updateFrame() { this->currentFrame++; }
 //---------------------[END RENDERSHOT]
 //---------------------[BEGIN ENGINE]
 
-void shambhala::loop_begin(int frame) { viewport()->notifyFrame(frame); }
-void shambhala::loop_beginRenderContext() {
+void shambhala::loop_begin() {}
+void shambhala::loop_end() {}
+
+void shambhala::loop_beginRenderContext(int frame) {
   engine_clearState();
   engine_prepareRender();
   engine_prepareDeclarativeRender();
+  viewport()->notifyFrame(frame);
 }
 
 void shambhala::engine_clearState() {
@@ -1292,6 +1295,7 @@ void shambhala::loop_beginUIContext() { viewport()->imguiBeginRender(); }
 
 void shambhala::loop_endRenderContext() {
   viewport()->restoreViewport();
+  viewport()->notifyFrameEnd();
   viewport()->dispatchRenderEvents();
 }
 

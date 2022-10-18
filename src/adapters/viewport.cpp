@@ -49,6 +49,10 @@ void shambhala::IViewport::setKeyPressed(int keycode, bool active) {
 }
 
 void shambhala::IViewport::notifyFrame(int frame) { currentFrame = frame; }
+void shambhala::IViewport::notifyFrameEnd() {
+  scrollX = 0;
+  scrollY = 0;
+}
 
 float shambhala::IViewport::getScrolllX() {
   if (isInputEnabled())

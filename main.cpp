@@ -368,18 +368,21 @@ int main() {
 
   do {
 
-    shambhala::loop_begin(shot.currentFrame);
-    shambhala::loop_beginRenderContext();
-    // shambhala::hint_selectionpass();
-    renderCamera->render(shot);
-    shambhala::loop_componentUpdate();
-    shambhala::loop_beginUIContext();
-    editor::editorBeginContext();
-    editor::editorRender(shot.currentFrame);
-    editor::editorEndContext();
-    shambhala::loop_endUIContext();
+    shambhala::loop_begin();
+    {
+      shambhala::loop_beginRenderContext(shot.currentFrame);
+      // shambhala::hint_selectionpass();
+      renderCamera->render(shot);
+      shambhala::loop_componentUpdate();
+      shambhala::loop_beginUIContext();
+      editor::editorBeginContext();
+      editor::editorRender(shot.currentFrame);
+      editor::editorEndContext();
+      shambhala::loop_endUIContext();
 
-    shambhala::loop_endRenderContext();
+      shambhala::loop_endRenderContext();
+    }
+    shambhala::loop_end();
 
     shot.updateFrame();
   } while (!shambhala::loop_shouldClose());
