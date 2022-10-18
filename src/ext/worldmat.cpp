@@ -169,6 +169,7 @@ void DebugCamera::step(StepInfo info) {
       lastBeta = 0.0f;
     }
 
+    glm::vec2 moveDirection = glm::vec2(0.0, 0.0);
     if (middleMousePressed) {
       if (!middlepressed) {
         middlepressed = true;
@@ -177,16 +178,23 @@ void DebugCamera::step(StepInfo info) {
         lastTarget = nextTarget;
       }
 
-      glm::vec2 difference = glm::vec2(cursorStartx - viewport()->getX(),
-                                       viewport()->getY() - cursorStarty) /
-                             glm::vec2(viewport()->getScreenWidth(),
-                                       viewport()->getScreenHeight());
+      moveDirection = glm::vec2(cursorStartx - viewport()->getX(),
+                                viewport()->getY() - cursorStarty) /
+                      glm::vec2(viewport()->getScreenWidth(),
+                                viewport()->getScreenHeight());
+    } else {
+      moveDirection.x += viewport()->isKeyPressed(KEY_D) * deltatime;
+      moveDirection.y += viewport()->isKeyPressed(KEY_W) * deltatime;
 
-      glm::vec3 offset =
-          getInvViewMatrix() * glm::vec4(glm::vec3(difference, 0.0), 0.0);
-
-      nextTarget = lastTarget + offset * distance;
+      moveDirection.x -= viewport()->isKeyPressed(KEY_A) * deltatime;
+      moveDirection.y -= viewport()->isKeyPressed(KEY_S) * deltatime;
+      lastTarget = nextTarget;
     }
+
+    glm::vec3 offset =
+        getInvViewMatrix() * glm::vec4(glm::vec3(moveDirection, 0.0), 0.0);
+
+    nextTarget = lastTarget + offset * distance;
 
     if (!middleMousePressed && middlepressed) {
       middlepressed = false;

@@ -763,7 +763,6 @@ void device::useMaterial(Material *material) {
   if (material->hasCustomBindFunction) {
     material->bind(guseState.currentProgram);
   }
-
   for (auto &uniform : material->uniforms) {
     useUniform(uniform.first.c_str(), uniform.second);
   }
