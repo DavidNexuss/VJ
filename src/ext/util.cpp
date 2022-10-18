@@ -64,6 +64,11 @@ const static float screen_mesh[] = {-1.0, 1.0,  0.0, 1.0,  1.0,  0.0,
 
 static const int screen_mesh_size = sizeof(screen_mesh) / sizeof(float);
 
+static const float quad_mesh[] = {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0,
+                                  1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+                                  1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0};
+static const int quad_mesh_size = sizeof(quad_mesh) / sizeof(float);
+
 static const char *screenVertexShader = " \
 #version 330 core\n \
     layout(location = 0) in vec2 aPosition; \
@@ -122,6 +127,17 @@ Mesh *util::meshCreateCube() {
   return result;
 }
 
+Mesh *util::createTexturedQuad() {
+  static Mesh *result = nullptr;
+  if (result == nullptr) {
+    result = shambhala::createMesh();
+    result->vbo = shambhala::createVertexBuffer();
+    result->vbo->vertexBuffer = {quad_mesh, quad_mesh_size};
+    result->vbo->attributes = {{Standard::aPosition, 2}, {Standard::aUV, 2}};
+    result->invertedFaces = true;
+  }
+  return result;
+}
 Mesh *util::createScreen() {
   static Mesh *result = nullptr;
   if (result == nullptr) {

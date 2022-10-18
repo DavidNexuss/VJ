@@ -22,10 +22,13 @@ void renderCamera(RenderCamera *renderCamera) {
                size);
 }
 
-void texture(Texture *texture, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size) {
-  auto id = (void *)(intptr_t)texture->_textureID;
+void texture(GLuint _id, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size) {
+  auto id = (void *)(intptr_t)_id;
   std::swap(uv.y, uv2.y);
   ImGui::Image(id, vec2(size), vec2(uv), vec2(uv2));
+}
+void texture(Texture *text, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size) {
+  return texture(text->_textureID, uv, uv2, size);
 }
 
 void toggleButton(const char *name, bool *enable) {
@@ -180,6 +183,12 @@ struct ComponentWindow : public EditorWindow {
     renderWindow();
     if (selected != nullptr) {
       renderComponentWindow(selected);
+      if (selected->hint_is_material) {
+        if (ImGui::Begin("Component-MaterialEditor")) {
+          gui::materialEditor(selected->hint_is_material);
+          ImGui::End();
+        }
+      }
     }
   }
 };

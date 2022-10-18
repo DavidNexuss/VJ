@@ -27,6 +27,11 @@ void loadTestScene() {
   background->addParallaxBackground(
       1.0, loader::loadTexture("textures/cethiel_layer1.png", 4));
   shambhala::addComponent(background);
+
+  worldmats::Clock *clock = new worldmats::Clock;
+  clock->setName("Clock");
+  shambhala::setWorldMaterial(2, clock);
+  shambhala::addComponent(clock);
 }
 int main() {
   Joc joc;

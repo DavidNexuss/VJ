@@ -586,11 +586,7 @@ void device::useProgram(Program *program) {
 
   device::bindProgram(program->shaderProgram);
   guseState.currentProgram = program;
-
-  // Bind worldMaterials
-  for (auto &worldmat : guseState.worldMaterials) {
-    useMaterial(worldmat.second);
-  }
+  useWorldMaterials();
 }
 
 void device::ignoreProgramBinding(bool ignore) {
@@ -751,6 +747,13 @@ void device::useUniform(const char *name, const Uniform &value) {
     value.bind(uniformId);
 }
 
+void device::useWorldMaterials() {
+
+  // Bind worldMaterials
+  for (auto &worldmat : guseState.worldMaterials) {
+    useMaterial(worldmat.second);
+  }
+}
 void device::useMaterial(Material *material) {
   if (material == nullptr)
     return;

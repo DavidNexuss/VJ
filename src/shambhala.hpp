@@ -286,6 +286,8 @@ struct StepInfo {
 
 struct LogicComponent : EngineComponent<LogicComponent> {
 
+  Material *hint_is_material = nullptr;
+
   virtual void step(StepInfo info) {}
   virtual void editorStep(StepInfo info) {}
   virtual void editorRender() {}
@@ -293,7 +295,7 @@ struct LogicComponent : EngineComponent<LogicComponent> {
   void add(Model *model);
 
 private:
-  shambhala::Node *rootNode;
+  shambhala::Node *rootNode = nullptr;
 };
 
 struct UpdateLayer {
@@ -518,6 +520,7 @@ void useTexture(DynamicTexture texture);
 void useTexture(Texture *texture);
 bool useShader(Shader *shader, GLint type);
 void useProgram(Program *program);
+void useWorldMaterials();
 void useVertexBuffer(VertexBuffer *vertexbuffer);
 void useIndexBuffer(IndexBuffer *indexBuffer);
 void useMesh(Mesh *mesh);

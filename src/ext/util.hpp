@@ -18,6 +18,7 @@ shambhala::Program *createPassthroughEffect();
 shambhala::Program *createBasicColored();
 shambhala::Mesh *meshCreateCube();
 shambhala::Mesh *createScreen();
+shambhala::Mesh *createTexturedQuad();
 shambhala::Model *
 modelCreateSkyBox(const simple_vector<shambhala::TextureResource *> &textures);
 shambhala::RenderCamera *createPassThroughCamera(RenderCamera *input);

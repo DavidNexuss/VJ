@@ -22,15 +22,25 @@ struct TileAttribute {
   glm::vec2 uv;
 };
 
+struct TileBake {
+  GLuint bakedTexture = -1;
+  glm::vec2 size;
+};
+
 struct TileMap : public shambhala::LogicComponent {
   TileMap(int sizex, int sizey, TileAtlas *atlas, shambhala::Texture *text);
 
 private:
   IResource *levelResource = nullptr;
   TileAtlas *atlas;
+  shambhala::Texture *textureAtlas;
+
   shambhala::Model *model;
-  shambhala::Texture *text;
+  shambhala::Model *bakedModel;
+
+  TileBake bakeInformation;
   simple_vector<int> tiles;
+
   int sizex;
   int sizey;
   bool needsUpdate = false;
@@ -47,6 +57,8 @@ private:
                         simple_vector<int> &indexBuffer, int count, Tile tile,
                         int x, int y);
 
+  void enableBake(bool pEnable);
+  void bake();
   void initmap(IResource *resource);
   void updateMesh();
 

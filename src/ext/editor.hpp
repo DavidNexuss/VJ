@@ -16,6 +16,7 @@ void editorInit();
 namespace gui {
 void renderCamera(RenderCamera *renderCamera);
 void texture(Texture *texture, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size);
+void texture(GLuint, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size);
 void textEditor(IResource *resource, const char *windowName);
 void materialEditor(Material *material);
 int selectableList(simple_vector<std::string> &list, int last_selected);

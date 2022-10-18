@@ -3,6 +3,7 @@
 #include "ext/util.hpp"
 #include "shambhala.hpp"
 #include <cstdio>
+#include <glm/ext/matrix_clip_space.hpp>
 using namespace shambhala;
 
 Tile StaticTile::getTile(int tileindex) {
@@ -21,24 +22,46 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
   this->sizex = sizex;
   this->sizey = sizey;
   this->atlas = atlas;
-  this->text = text;
+  this->textureAtlas = text;
 
-  model = shambhala::createModel();
-  model->mesh = shambhala::createMesh();
-  model->mesh->vbo = shambhala::createVertexBuffer();
-  model->mesh->ebo = shambhala::createIndexBuffer();
-  model->mesh->vbo->attributes = {{Standard::aPosition, 3}, {Standard::aUV, 2}};
-  model->program =
+  Program *renderProgram =
       loader::loadProgram("programs/tiled.fs", "programs/regular.vs");
-  DynamicTexture dyn;
-  dyn.sourceTexture = text;
-  dyn.unit = 0;
-  model->material = shambhala::createMaterial();
-  model->material->set("uBaseColor", dyn);
-  model->node = shambhala::createNode("tileMap");
+  // Create regular model
+  {
+    model = shambhala::createModel();
+
+    // Create mesh
+    {
+      model->mesh = shambhala::createMesh();
+      model->mesh->vbo = shambhala::createVertexBuffer();
+      model->mesh->ebo = shambhala::createIndexBuffer();
+      model->mesh->vbo->attributes = {{Standard::aPosition, 3},
+                                      {Standard::aUV, 2}};
+    }
+
+    model->program = renderProgram;
+    DynamicTexture dyn;
+    dyn.sourceTexture = text;
+    dyn.unit = 0;
+    model->material = shambhala::createMaterial();
+    model->material->set("uBaseColor", dyn);
+    model->node = shambhala::createNode("tileMap");
+  }
+
+  // Create baked model
+  {
+    bakedModel = shambhala::createModel();
+    bakedModel->program = renderProgram;
+    bakedModel->mesh = util::createTexturedQuad();
+    bakedModel->material = shambhala::createMaterial();
+    bakedModel->node = shambhala::createNode("tileMapBacked");
+  }
+
+  enableBake(false);
   // setDebug(model);
   setName("tileMap");
   addModel(model);
+  addModel(bakedModel);
 }
 
 int TileMap::spawnFace(simple_vector<TileAttribute> &vertexBuffer,
@@ -175,8 +198,63 @@ void TileMap::updateMesh() {
   model->mesh->vbo->updateData = true;
   model->mesh->ebo->updateData = true;
   needsUpdate = false;
+
+  bake();
 }
 
+void TileMap::bake() {
+  static FrameBuffer *fbo = nullptr;
+  static worldmats::SimpleCamera *camera = new worldmats::SimpleCamera;
+
+  if (fbo == nullptr) {
+    fbo = shambhala::createFramebuffer();
+    FrameBufferAttachmentDescriptor desc;
+    desc.externalFormat = GL_RGBA;
+    desc.internalFormat = GL_RGBA;
+    desc.type = GL_UNSIGNED_BYTE;
+    desc.useNeareast = true;
+    fbo->addChannel(desc);
+  }
+
+  TileBake bakeResult;
+  bakeResult.size = glm::vec2(sizex, sizey) * 16.0f;
+
+  shambhala::engine_clearState();
+  {
+    viewport()->fakeViewportSize(bakeResult.size.x, bakeResult.size.y);
+    shambhala::updateViewport();
+    fbo->begin(bakeResult.size.x, bakeResult.size.y);
+    {
+      camera->setViewMatrix(glm::mat4(1.0f));
+      camera->setProjectionMatrix(
+          glm::ortho(0.0f, float(sizex), 0.0f, float(sizey)));
+
+      device::useProgram(this->model->program);
+      device::useMesh(this->model->mesh);
+      device::useMaterial(this->model->material);
+      device::useMaterial(camera);
+      device::drawCall();
+    }
+    fbo->end();
+    viewport()->restoreViewport();
+    shambhala::updateViewport();
+  }
+  shambhala::engine_clearState();
+
+  bakeResult.bakedTexture = fbo->colorAttachments[0];
+  this->bakeInformation = bakeResult;
+
+  UTexture texture;
+  texture.mode = GL_TEXTURE_2D;
+  texture.texID = bakeInformation.bakedTexture;
+  texture.unit = 0;
+  bakedModel->material->set("uBaseColor", texture);
+  bakedModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.0));
+}
+void TileMap::enableBake(bool pEnable) {
+  model->node->setEnabled(!pEnable);
+  bakedModel->node->setEnabled(pEnable);
+}
 void TileMap::set(int i, int j, int type) {
   tiles[i + j * sizex] = type;
   needsUpdate = true;

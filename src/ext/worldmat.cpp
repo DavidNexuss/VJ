@@ -10,6 +10,25 @@ using namespace std;
 using namespace shambhala;
 using namespace shambhala::worldmats;
 
+SimpleCamera::SimpleCamera() {}
+
+void SimpleCamera::setViewMatrix(const glm::mat4 &viewMatrix) {
+  this->viewMatrix = viewMatrix;
+  updateMatrices();
+
+  set(Standard::uViewMatrix, viewMatrix);
+  set(Standard::uViewPos, glm::vec3(invViewMatrix[3]));
+}
+void SimpleCamera::setProjectionMatrix(const glm::mat4 &projectionMatrix) {
+  this->projectionMatrix = projectionMatrix;
+  updateMatrices();
+
+  set(Standard::uProjectionMatrix, projectionMatrix);
+}
+void SimpleCamera::updateMatrices() {
+  this->combinedMatrix = projectionMatrix * viewMatrix;
+  this->invViewMatrix = glm::inverse(viewMatrix);
+}
 Camera::Camera() {
   fov = 90.0f;
   zNear = 0.1f;
@@ -249,8 +268,11 @@ void Camera2D::update(float deltatime) {
       glm::translate(cameraMatrix, glm::vec3(-offset.x, -offset.y, 0.0));
 }
 
-Clock::Clock() { Material::needsFrameUpdate = true; }
-void Clock::update(float deltatime) {
-  globalTime += deltatime;
+Clock::Clock() {
+  hint_is_material = this;
+  set("uTime", 0.0f);
+}
+void Clock::step(StepInfo info) {
+  globalTime += viewport()->deltaTime;
   set("uTime", globalTime);
 }
