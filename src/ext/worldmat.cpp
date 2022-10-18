@@ -16,7 +16,7 @@ void SimpleCamera::setViewMatrix(const glm::mat4 &viewMatrix) {
   this->viewMatrix = viewMatrix;
   updateMatrices();
 
-  set(Standard::uViewMatrix, viewMatrix);
+  set(Standard::uViewMatrix, glm::mat4(viewMatrix));
   set(Standard::uViewPos, glm::vec3(invViewMatrix[3]));
 }
 void SimpleCamera::setProjectionMatrix(const glm::mat4 &projectionMatrix) {
@@ -43,8 +43,6 @@ Camera::Camera() {
   zoomFactor = 1.0;
 
   useOrthographic = false;
-  needsFrameUpdate = true;
-  hasCustomBindFunction = true;
 }
 glm::mat4 Camera::createProjectionMatrix() {
 
@@ -66,60 +64,23 @@ glm::mat4 Camera::createOrthoMatrix() {
   return glm::ortho(l, r, b, t, zmin, zmax);
 }
 
-void Camera::defaultViewMatrix() {
-  glm::vec3 computeOrigin = origin;
-  if (parentNode != nullptr)
-    computeOrigin =
-        parentNode->getTransformMatrix() * glm::vec4(computeOrigin, 1.0);
-  glm::mat4 viewMatrix = glm::lookAt(computeOrigin, target, glm::vec3(0, 1, 0));
-
-  setViewMatrix(viewMatrix);
-}
-void Camera::defaultProjectionMatrix() {
-  setProjectionMatrix(useOrthographic ? createOrthoMatrix()
-                                      : createProjectionMatrix());
+glm::mat4 Camera::createViewMatrix() {
+  return glm::lookAt(origin, target, glm::vec3(0, 1, 0));
 }
 
 void Camera::setParentNode(Node *parentNode) { this->parentNode = parentNode; }
-void Camera::updateMatrices() {
-  combinedMatrix = projectionMatrix * viewMatrix;
-  invViewMatrix = glm::inverse(viewMatrix);
-}
 
 void Camera::lookAt(const glm::vec3 &origin, const glm::vec3 &target) {
   this->origin = origin;
   this->target = target;
 }
 
-void Camera::update(float deltaTime) {
-  defaultProjectionMatrix();
-  defaultViewMatrix();
-  updateMatrices();
+void Camera::step(StepInfo info) {
+  setViewMatrix(createViewMatrix());
+  setProjectionMatrix(createProjectionMatrix());
 }
 
-void Camera::bind(Program *current) {
-
-  if (parentNode != nullptr) {
-    defaultViewMatrix();
-  }
-  device::useUniform(Standard::uProjectionMatrix, Uniform(projectionMatrix));
-  device::useUniform(Standard::uViewPos, Uniform(glm::vec3(invViewMatrix[3])));
-
-  if (current->hint_skybox) {
-    mat4 skyView = mat4(mat3(viewMatrix));
-    device::useUniform(Standard::uViewMatrix, Uniform(skyView));
-  } else
-    device::useUniform(Standard::uViewMatrix, Uniform(viewMatrix));
-}
-
-void Camera::setViewMatrix(const glm::mat4 &_viewMatrix) {
-  viewMatrix = _viewMatrix;
-}
-void Camera::setProjectionMatrix(const glm::mat4 &_projectionMatrix) {
-  projectionMatrix = _projectionMatrix;
-}
-
-glm::vec3 createViewDir(float a, float b) {
+static glm::vec3 createViewDir(float a, float b) {
   glm::vec3 viewDir;
   viewDir.x = cos(a) * cos(b);
   viewDir.y = sin(b);
@@ -127,8 +88,12 @@ glm::vec3 createViewDir(float a, float b) {
   return viewDir;
 }
 
-void DebugCamera::update(float deltatime) {
+DebugCamera::DebugCamera() { hint_is_material = this; }
+void DebugCamera::step(StepInfo info) {
+  float deltatime = viewport()->deltaTime;
   time += deltatime;
+
+  constexpr static float aproxTime = 0.4f;
   if (time >= aproxTime) {
     time = 0.0f;
     currentTarget = nextTarget;
@@ -218,7 +183,7 @@ void DebugCamera::update(float deltatime) {
                                        viewport()->getScreenHeight());
 
       glm::vec3 offset =
-          invViewMatrix * glm::vec4(glm::vec3(difference, 0.0), 0.0);
+          getInvViewMatrix() * glm::vec4(glm::vec3(difference, 0.0), 0.0);
 
       nextTarget = lastTarget + offset * distance;
     }
@@ -241,31 +206,21 @@ void DebugCamera::update(float deltatime) {
   glm::vec3 target = currentTarget * (1.0f - p) + nextTarget * p;
   glm::vec3 viewpos = target - interpDirection * distance;
 
-  lookAt(viewpos, target);
-  Camera::update(deltatime);
+  Camera::lookAt(viewpos, target);
+  Camera::step(info);
 }
 
-Camera2D::Camera2D() {
-  hasCustomBindFunction = true;
-  Material::needsFrameUpdate = true;
-}
-
-void Camera2D::bind(Program *activeProgram) {
-  static glm::mat4 viewMatrix = glm::mat4(1.0);
-  device::useUniform(Standard::uProjectionMatrix, cameraMatrix);
-  device::useUniform(Standard::uViewMatrix, viewMatrix);
-}
-
-void Camera2D::update(float deltatime) {
+void Camera2D::step(StepInfo info) {
   float width = shambhala::viewport()->getScreenWidth() * 0.5;
   float height = shambhala::viewport()->getScreenHeight() * 0.5;
 
   width /= 500.0f;
   height /= 500.0f;
-  cameraMatrix = glm::ortho(zoom * -width, zoom * width, zoom * -height,
-                            zoom * height, -1.0f, 1.0f);
-  cameraMatrix =
-      glm::translate(cameraMatrix, glm::vec3(-offset.x, -offset.y, 0.0));
+
+  setViewMatrix(
+      glm::translate(glm::mat4(1.0f), glm::vec3(-offset.x, -offset.y, 0.0)));
+  setProjectionMatrix(glm::ortho(zoom * -width, zoom * width, zoom * -height,
+                                 zoom * height, -1.0f, 1.0f));
 }
 
 Clock::Clock() {

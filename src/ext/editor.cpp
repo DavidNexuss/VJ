@@ -80,7 +80,15 @@ void materialEditor(Material *material) {
     case shambhala::UniformType::VEC4:
       ImGui::InputFloat4(name, &val.VEC4[0]);
       break;
+    case shambhala::UniformType::MAT4:
+      ImGui::InputFloat4((std::string(name) + " X").c_str(), &val.MAT4[0][0]);
+      ImGui::InputFloat4((std::string(name) + " Y").c_str(), &val.MAT4[1][0]);
+      ImGui::InputFloat4((std::string(name) + " Z").c_str(), &val.MAT4[2][0]);
+      ImGui::InputFloat4((std::string(name) + " Offset").c_str(),
+                         &val.MAT4[3][0]);
+      break;
     }
+    ImGui::Separator();
   }
 }
 

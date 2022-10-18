@@ -14,7 +14,7 @@ Ray ext::createRay(Camera *camera, glm::vec2 position) {
   glm::mat4 perspectiveMatrix = camera->getProjectionMatrix();
   glm::mat4 viewMatrix = camera->getViewMatrix();
 
-  glm::mat4 invMatrtix = glm::inverse(camera->combinedMatrix);
+  glm::mat4 invMatrtix = glm::inverse(camera->getCombinedMatrix());
 
   float fov = M_PI / 2;
   float zdir = glm::tan(fov / 2);

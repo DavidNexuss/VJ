@@ -201,11 +201,8 @@ struct Material {
   std::unordered_map<std::string, Uniform> uniforms;
   VertexBuffer *vbo = nullptr;
 
-  virtual void update(float deltatime) {}
-  virtual void bind(Program *activeProgram) {}
-  bool needsFrameUpdate = false;
   bool hasCustomBindFunction = false;
-  int currentFrame = -1;
+  virtual void bind(Program *program) {}
 
   simple_vector<Material *> childMaterials;
 
@@ -448,6 +445,7 @@ struct RenderCamera : public Material, IRenderable {
 private:
   int width = 0;
   int height = 0;
+  int currentFrame = 0;
 };
 
 struct RenderConfiguration {

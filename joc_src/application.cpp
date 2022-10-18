@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "ext/worldmat.hpp"
 #include <ext.hpp>
 #include <impl/io_linux.hpp>
 #include <impl/io_std.hpp>
@@ -35,7 +36,12 @@ void Joc::enginecreate() {
   mainCamera = shambhala::createRenderCamera();
   mainShot.scenes.push(shambhala::createModelList());
 
-  shambhala::setWorldMaterial(Standard::wCamera, new worldmats::DebugCamera);
+  // Adds debug camera
+  {
+    worldmats::DebugCamera *debugCamera = new worldmats::DebugCamera;
+    shambhala::setWorldMaterial(Standard::wCamera, debugCamera);
+    addComponent(debugCamera);
+  }
   shambhala::setWorkingModelList(mainShot.scenes[0]);
 }
 

@@ -757,19 +757,15 @@ void device::useWorldMaterials() {
 void device::useMaterial(Material *material) {
   if (material == nullptr)
     return;
-  if (material->currentFrame != engine.currentFrame &&
-      material->needsFrameUpdate) {
-    material->update(viewport()->deltaTime);
-  }
 
-  material->currentFrame = engine.currentFrame;
   SoftCheck(material != nullptr, log()->log("[Warning] Null material use"););
+
+  if (material->hasCustomBindFunction) {
+    material->bind(guseState.currentProgram);
+  }
 
   for (auto &uniform : material->uniforms) {
     useUniform(uniform.first.c_str(), uniform.second);
-  }
-  if (material->hasCustomBindFunction) {
-    material->bind(guseState.currentProgram);
   }
 
   for (int i = 0; i < material->childMaterials.size(); i++) {
@@ -1283,7 +1279,7 @@ void shambhala::engine_prepareDeclarativeRender() {
   viewport()->fakeViewportSize(engine.renderConfig->virtualWidth,
                                engine.renderConfig->virtualHeight);
 
-  glViewport(0, 0, viewport()->getScreenWidth(), viewport()->getScreenHeight());
+  updateViewport();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
