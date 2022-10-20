@@ -104,11 +104,12 @@ int selectableList(simple_vector<std::string> &list, int last_selected) {
       node_flags |= ImGuiTreeNodeFlags_Selected;
     }
 
+    ImGui::TreeNodeEx((void *)(intptr_t)i, node_flags, list[i].c_str());
+
     if (ImGui::IsItemClicked() || ImGui::IsItemToggledOpen()) {
       last_selected = i;
     }
 
-    ImGui::TreeNodeEx((void *)(intptr_t)i, node_flags, list[i].c_str());
     ImGui::TreePop();
   }
   return last_selected;

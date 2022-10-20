@@ -11,7 +11,7 @@ void main() {
 
   for(int i = -2; i < 2; i++) { 
     for(int j = -2; j < 2; j++) { 
-      shadow_val += texture(shadow, st + vec2(i,j) * 0.0005).x;
+      shadow_val += texture(shadow, st + vec2(i,j) * 0.001).x;
     }
   }
   shadow_val = shadow_val / 16.0;

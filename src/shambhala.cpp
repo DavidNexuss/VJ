@@ -263,7 +263,7 @@ GLuint device::compileShader(const char *data, GLenum type,
     delete[] errorLog;
 
   } else {
-    LOG("[DEVICE] Shader compiled successfully %d: %s\n", shader,
+    LOG("[DEVICE] Shader compiled successfully %d: %s", shader,
         resourcename.c_str());
   }
   return shader;
