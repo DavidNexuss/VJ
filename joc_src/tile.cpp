@@ -26,6 +26,7 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
 
   Program *renderProgram =
       loader::loadProgram("programs/tiled.fs", "programs/regular.vs");
+
   // Create regular model
   {
     model = shambhala::createModel();
@@ -44,20 +45,21 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
     dyn.sourceTexture = text;
     dyn.unit = 0;
     model->material = shambhala::createMaterial();
-    model->material->set("uBaseColor", dyn);
+    model->material->set("input", dyn);
     model->node = shambhala::createNode("tileMap");
   }
 
   // Create baked model
   {
     bakedModel = shambhala::createModel();
-    bakedModel->program = renderProgram;
+    bakedModel->program =
+        loader::loadProgram("programs/parallax.fs", "programs/regular.vs");
     bakedModel->mesh = util::createTexturedQuad();
     bakedModel->material = shambhala::createMaterial();
     bakedModel->node = shambhala::createNode("tileMapBacked");
   }
 
-  enableBake(false);
+  enableBake(true);
   // setDebug(model);
   setName("tileMap");
   addModel(model);
@@ -233,6 +235,7 @@ void TileMap::bake() {
       device::useMesh(this->model->mesh);
       device::useMaterial(this->model->material);
       device::useMaterial(camera);
+      device::useMaterial(this->model->node);
       device::drawCall();
     }
     fbo->end();
@@ -248,8 +251,8 @@ void TileMap::bake() {
   texture.mode = GL_TEXTURE_2D;
   texture.texID = bakeInformation.bakedTexture;
   texture.unit = 0;
-  bakedModel->material->set("uBaseColor", texture);
-  bakedModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.0));
+  bakedModel->material->set("input", texture);
+  bakedModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.001));
 }
 void TileMap::enableBake(bool pEnable) {
   model->node->setEnabled(!pEnable);

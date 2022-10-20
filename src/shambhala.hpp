@@ -523,6 +523,7 @@ void useVertexBuffer(VertexBuffer *vertexbuffer);
 void useIndexBuffer(IndexBuffer *indexBuffer);
 void useMesh(Mesh *mesh);
 void useMaterial(Material *material);
+void useModel(Model *model);
 void useUniform(const char *name, const Uniform &value);
 void useModelList(ModelList *modelList);
 

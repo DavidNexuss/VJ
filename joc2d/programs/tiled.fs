@@ -1,8 +1,8 @@
 #version 330 core
 in vec2 vUV;
 out vec4 color;
-uniform sampler2D uBaseColor;
+uniform sampler2D input;
 
 void main() { 
-  color = texture2D(uBaseColor,vUV) * vec4(1.0);
+  color = texture2D(input,vUV);
 }

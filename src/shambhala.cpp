@@ -32,7 +32,7 @@ void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
   }
 }
 
-inline void clearFramebuffer() { glClearColor(0.0, 0.0, 0.0, 1.0); }
+inline void clearFramebuffer() { glClearColor(0.0, 0.0, 0.0, 0.0); }
 inline void clearDefault() { glClearColor(0.0, 0.0, 0.0, 1.0); }
 
 struct SelectionHint {
@@ -932,9 +932,14 @@ void FrameBuffer::begin(int screenWidth, int screenHeight) {
             LOG("[DEVICE] Incomplete framebuffer %d ", _framebuffer););
   clearFramebuffer();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glDisable(GL_BLEND);
 }
 
-void FrameBuffer::end() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+void FrameBuffer::end() {
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  glEnable(GL_BLEND);
+}
 
 void FrameBuffer::addChannel(const FrameBufferAttachmentDescriptor &fbodef) {
   attachmentsDefinition.push(fbodef);
@@ -1257,6 +1262,7 @@ void shambhala::engine_prepareRender() {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
   glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   if (engine.vao == -1) {
     engine.vao = device::createVAO();
@@ -1512,6 +1518,13 @@ Texture *loader::loadTexture(const char *path, int channelCount) {
   return textureContainer.get(path, channelCount);
 }
 
+static int iscapital(char x) {
+  if (x >= 'A' && x <= 'Z')
+    return 1;
+
+  else
+    return 0;
+}
 void shambhala::setupMaterial(Material *material, Program *program) {
   device::useProgram(program);
   int uniformCount;
@@ -1526,6 +1539,9 @@ void shambhala::setupMaterial(Material *material, Program *program) {
                        &size, &type, buffer);
     std::string name(buffer);
 
+    // IGNORE WORLD MATERIALS TODO:
+    if (name[0] == 'u' && iscapital(name[1]))
+      continue;
     switch (type) {
     case GL_FLOAT:
       material->set(name, 0.0f);
