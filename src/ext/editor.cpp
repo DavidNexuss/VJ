@@ -285,7 +285,7 @@ void gui::textEditor(IResource *resource, const char *windowName) {
         io_buffer *buffer = resource->read();
         delete[] buffer->data;
         *buffer = toIoBuffer(editor.GetText());
-        resource->needsUpdate = true;
+        resource->signalUpdate();
       }
       if (ImGui::MenuItem("Quit", "Alt-F4"))
         return;
@@ -362,7 +362,7 @@ struct ProgramWindow : public EditorWindow {
       Shader *fs = current->shaders[FRAGMENT_SHADER];
       std::string name;
       if (fs != nullptr) {
-        name = fs->file->resourcename;
+        name = fs->file.cleanFile()->resourcename;
       }
       std::string base_filename = name.substr(name.find_last_of("/\\") + 1);
 
@@ -380,7 +380,7 @@ struct ProgramWindow : public EditorWindow {
             if (sh == selectedShader)
               node_flags |= ImGuiTreeNodeFlags_Selected;
             if (ImGui::TreeNodeEx((void *)intptr_t(id++), node_flags,
-                                  sh->file->resourcename.c_str())) {
+                                  sh->file.cleanFile()->resourcename.c_str())) {
 
               if (ImGui::IsItemClicked() || ImGui::IsItemToggledOpen()) {
                 selectedShader = sh;
@@ -395,7 +395,7 @@ struct ProgramWindow : public EditorWindow {
     }
 
     if (selectedShader != nullptr) {
-      gui::textEditor(selectedShader->file, "ShaderEditor");
+      gui::textEditor(selectedShader->file.cleanFile(), "ShaderEditor");
     }
   }
 };

@@ -423,12 +423,12 @@ void TileMap::initmap(IResource *resource) {
       ss2 >> tiles[i * sizex + j];
     }
   }
-  resource->needsUpdate = false;
 }
 void TileMap::step(shambhala::StepInfo info) {
 
-  if (levelResource && levelResource->needsUpdate) {
-    initmap(levelResource);
+  if (levelResource.file()) {
+    initmap(levelResource.file());
+    levelResource.signalAck();
     needsUpdate = true;
   }
   if (needsUpdate) {
@@ -445,5 +445,5 @@ void TileMap::serialize() {
 }
 
 void TileMap::loadLevel(IResource *leveldata) {
-  this->levelResource = leveldata;
+  this->levelResource.acquire(leveldata);
 }

@@ -12,7 +12,38 @@ struct IResource {
   virtual void write() {}
 
   std::string resourcename;
-  bool needsUpdate = true;
   bool readOnly = false;
+
+  int updateCount();
+  void signalUpdate();
+
   int useCount = 0;
+
+private:
+  int acquisitionCount = 1;
 };
+
+template <typename T> struct ResourceHandlerAbstract {
+
+  T *file() {
+    if (!resource)
+      return nullptr;
+    if (lastAcquisition != resource->updateCount())
+      return resource;
+    return nullptr;
+  }
+
+  T *cleanFile() { return resource; }
+
+  void acquire(T *resource) {
+    this->resource = resource;
+    lastAcquisition = 0;
+  }
+  void signalAck() { this->lastAcquisition = resource->updateCount(); }
+
+private:
+  int lastAcquisition = 0;
+  T *resource = nullptr;
+};
+
+using ResourceHandler = ResourceHandlerAbstract<IResource>;

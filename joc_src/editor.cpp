@@ -65,8 +65,8 @@ void TileMap::editorRender() {
                  glm::vec2(1.0, 0.0), bakeInformation.size);
   }
 
-  if (this->levelResource)
-    gui::textEditor(this->levelResource, "LevelResource");
+  if (this->levelResource.cleanFile())
+    gui::textEditor(this->levelResource.cleanFile(), "LevelResource");
 }
 
 #include "parallax.hpp"

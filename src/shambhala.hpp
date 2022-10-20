@@ -72,7 +72,7 @@ enum ShaderType {
 
 struct Shader {
   GLuint shader = -1;
-  IResource *file = nullptr;
+  ResourceHandler file;
 };
 
 struct Program {
@@ -196,7 +196,7 @@ struct EngineResource {
   void load();
 
 private:
-  IResource *configurationResource;
+  IResource *configurationResource = nullptr;
 };
 
 struct Material : public EngineResource {
@@ -346,7 +346,7 @@ struct TextureResource : public IResource {
   virtual io_buffer *read() override;
 };
 struct Texture {
-  simple_vector<TextureResource *> textureData;
+  simple_vector<ResourceHandlerAbstract<TextureResource>> textureData;
 
   GLenum textureMode = GL_TEXTURE_2D;
   GLuint _textureID = -1;

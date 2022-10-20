@@ -89,7 +89,7 @@ void shambhala::IIO::filewatchMonitor() {
       MemoryResource *resource = &it.second;
       delete[] resource->buffer.data;
       resource->buffer = internal_readFile(resource->resourcename);
-      resource->needsUpdate = true;
+      resource->signalUpdate();
       resource->time = last_write_time;
     }
   }

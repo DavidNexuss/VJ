@@ -31,7 +31,7 @@ struct TileMap : public shambhala::LogicComponent {
   TileMap(int sizex, int sizey, TileAtlas *atlas, shambhala::Texture *text);
 
 private:
-  IResource *levelResource = nullptr;
+  ResourceHandler levelResource;
   TileAtlas *atlas;
   shambhala::Texture *textureAtlas;
 

@@ -1,6 +1,7 @@
 #include "shambhala.hpp"
 #include "adapters/log.hpp"
 #include "core/core.hpp"
+#include "core/resource.hpp"
 #include "ext/math.hpp"
 #include "simple_vector.hpp"
 #include "standard.hpp"
@@ -527,15 +528,15 @@ struct UseState {
 static UseState guseState;
 
 bool device::useShader(Shader *shader, GLint type) {
-  if (shader->shader == -1 || shader->file->needsUpdate) {
+  IResource *file = shader->file.file();
+  if (shader->shader == -1 || file) {
     if (shader->shader != -1) {
       device::disposeShader(shader->shader);
     }
 
-    shader->shader =
-        device::compileShader((const char *)shader->file->read()->data, type,
-                              shader->file->resourcename);
-    shader->file->needsUpdate = false;
+    shader->shader = device::compileShader((const char *)file->read()->data,
+                                           type, file->resourcename);
+    shader->file.signalAck();
     return true;
   }
   return false;
@@ -689,16 +690,16 @@ void device::useTexture(Texture *texture) {
     GLenum target = texture->textureMode;
     device::bindTexture(texture->_textureID, target);
     for (int i = 0; i < texture->textureData.size(); i++) {
-      if (texture->textureData[i]->needsUpdate) {
+      TextureResource *textureResource = texture->textureData[i].file();
+      if (textureResource) {
         GLenum target = texture->textureMode == GL_TEXTURE_CUBE_MAP
                             ? (GL_TEXTURE_CUBE_MAP_POSITIVE_X + i)
                             : GL_TEXTURE_2D;
-        device::uploadTexture(target, texture->textureData[i]->textureBuffer,
-                              texture->textureData[i]->width,
-                              texture->textureData[i]->height,
-                              texture->textureData[i]->components,
-                              texture->textureData[i]->hdrSpace);
-        texture->textureData[i]->needsUpdate = false;
+        device::uploadTexture(target, textureResource->textureBuffer,
+                              textureResource->width, textureResource->height,
+                              textureResource->components,
+                              textureResource->hdrSpace);
+        texture->textureData[i].signalAck();
       }
     }
     glGenerateMipmap(target);
@@ -1046,12 +1047,23 @@ void LogicComponent::add(Model *model) { shambhala::addModel(model); }
 //---------------------[BEGIN ENGINE RESOURCE]
 
 void EngineResource::save() {
+  if (configurationResource == nullptr)
+    return;
+
   io_buffer data = serialize();
   *configurationResource->read() = data;
   configurationResource->write();
 }
 
-void EngineResource::load() { deserialize(*configurationResource->read()); }
+void EngineResource::load() {
+  if (configurationResource == nullptr)
+    return;
+  deserialize(*configurationResource->read());
+}
+
+void EngineResource::setConfigurationResource(IResource *resource) {
+  configurationResource = resource;
+}
 
 //---------------------[END ENGINE RESOURCE]
 //---------------------[MATERIAL BEGIN]
@@ -1088,7 +1100,9 @@ int Mesh::vertexCount() {
   return ebo->indexBuffer.size();
 }
 void Texture::addTextureResource(TextureResource *textureData) {
-  this->textureData.push(textureData);
+  ResourceHandlerAbstract<TextureResource> handler;
+  handler.acquire(textureData);
+  this->textureData.push(handler);
 }
 
 VertexAttribute Mesh::getAttribute(int attribIndex) {
@@ -1114,7 +1128,7 @@ void ModelList::add(Model *model) {
 
 bool Texture::needsUpdate() {
   for (int i = 0; i < textureData.size(); i++) {
-    if (textureData[i]->needsUpdate)
+    if (textureData[i].file())
       return true;
   }
   return false;
@@ -1486,7 +1500,7 @@ struct ShaderContainer : public loader::LoaderMap<Shader, ShaderContainer> {
 
   static Shader *create(IResource *resource) {
     Shader *shader = shambhala::createShader();
-    shader->file = resource;
+    shader->file.acquire(resource);
     return shader;
   }
 
