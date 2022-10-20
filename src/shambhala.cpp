@@ -262,8 +262,8 @@ GLuint device::compileShader(const char *data, GLenum type,
     delete[] errorLog;
 
   } else {
-    LOG("[DEVICE] Shader compiled successfully %d: %s", shader,
-        resourcename.c_str());
+    LOG("[DEVICE] Shader compiled successfully %d: %s\n%s\n", shader,
+        resourcename.c_str(), data);
   }
   return shader;
 }
@@ -566,6 +566,7 @@ void device::useProgram(Program *program) {
   // Link program
   if (programUpdate) {
 
+    program->compilationCount++;
     GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
     int currentShader = 0;
 
@@ -759,6 +760,10 @@ void device::useMaterial(Material *material) {
     return;
 
   SoftCheck(material != nullptr, log()->log("[Warning] Null material use"););
+
+  if (material->setupProgram) {
+    shambhala::setupMaterial(material, material->setupProgram);
+  }
 
   if (material->hasCustomBindFunction) {
     material->bind(guseState.currentProgram);
@@ -1043,10 +1048,45 @@ void LogicComponent::add(Model *model) { shambhala::addModel(model); }
 
 //---------------------[BEGIN COMPONENT METHODS]
 
+//---------------------[BEGIN ENGINE RESOURCE]
+
+void EngineResource::save() {
+  io_buffer data = serialize();
+  *configurationResource->read() = data;
+  configurationResource->write();
+}
+
+void EngineResource::load() { deserialize(*configurationResource->read()); }
+
+//---------------------[END ENGINE RESOURCE]
+//---------------------[MATERIAL BEGIN]
+
 void Material::addMaterial(Material *mat) { childMaterials.push(mat); }
+bool Material::isDefined(const std::string &uniformName) {
+  return uniforms.count(uniformName);
+}
 void Material::popNextMaterial() {
   childMaterials.resize(childMaterials.size() - 1);
 }
+
+io_buffer Material::serialize() {
+  for (auto &it : uniforms) {
+    switch (it.second.type) {
+    case FLOAT:
+      serializer()->serialize(it.first.c_str(), it.second.FLOAT, 0);
+      break;
+    case VEC2:
+      serializer()->serialize(it.first.c_str(), it.second.VEC2, 0);
+      break;
+    }
+  }
+
+  return serializer()->end();
+}
+
+void Material::deserialize(io_buffer buffer) {}
+
+//---------------------[MATERIAL END]
 int Mesh::vertexCount() {
   if (ebo == nullptr)
     return vbo->vertexBuffer.size() / vbo->vertexSize();
@@ -1359,6 +1399,7 @@ ModelList *shambhala::getWorkingModelList() {
   return engine.workingLists[engine.workingLists.size() - 1];
 }
 
+ISerializer *shambhala::serializer() { return engine.controllers.serializer; }
 IViewport *shambhala::viewport() { return engine.controllers.viewport; }
 IIO *shambhala::io() { return engine.controllers.io; }
 ILogger *shambhala::log() { return engine.controllers.logger; }
@@ -1527,6 +1568,8 @@ static int iscapital(char x) {
 }
 void shambhala::setupMaterial(Material *material, Program *program) {
   device::useProgram(program);
+  material->setupProgramCompilationCount = program->compilationCount;
+  material->setupProgram = program;
   int uniformCount;
   glGetProgramiv(program->shaderProgram, GL_ACTIVE_UNIFORMS, &uniformCount);
   static int buffer_size = 128;
@@ -1542,6 +1585,10 @@ void shambhala::setupMaterial(Material *material, Program *program) {
     // IGNORE WORLD MATERIALS TODO:
     if (name[0] == 'u' && iscapital(name[1]))
       continue;
+
+    if (material->isDefined(name))
+      continue;
+
     switch (type) {
     case GL_FLOAT:
       material->set(name, 0.0f);

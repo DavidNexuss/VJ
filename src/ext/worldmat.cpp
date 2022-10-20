@@ -183,11 +183,11 @@ void DebugCamera::step(StepInfo info) {
                       glm::vec2(viewport()->getScreenWidth(),
                                 viewport()->getScreenHeight());
     } else {
-      moveDirection.x += viewport()->isKeyPressed(KEY_D) * deltatime;
-      moveDirection.y += viewport()->isKeyPressed(KEY_W) * deltatime;
+      moveDirection.x += viewport()->isKeyPressed(KEY_D) * deltatime * 0.4;
+      moveDirection.y += viewport()->isKeyPressed(KEY_W) * deltatime * 0.4;
 
-      moveDirection.x -= viewport()->isKeyPressed(KEY_A) * deltatime;
-      moveDirection.y -= viewport()->isKeyPressed(KEY_S) * deltatime;
+      moveDirection.x -= viewport()->isKeyPressed(KEY_A) * deltatime * 0.4;
+      moveDirection.y -= viewport()->isKeyPressed(KEY_S) * deltatime * 0.4;
       lastTarget = nextTarget;
     }
 

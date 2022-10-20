@@ -64,9 +64,9 @@ const static float screen_mesh[] = {-1.0, 1.0,  0.0, 1.0,  1.0,  0.0,
 
 static const int screen_mesh_size = sizeof(screen_mesh) / sizeof(float);
 
-static const float quad_mesh[] = {0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0,
-                                  1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0,
-                                  1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0};
+static const float quad_mesh[] = {0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+                                  1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+                                  1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 1.0};
 static const int quad_mesh_size = sizeof(quad_mesh) / sizeof(float);
 
 static const char *screenVertexShader = " \

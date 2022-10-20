@@ -3,7 +3,9 @@
 struct ParallaxBackground : public shambhala::LogicComponent {
 
   ParallaxBackground();
-  void addParallaxBackground(float speed, shambhala::Texture *texture);
+  void addParallaxBackground(float speed, shambhala::Texture *texture,
+                             int zIndex = 0,
+                             shambhala::Program *customProgram = nullptr);
 
   void editorRender() override;
 

@@ -9,21 +9,31 @@ ParallaxBackground::ParallaxBackground() {
   parallaxMesh = util::createScreen();
   setName("ParallaxMap");
 }
-void ParallaxBackground::addParallaxBackground(float speed,
-                                               shambhala::Texture *texture) {
+void ParallaxBackground::addParallaxBackground(
+    float speed, shambhala::Texture *texture, int zIndex,
+    shambhala::Program *customProgram) {
 
   Model *parallaxBackground = shambhala::createModel();
   parallaxBackground->mesh = parallaxMesh;
   parallaxBackground->program = parallaxProgram;
+
+  if (customProgram != nullptr) {
+    parallaxBackground->program = customProgram;
+  }
   parallaxBackground->material = shambhala::createMaterial();
+  shambhala::setupMaterial(parallaxBackground->material,
+                           parallaxBackground->program);
+
   parallaxBackground->depthMask = true;
-  parallaxBackground->zIndex = -(texturecount + 1);
+  if (zIndex == 0)
+    parallaxBackground->zIndex = -(texturecount + 1);
+  else
+    parallaxBackground->zIndex = zIndex;
 
   DynamicTexture dyn;
   dyn.sourceTexture = texture;
   dyn.unit = texturecount;
 
-  shambhala::setupMaterial(parallaxBackground->material, parallaxProgram);
   parallaxBackground->material->set("input", dyn);
   models.push(parallaxBackground);
   shambhala::addModel(parallaxBackground);

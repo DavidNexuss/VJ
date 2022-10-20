@@ -1,6 +1,7 @@
 #pragma once
 #include "adapters/io.hpp"
 #include "adapters/log.hpp"
+#include "adapters/serialize.hpp"
 #include "adapters/viewport.hpp"
 #include "core/core.hpp"
 #include "simple_vector.hpp"
@@ -77,6 +78,7 @@ struct Shader {
 struct Program {
   Shader *shaders[SHADER_TYPE_COUNT] = {0};
   GLuint shaderProgram = -1;
+  int compilationCount = 0;
 
   bool hint_skybox = false;
   bool errored = false;
@@ -184,7 +186,20 @@ struct Mesh {
   VertexAttribute getAttribute(int attribIndex);
 };
 
-struct Material {
+struct EngineResource {
+  void setConfigurationResource(IResource *resource);
+
+  virtual io_buffer serialize() = 0;
+  virtual void deserialize(io_buffer buffer) = 0;
+
+  void save();
+  void load();
+
+private:
+  IResource *configurationResource;
+};
+
+struct Material : public EngineResource {
 
 #define UNIFORMS_FUNC_DECLARATION(v, T)                                        \
   inline void set(const std::string &name, T a) {                              \
@@ -200,6 +215,8 @@ struct Material {
 
   std::unordered_map<std::string, Uniform> uniforms;
   VertexBuffer *vbo = nullptr;
+  Program *setupProgram = nullptr;
+  int setupProgramCompilationCount = 0;
 
   bool hasCustomBindFunction = false;
   virtual void bind(Program *program) {}
@@ -208,6 +225,10 @@ struct Material {
 
   void addMaterial(Material *);
   void popNextMaterial();
+  bool isDefined(const std::string &uniformName);
+
+  io_buffer serialize() override;
+  void deserialize(io_buffer buffer) override;
 };
 
 #undef UNIFORMS_LIST
@@ -457,6 +478,7 @@ struct RenderConfiguration {
 };
 
 struct EngineControllers {
+  shambhala::ISerializer *serializer;
   shambhala::IViewport *viewport;
   shambhala::IIO *io;
   shambhala::ILogger *logger;
@@ -574,6 +596,7 @@ void addModel(Model *model);
 void buildSortPass();
 
 // Controllers
+ISerializer *serializer();
 IViewport *viewport();
 IIO *io();
 

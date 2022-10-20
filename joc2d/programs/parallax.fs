@@ -11,7 +11,7 @@ uniform float zspeed;
 uniform vec3 uViewPos;
 
 void main() { 
-  vec2 st = vUV - offset + pivot * sin(uTime) + vec2(uViewPos.x * 0.02,0.0);
+  vec2 st = vUV - offset + pivot * sin(uTime) + vec2(uViewPos.x * (zspeed),0.0);
   st = fract(st);
   st.y = min(st.y,0.99);
   st.y = max(st.y,0.01);

@@ -4,6 +4,7 @@
 #include <impl/io_linux.hpp>
 #include <impl/io_std.hpp>
 #include <impl/logger.hpp>
+#include <impl/serialize.hpp>
 #include <impl/viewport_glfw.hpp>
 #include <shambhala.hpp>
 

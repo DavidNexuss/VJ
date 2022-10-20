@@ -26,6 +26,11 @@ void loadTestScene() {
       1.0, loader::loadTexture("textures/cethiel_layer2.png", 4));
   background->addParallaxBackground(
       1.0, loader::loadTexture("textures/cethiel_layer1.png", 4));
+
+  // Adding fog
+  Program *fog = loader::loadProgram("programs/fog.fs", "programs/parallax.vs");
+  background->addParallaxBackground(
+      1.0, loader::loadTexture("textures/fog.png", 4), 3, fog);
   shambhala::addComponent(background);
 
   worldmats::Clock *clock = new worldmats::Clock;
