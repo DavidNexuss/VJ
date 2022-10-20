@@ -59,11 +59,22 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
     bakedModel->node = shambhala::createNode("tileMapBacked");
   }
 
+  {
+
+    illuminationModel = shambhala::createModel();
+    illuminationModel->program =
+        loader::loadProgram("programs/tiled_shadows.fs", "programs/regular.vs");
+    illuminationModel->mesh = util::createTexturedQuad();
+    illuminationModel->material = shambhala::createMaterial();
+    illuminationModel->node = shambhala::createNode("tileMapShadows");
+  }
+
   enableBake(true);
   // setDebug(model);
   setName("tileMap");
   addModel(model);
   addModel(bakedModel);
+  addModel(illuminationModel);
 }
 
 int TileMap::spawnFace(simple_vector<TileAttribute> &vertexBuffer,
@@ -159,6 +170,69 @@ int TileMap::spawnVoxel(simple_vector<TileAttribute> &vertexBuffer,
   }
   return count;
 }
+
+void TileMap::updateShadows() {
+  if (illuminationModel == nullptr) {
+    illuminationModel = shambhala::createModel();
+    illuminationModel->mesh = shambhala::createMesh();
+    illuminationModel->mesh->vbo = shambhala::createVertexBuffer();
+    illuminationModel->mesh->ebo = shambhala::createIndexBuffer();
+    illuminationModel->program = loader::loadProgram(
+        "programs/tiled_shadows.fs", "programs/tiled_shadows.vs");
+
+    illuminationModel->mesh->vbo->attributes = {{Standard::aPosition, 3},
+                                                {Standard::aUV, 2}};
+    illuminationModel->node = shambhala::createNode();
+    illuminationModel->node->setName("Illumination");
+    illuminationModel->zIndex = 10;
+    addModel(illuminationModel);
+  }
+
+  simple_vector<int> indices;
+  simple_vector<TileAttribute> vertices;
+
+  indices.resize(0);
+  vertices.resize(4 * sizex * sizey);
+
+  int count = 0;
+  glm::vec3 lightDir = glm::normalize(glm::vec3(-0.1, -0.8, 0.0));
+
+  for (int i = 0; i < tiles.size(); i++) {
+    int x = i % sizex;
+    int y = i / sizey;
+    if (tiles[i]) {
+      float px = (y + 1) / lightDir.y;
+      float dx = px * lightDir.x;
+
+      Tile tile = atlas->getTile(tiles[i]);
+      vertices[count] = {glm::vec3(x - dx, 0.0, 0.0),
+                         glm::vec2(tile.xstart, tile.ystart)};
+
+      vertices[count + 1] = {glm::vec3(x + 1 - dx, 0.0, 0.0),
+                             glm::vec2(tile.xend, tile.ystart)};
+
+      vertices[count + 2] = {glm::vec3(x, y + 1, 0.0),
+                             glm::vec2(tile.xstart, tile.yend)};
+
+      vertices[count + 3] = {glm::vec3(x + 1, y + 1, 0.0),
+                             glm::vec2(tile.xend, tile.yend)};
+
+      indices.push(count);
+      indices.push(count + 1);
+      indices.push(count + 2);
+
+      indices.push(count + 3);
+      indices.push(count + 2);
+      indices.push(count + 1);
+      count += 4;
+    }
+  }
+
+  illuminationModel->mesh->vbo->vertexBuffer = vertices.drop();
+  illuminationModel->mesh->ebo->indexBuffer = indices.drop();
+  illuminationModel->mesh->vbo->updateData = true;
+  illuminationModel->mesh->ebo->updateData = true;
+}
 void TileMap::updateMesh() {
   simple_vector<TileAttribute> vertices;
   simple_vector<int> indices;
@@ -202,8 +276,70 @@ void TileMap::updateMesh() {
   needsUpdate = false;
 
   bake();
+  bakeShadows();
 }
 
+void TileMap::bakeShadows() {
+
+  static FrameBuffer *fbo = nullptr;
+  static worldmats::SimpleCamera *camera = new worldmats::SimpleCamera;
+  static Program *shadowGenerator = loader::loadProgram(
+      "programs/tiled_shadow_generator.fs", "programs/regular.vs");
+
+  if (fbo == nullptr) {
+    fbo = shambhala::createFramebuffer();
+    FrameBufferAttachmentDescriptor desc;
+    desc.externalFormat = GL_RGBA;
+    desc.internalFormat = GL_RGBA;
+    desc.type = GL_UNSIGNED_BYTE;
+    desc.useNeareast = true;
+    fbo->addChannel(desc);
+  }
+
+  TileBake bakeResult;
+  bakeResult.size = glm::vec2(sizex, sizey) * 16.0f;
+  shambhala::engine_clearState();
+  {
+    viewport()->fakeViewportSize(bakeResult.size.x, bakeResult.size.y);
+    shambhala::updateViewport();
+    fbo->clearColor.w = 1.0;
+    fbo->begin(bakeResult.size.x, bakeResult.size.y);
+    glm::mat4 viewMat(1.0f);
+    for (int i = 0; i < 200; i++) {
+      camera->setViewMatrix(viewMat);
+      viewMat = util::translate(-0.3 * 0.3, -0.6 * 0.3, 0.0) * viewMat;
+      camera->setProjectionMatrix(
+          glm::ortho(0.0f, float(sizex), 0.0f, float(sizey)));
+
+      device::useProgram(shadowGenerator);
+      device::useMesh(this->bakedModel->mesh);
+      device::useMaterial(this->bakedModel->material);
+      device::useMaterial(camera);
+      device::useMaterial(this->bakedModel->node);
+
+      device::useUniform("shadowLevel", Uniform(float(i)));
+      device::drawCall();
+    }
+    fbo->end();
+    viewport()->restoreViewport();
+    shambhala::updateViewport();
+  }
+  shambhala::engine_clearState();
+  bakeResult.bakedTexture = fbo->colorAttachments[0];
+  this->bakeInformationShadow = bakeResult;
+
+  UTexture texture;
+  texture.mode = GL_TEXTURE_2D;
+  texture.texID = bakeInformationShadow.bakedTexture;
+  texture.unit = 1;
+  UTexture base;
+  base.mode = GL_TEXTURE_2D;
+  base.texID = bakeInformation.bakedTexture;
+  base.unit = 0;
+  illuminationModel->material->set("input", base);
+  illuminationModel->material->set("shadow", texture);
+  illuminationModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.001));
+}
 void TileMap::bake() {
   static FrameBuffer *fbo = nullptr;
   static worldmats::SimpleCamera *camera = new worldmats::SimpleCamera;
@@ -222,6 +358,8 @@ void TileMap::bake() {
   bakeResult.size = glm::vec2(sizex, sizey) * 16.0f;
 
   shambhala::engine_clearState();
+
+  glDisable(GL_BLEND);
   {
     viewport()->fakeViewportSize(bakeResult.size.x, bakeResult.size.y);
     shambhala::updateViewport();
@@ -244,6 +382,8 @@ void TileMap::bake() {
   }
   shambhala::engine_clearState();
 
+  glEnable(GL_BLEND);
+
   bakeResult.bakedTexture = fbo->colorAttachments[0];
   this->bakeInformation = bakeResult;
 
@@ -256,7 +396,8 @@ void TileMap::bake() {
 }
 void TileMap::enableBake(bool pEnable) {
   model->node->setEnabled(!pEnable);
-  bakedModel->node->setEnabled(pEnable);
+  bakedModel->node->setEnabled(false);
+  illuminationModel->node->setEnabled(pEnable);
 }
 void TileMap::set(int i, int j, int type) {
   tiles[i + j * sizex] = type;
@@ -290,8 +431,10 @@ void TileMap::step(shambhala::StepInfo info) {
     initmap(levelResource);
     needsUpdate = true;
   }
-  if (needsUpdate)
+  if (needsUpdate) {
     updateMesh();
+    // updateShadows();
+  }
 }
 
 void TileMap::serialize() {

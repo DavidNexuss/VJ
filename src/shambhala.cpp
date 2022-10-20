@@ -262,8 +262,8 @@ GLuint device::compileShader(const char *data, GLenum type,
     delete[] errorLog;
 
   } else {
-    LOG("[DEVICE] Shader compiled successfully %d: %s\n%s\n", shader,
-        resourcename.c_str(), data);
+    LOG("[DEVICE] Shader compiled successfully %d: %s\n", shader,
+        resourcename.c_str());
   }
   return shader;
 }
@@ -935,16 +935,11 @@ void FrameBuffer::begin(int screenWidth, int screenHeight) {
   glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
   SoftCheck(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE,
             LOG("[DEVICE] Incomplete framebuffer %d ", _framebuffer););
-  clearFramebuffer();
+  glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glDisable(GL_BLEND);
 }
 
-void FrameBuffer::end() {
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  glEnable(GL_BLEND);
-}
+void FrameBuffer::end() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 void FrameBuffer::addChannel(const FrameBufferAttachmentDescriptor &fbodef) {
   attachmentsDefinition.push(fbodef);

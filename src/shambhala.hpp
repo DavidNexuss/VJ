@@ -379,7 +379,6 @@ struct FrameBufferAttachmentDescriptor {
 class FrameBuffer {
   FrameBufferDescriptorFlags configuration = FRAME_BUFFER_NULL;
   GLuint _framebuffer = -1;
-
   int bufferWidth = -1, bufferHeight = -1;
 
   void initialize();
@@ -400,6 +399,7 @@ public:
 
   GLuint stencilDepthBuffer;
 
+  glm::vec4 clearColor = glm::vec4(0.0);
   GLuint depthBuffer;
   GLuint stencilBuffer;
 

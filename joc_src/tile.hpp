@@ -37,8 +37,10 @@ private:
 
   shambhala::Model *model;
   shambhala::Model *bakedModel;
+  shambhala::Model *illuminationModel = nullptr;
 
   TileBake bakeInformation;
+  TileBake bakeInformationShadow;
   simple_vector<int> tiles;
 
   int sizex;
@@ -57,8 +59,10 @@ private:
                         simple_vector<int> &indexBuffer, int count, Tile tile,
                         int x, int y);
 
+  void updateShadows();
   void enableBake(bool pEnable);
   void bake();
+  void bakeShadows();
   void initmap(IResource *resource);
   void updateMesh();
 
