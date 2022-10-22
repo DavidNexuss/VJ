@@ -202,4 +202,11 @@ public:
   const char *str() { return (const char *)_data; }
 
   void pop() { resize(size() - 1); }
+
+  void removeNShift(int index) {
+    for (int i = index; i < _size; i++) {
+      _data[i] = _data[i + 1];
+    }
+    _size = _size - 1;
+  }
 };

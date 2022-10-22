@@ -109,7 +109,8 @@ struct DynamicTexture {
   o(VEC2, glm::vec2) o(VEC3, glm::vec3) o(VEC4, glm::vec4) o(MAT2, glm::mat2)  \
       o(MAT3, glm::mat3) o(MAT4, glm::mat4) o(FLOAT, float) o(BOOL, bool)      \
           o(INT, int) o(SAMPLER2D, UTexture) o(VEC3PTR, const glm::vec3 *)     \
-              o(BINDLESS_TEXTURE, GLuint64) o(DYNAMIC_TEXTURE, DynamicTexture)
+              o(BINDLESS_TEXTURE, GLuint64) o(DYNAMIC_TEXTURE, DynamicTexture) \
+                  o(FLOATPTR, float *) o(VEC2PTR, const glm::vec2 *)
 
 enum UniformType {
 #define UNIFORMS_ENUMS_DECLARATION(v, T) v,
@@ -189,14 +190,22 @@ struct Mesh {
 struct EngineResource {
   void setConfigurationResource(IResource *resource);
 
-  virtual io_buffer serialize() = 0;
-  virtual void deserialize(io_buffer buffer) = 0;
-
   void save();
   void load();
 
+  io_buffer serialized();
+  inline void signalDirty() { dirty = true; }
+
+  const char *configurationResourcePath();
+
+protected:
+  virtual io_buffer serialize() = 0;
+  virtual void deserialize(io_buffer buffer) = 0;
+
 private:
+  io_buffer serialized_buffer;
   IResource *configurationResource = nullptr;
+  bool dirty = true;
 };
 
 struct Material : public EngineResource {
@@ -208,6 +217,7 @@ struct Material : public EngineResource {
     val.dirty = true;                                                          \
     val.type = UniformType::v;                                                 \
     uniforms[name] = val;                                                      \
+    signalDirty();                                                             \
   }
 
   UNIFORMS_LIST(UNIFORMS_FUNC_DECLARATION)
@@ -226,6 +236,10 @@ struct Material : public EngineResource {
   void addMaterial(Material *);
   void popNextMaterial();
   bool isDefined(const std::string &uniformName);
+
+  inline void setCount(const std::string &name, int count) {
+    uniforms[name].count = count;
+  }
 
   io_buffer serialize() override;
   void deserialize(io_buffer buffer) override;
@@ -274,7 +288,11 @@ struct ModelConfiguration {
   int zIndex = 0;
 };
 
-struct Model : public ModelConfiguration {
+struct DrawCallArgs {
+  int instance_count = 0;
+};
+
+struct Model : public ModelConfiguration, public DrawCallArgs {
   Program *program = nullptr;
   Mesh *mesh = nullptr;
   Material *material = nullptr;
@@ -296,6 +314,8 @@ struct Model : public ModelConfiguration {
   Model *createInstance();
 
   bool isEnabled();
+
+  Node *getNode();
 };
 
 struct StepInfo {
@@ -478,10 +498,10 @@ struct RenderConfiguration {
 };
 
 struct EngineControllers {
-  shambhala::ISerializer *serializer;
-  shambhala::IViewport *viewport;
-  shambhala::IIO *io;
-  shambhala::ILogger *logger;
+  shambhala::ISerializer *serializer = nullptr;
+  shambhala::IViewport *viewport = nullptr;
+  shambhala::IIO *io = nullptr;
+  shambhala::ILogger *logger = nullptr;
 };
 
 struct DeviceParameters {
@@ -490,6 +510,7 @@ struct DeviceParameters {
 
 struct EngineParameters : public EngineControllers {};
 } // namespace shambhala
+
 namespace shambhala {
 
 namespace device {
@@ -551,7 +572,7 @@ void useModelList(ModelList *modelList);
 
 void ignoreProgramBinding(bool ignore);
 
-void drawCall();
+void drawCall(DrawCallArgs args = DrawCallArgs{});
 void renderPass();
 DeviceParameters queryDeviceParameters();
 } // namespace device

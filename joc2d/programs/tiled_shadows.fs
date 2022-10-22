@@ -11,10 +11,10 @@ void main() {
 
   for(int i = -2; i < 2; i++) { 
     for(int j = -2; j < 2; j++) { 
-      shadow_val += texture(shadow, st + vec2(i,j) * 0.001).x;
+      shadow_val += texture(shadow, st + vec2(i,j) * 0.002).x;
     }
   }
   shadow_val = shadow_val / 16.0;
-  color = texture(input, st) - shadow_val * 0.3;
-  color.a += shadow_val * 1.5;
+  color = texture(input, st) - shadow_val * 0.5;
+  color.a += shadow_val * 1.6;
 }

@@ -17,6 +17,8 @@ void Joc::enginecreate() {
   parameters.io = new shambhala::LinuxIO;
   parameters.viewport = new shambhala::ViewportGLFW;
   parameters.logger = new shambhala::DefaultLogger;
+  parameters.serializer = new shambhala::StreamSerializer;
+
   parameters.io->translators.push_back("assets/%s");
   parameters.io->translators.push_back("internal_assets/%s");
   parameters.io->translators.push_back("machine/%s");

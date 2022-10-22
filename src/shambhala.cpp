@@ -155,8 +155,14 @@ bool Uniform::bind(GLuint glUniformID) const {
   case UniformType::VEC3:
     glUniform3fv(glUniformID, count, &VEC3[0]);
     break;
+  case UniformType::VEC2PTR:
+    glUniform2fv(glUniformID, count, &VEC2PTR->x);
+    break;
+  case UniformType::FLOATPTR:
+    glUniform1fv(glUniformID, count, FLOATPTR);
+    break;
   case UniformType::VEC3PTR:
-    glUniform3fv(glUniformID, count, &(*VEC3PTR)[0]);
+    glUniform3fv(glUniformID, count, &VEC3PTR->x);
     break;
   case UniformType::VEC4:
     glUniform4fv(glUniformID, count, &VEC4[0]);
@@ -794,7 +800,7 @@ void device::renderPass() {
   }
 }
 
-void device::drawCall() {
+void device::drawCall(DrawCallArgs args) {
   device::cullFrontFace(guseState.isFrontCulled());
   int vertexCount = guseState.currentMesh->vertexCount();
   SoftCheck(vertexCount > 0, {
@@ -802,12 +808,24 @@ void device::drawCall() {
   });
 
   if (guseState.currentMesh->ebo) {
-    glDrawElements(guseState.currentModelConfiguration.renderMode,
-                   guseState.currentMesh->vertexCount(), Standard::meshIndexGL,
-                   (void *)0);
+    if (args.instance_count != 0) {
+      glDrawElementsInstanced(guseState.currentModelConfiguration.renderMode,
+                              guseState.currentMesh->vertexCount(),
+                              Standard::meshIndexGL, (void *)0,
+                              args.instance_count);
+    } else
+      glDrawElements(guseState.currentModelConfiguration.renderMode,
+                     guseState.currentMesh->vertexCount(),
+                     Standard::meshIndexGL, (void *)0);
   } else {
-    glDrawArrays(guseState.currentModelConfiguration.renderMode, 0,
-                 guseState.currentMesh->vertexCount());
+
+    if (args.instance_count != 0) {
+      glDrawArraysInstanced(guseState.currentModelConfiguration.renderMode, 0,
+                            guseState.currentMesh->vertexCount(),
+                            args.instance_count);
+    } else
+      glDrawArrays(guseState.currentModelConfiguration.renderMode, 0,
+                   guseState.currentMesh->vertexCount());
   }
 }
 
@@ -992,7 +1010,7 @@ void Model::draw() {
     device::useMaterial(material);
 
   device::useMaterial(node);
-  device::drawCall();
+  device::drawCall(*this);
   if (depthMask)
     glDepthMask(GL_TRUE);
 }
@@ -1004,6 +1022,12 @@ Model *Model::createInstance() {
     newInstance->node = shambhala::createNode(newInstance->node);
   }
   return newInstance;
+}
+
+Node *Model::getNode() {
+  if (node == nullptr)
+    return node = shambhala::createNode();
+  return node;
 }
 //---------------------[MODEL END]
 //---------------------[MODELLIST BEGIN]
@@ -1047,12 +1071,13 @@ void LogicComponent::add(Model *model) { shambhala::addModel(model); }
 //---------------------[BEGIN ENGINE RESOURCE]
 
 void EngineResource::save() {
-  if (configurationResource == nullptr)
+  if (configurationResource == nullptr || dirty == false)
     return;
 
   io_buffer data = serialize();
   *configurationResource->read() = data;
   configurationResource->write();
+  dirty = false;
 }
 
 void EngineResource::load() {
@@ -1063,6 +1088,20 @@ void EngineResource::load() {
 
 void EngineResource::setConfigurationResource(IResource *resource) {
   configurationResource = resource;
+}
+
+io_buffer EngineResource::serialized() {
+  if (serialized_buffer.data != nullptr)
+    delete[] serialized_buffer.data;
+
+  dirty = false;
+  return serialized_buffer = serialize();
+}
+
+const char *EngineResource::configurationResourcePath() {
+  if (configurationResource == nullptr)
+    return nullptr;
+  return configurationResource->resourcename.c_str();
 }
 
 //---------------------[END ENGINE RESOURCE]
@@ -1091,7 +1130,15 @@ io_buffer Material::serialize() {
   return serializer()->end();
 }
 
-void Material::deserialize(io_buffer buffer) {}
+void Material::deserialize(io_buffer buffer) {
+  /*
+  serializer()->deserialize(buffer);
+  int n = serializer()->deserializeEntryCount();
+  for (int i = 0; i < n; i++) {
+    ISerializer::DeserializeEntry entry = serializer()->deserializeEntryIt(i);
+    switch (entry.type) {}
+  } */
+}
 
 //---------------------[MATERIAL END]
 int Mesh::vertexCount() {

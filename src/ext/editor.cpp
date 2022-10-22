@@ -60,7 +60,21 @@ int tree(int id, const char *name) {
   return id + 1;
 }
 
+static bool contains(const std::string &str, const std::string &pattern) {
+  return str.find(pattern) != std::string::npos;
+}
+
 void materialEditor(Material *material) {
+
+  static Material *lastMaterial = nullptr;
+  if (lastMaterial != nullptr && lastMaterial != material) {
+    if (lastMaterial->configurationResourcePath()) {
+      lastMaterial->signalDirty();
+      lastMaterial->save();
+    }
+  }
+
+  lastMaterial = material;
   for (auto &it : material->uniforms) {
     const char *name = it.first.c_str();
     Uniform &val = it.second;
@@ -75,10 +89,18 @@ void materialEditor(Material *material) {
       ImGui::InputFloat2(name, &val.VEC2[0]);
       break;
     case shambhala::UniformType::VEC3:
-      ImGui::InputFloat3(name, &val.VEC3[0]);
+      if (contains(name, "color")) {
+        ImGui::ColorEdit3(name, &val.VEC3[0]);
+      } else {
+        ImGui::InputFloat3(name, &val.VEC3[0]);
+      }
       break;
     case shambhala::UniformType::VEC4:
-      ImGui::InputFloat4(name, &val.VEC4[0]);
+      if (contains(name, "color")) {
+        ImGui::ColorEdit4(name, &val.VEC4[0]);
+      } else {
+        ImGui::InputFloat4(name, &val.VEC4[0]);
+      }
       break;
     case shambhala::UniformType::MAT4:
       ImGui::InputFloat4((std::string(name) + " X").c_str(), &val.MAT4[0][0]);
@@ -89,6 +111,12 @@ void materialEditor(Material *material) {
       break;
     }
     ImGui::Separator();
+  }
+
+  const char *configPath = nullptr;
+  if (configPath = material->configurationResourcePath()) {
+    ImGui::LabelText("ConfigurationResourcePath: \n", 0);
+    ImGui::LabelText("%s\n", configPath);
   }
 }
 
@@ -282,11 +310,16 @@ void gui::textEditor(IResource *resource, const char *windowName) {
   ImGui::SetWindowSize(ImVec2(800, 600), ImGuiCond_FirstUseEver);
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu("File")) {
-      if (ImGui::MenuItem("Save")) {
+      if (ImGui::MenuItem("Update")) {
         io_buffer *buffer = resource->read();
         delete[] buffer->data;
         *buffer = toIoBuffer(editor.GetText());
         resource->signalUpdate();
+      }
+      if (ImGui::MenuItem("Save")) {
+        io_buffer *buffer = resource->read();
+        delete[] buffer->data;
+        *buffer = toIoBuffer(editor.GetText());
       }
       if (ImGui::MenuItem("Quit", "Alt-F4"))
         return;
@@ -419,10 +452,30 @@ struct GlobalMaterial : public EditorWindow {
   };
 };
 
+struct ModelWindow : public EditorWindow {
+  int last_selected = -1;
+
+  ModelWindow() { EditorWindow::name = "ModelWindow"; }
+  void render(int frame) override {
+    simple_vector<std::string> names;
+    for (int i = 0; i < getWorkingModelList()->size(); i++) {
+      names.push(getWorkingModelList()->get(i)->node->getName());
+    }
+    last_selected = gui::selectableList(names, last_selected);
+    if (last_selected > -1 &&
+        getWorkingModelList()->get(last_selected)->material != nullptr) {
+      ImGui::InputInt("zIndex",
+                      &getWorkingModelList()->get(last_selected)->zIndex);
+      gui::materialEditor(getWorkingModelList()->get(last_selected)->material);
+    }
+  }
+};
 static EditorState editorState;
 static EditorWindow *nodeWindow;
 static EditorWindow *componentWindow;
 static EditorWindow *programWindow;
+static EditorWindow *modelWindow;
+
 static int toolbarSize = 30;
 static void dockspace() {
   ImGuiViewport *viewport = ImGui::GetMainViewport();
@@ -447,6 +500,7 @@ static void dockspace() {
   gui::toggleButton("Nodes", &nodeWindow->enabled);
   gui::toggleButton("Comps", &componentWindow->enabled);
   gui::toggleButton("Progs", &programWindow->enabled);
+  gui::toggleButton("Model", &modelWindow->enabled);
   ImGui::End();
   ImGui::PopStyleVar(3);
 }
@@ -471,6 +525,7 @@ void editor::editorRender(int frame) {
   nodeWindow->draw(frame);
   componentWindow->draw(frame);
   programWindow->draw(frame);
+  modelWindow->draw(frame);
   dockspace();
   toolbar();
 
@@ -499,9 +554,11 @@ void editor::editorInit() {
   static NodeTreeWindow nodes = NodeTreeWindow{};
   static ComponentWindow components = ComponentWindow{};
   static ProgramWindow programs = ProgramWindow{};
+  static ModelWindow models = ModelWindow{};
   nodeWindow = &nodes;
   componentWindow = &components;
   programWindow = &programs;
+  modelWindow = &models;
   setupTheme();
 }
 

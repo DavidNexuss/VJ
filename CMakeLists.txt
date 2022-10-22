@@ -20,6 +20,6 @@ file(GLOB_RECURSE JOC joc_src/*.cpp joc_src/*.hpp)
 add_executable(joc ${JOC})
 target_link_libraries(joc shambhala stbimage GL GLEW glfw assimp)
 
-set(CMAKE_CXX_FLAGS "-O3")
+set(CMAKE_CXX_FLAGS "-O3 -flto")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG" )
 set(CMAKE_CXX_STANDARD 17)

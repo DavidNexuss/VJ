@@ -26,6 +26,7 @@ int doSelectionPass(ModelList *models);
 
 glm::mat4 translate(float x, float y, float z);
 glm::mat4 rotate(float x, float y, float z, float angle);
+glm::mat4 rotate(glm::vec3 axis, glm::vec3 center, float angle);
 glm::mat4 scale(float x, float y, float z);
 glm::mat4 scale(float s);
 
@@ -37,5 +38,8 @@ void renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
                      glm::vec4 color = glm::vec4(1.0),
                      glm::vec2 size = glm::vec2(50.0f));
 const char *stacked(GLuint *parameters);
+
+UTexture utextrue(Texture *texture, int unit);
+DynamicTexture dyntexture(Texture *texture, int unit);
 } // namespace util
 } // namespace shambhala

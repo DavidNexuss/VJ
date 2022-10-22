@@ -8,15 +8,18 @@ ParallaxBackground::ParallaxBackground() {
       loader::loadProgram("programs/parallax.fs", "programs/parallax.vs");
   parallaxMesh = util::createScreen();
   setName("ParallaxMap");
+  parallaxNode = shambhala::createNode();
+  parallaxNode->setName("parallaxNode");
 }
-void ParallaxBackground::addParallaxBackground(
-    float speed, shambhala::Texture *texture, int zIndex,
+shambhala::Material *ParallaxBackground::addParallaxBackground(
+    const char *name, float speed, shambhala::Texture *texture, int zIndex,
     shambhala::Program *customProgram) {
 
   Model *parallaxBackground = shambhala::createModel();
   parallaxBackground->mesh = parallaxMesh;
   parallaxBackground->program = parallaxProgram;
-
+  parallaxBackground->node = shambhala::createNode();
+  parallaxBackground->node->setParentNode(parallaxNode);
   if (customProgram != nullptr) {
     parallaxBackground->program = customProgram;
   }
@@ -26,7 +29,7 @@ void ParallaxBackground::addParallaxBackground(
 
   parallaxBackground->depthMask = true;
   if (zIndex == 0)
-    parallaxBackground->zIndex = -(texturecount + 1);
+    parallaxBackground->zIndex = -(texturecount + 1) - 4;
   else
     parallaxBackground->zIndex = zIndex;
 
@@ -38,4 +41,5 @@ void ParallaxBackground::addParallaxBackground(
   models.push(parallaxBackground);
   shambhala::addModel(parallaxBackground);
   texturecount++;
+  return parallaxBackground->material;
 }

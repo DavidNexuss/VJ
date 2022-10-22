@@ -1,21 +1,7 @@
 #pragma once
+#include "atlas.hpp"
+#include "entity/entity.hpp"
 #include <shambhala.hpp>
-
-struct Tile {
-  float xstart;
-  float ystart;
-  float xend;
-  float yend;
-};
-
-struct TileAtlas {
-  virtual Tile getTile(int tileindex) = 0;
-};
-
-struct StaticTile : public TileAtlas {
-  std::unordered_map<int, Tile> tiles;
-  Tile getTile(int tileindex) override;
-};
 
 struct TileAttribute {
   glm::vec3 position;
@@ -27,39 +13,36 @@ struct TileBake {
   glm::vec2 size;
 };
 
-struct TileMap : public shambhala::LogicComponent {
+struct TileMap : public shambhala::LogicComponent, public Entity {
   TileMap(int sizex, int sizey, TileAtlas *atlas, shambhala::Texture *text);
 
+  int zindex = 10;
+
 private:
+  // Baking
+
+  shambhala::FrameBuffer *fbo = nullptr;
+  shambhala::FrameBuffer *bake_fbo = nullptr;
+
+  // Resources
   ResourceHandler levelResource;
   TileAtlas *atlas;
   shambhala::Texture *textureAtlas;
 
-  shambhala::Model *model;
-  shambhala::Model *bakedModel;
+  shambhala::Model *model = nullptr;
+  shambhala::Model *bakedModel = nullptr;
   shambhala::Model *illuminationModel = nullptr;
+  shambhala::Node *rootNode = nullptr;
 
   TileBake bakeInformation;
   TileBake bakeInformationShadow;
   simple_vector<int> tiles;
-
+  int bakeCount = 0;
   int sizex;
   int sizey;
+
   bool needsUpdate = false;
 
-  static int spawnFace(simple_vector<TileAttribute> &vertexBuffer,
-                       simple_vector<int> &indexBuffer, int count, Tile tile,
-                       float x, float y, float p, int orientation);
-
-  static int spawnTile(simple_vector<TileAttribute> &vertexBuffer,
-                       simple_vector<int> &indexBuffer, int count, Tile tile,
-                       int x, int y);
-
-  static int spawnVoxel(simple_vector<TileAttribute> &vertexBuffer,
-                        simple_vector<int> &indexBuffer, int count, Tile tile,
-                        int x, int y);
-
-  void updateShadows();
   void enableBake(bool pEnable);
   void bake();
   void bakeShadows();
@@ -74,6 +57,10 @@ public:
   void step(shambhala::StepInfo info) override;
   void editorStep(shambhala::StepInfo info) override;
   void editorRender() override;
-  void serialize();
+  std::string serialize();
+  void save();
   void loadLevel(IResource *leveldata);
+
+  bool inside(glm::vec2 position) override;
+  void signalHit() override;
 };

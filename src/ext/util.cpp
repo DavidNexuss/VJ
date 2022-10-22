@@ -265,6 +265,11 @@ glm::mat4 util::translate(float x, float y, float z) {
 glm::mat4 util::rotate(float x, float y, float z, float angle) {
   return glm::rotate(glm::mat4(1.0f), angle, glm::vec3(x, y, z));
 }
+glm::mat4 util::rotate(glm::vec3 axis, glm::vec3 center, float angle) {
+  return util::translate(-center.x, -center.y, -center.z) *
+         util::rotate(axis.x, axis.y, axis.z, angle) *
+         util::translate(center.x, center.y, center.z);
+}
 
 glm::mat4 util::scale(float x, float y, float z) {
   return glm::scale(glm::mat4(1.0f), glm::vec3(x, y, z));
@@ -398,4 +403,20 @@ void util::renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
   transform[3] = glm::vec4(origin, 1.0);
   planeModel->node->setTransformMatrix(transform);
   planeModel->draw();
+}
+
+UTexture util::utextrue(Texture *texture, int unit) {
+  UTexture utexture;
+  utexture.unit = unit;
+  utexture.mode = GL_TEXTURE_2D;
+  device::useTexture(texture);
+  utexture.unit = texture->_textureID;
+  return utexture;
+}
+
+DynamicTexture util::dyntexture(Texture *texture, int unit) {
+  DynamicTexture dyn;
+  dyn.unit = unit;
+  dyn.sourceTexture = texture;
+  return dyn;
 }

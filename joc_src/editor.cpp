@@ -8,6 +8,8 @@ using namespace shambhala;
 #include <imgui/imgui.h>
 
 //-----------------------------[TILE MAP]-----------------------------------
+
+bool tilehit = false;
 void TileMap::editorStep(shambhala::StepInfo info) {
 
   glm::mat4 transform = model->node->getCombinedMatrix();
@@ -31,6 +33,8 @@ void TileMap::editorStep(shambhala::StepInfo info) {
 
   if (x >= 0 && y >= 0 && x < sizex && y < sizey) {
 
+    tilehit = inside(glm::vec2(glm::vec2(intersection)));
+
     if (viewport()->isRightMousePressed()) {
       set(x, y, this->editorMaterial);
     }
@@ -40,15 +44,29 @@ void TileMap::editorStep(shambhala::StepInfo info) {
     }
   }
 
-  if (viewport()->isKeyJustPressed(KEY_L)) {
+  if (viewport()->isKeyJustPressed(KEY_UP)) {
+    this->editorMaterial -= 32;
+  }
+
+  if (viewport()->isKeyJustPressed(KEY_DOWN)) {
+    this->editorMaterial += 32;
+  }
+  if (viewport()->isKeyJustPressed(KEY_RIGHT)) {
     this->editorMaterial++;
   }
+
+  if (viewport()->isKeyJustPressed(KEY_LEFT)) {
+    this->editorMaterial--;
+  }
+
+  this->editorMaterial = this->editorMaterial % (32 * 32);
 }
 void TileMap::editorRender() {
 
   if (ImGui::Begin("Tile")) {
     ImGui::InputInt("Current: ", &this->editorMaterial);
-
+    ImGui::Text("Bake count %d", bakeCount);
+    ImGui::Text("Tile hit %d", int(tilehit));
     Tile tile = atlas->getTile(this->editorMaterial);
     glm::vec2 uv = {tile.xstart, tile.ystart};
     glm::vec2 uv2 = {tile.xend, tile.yend};
@@ -87,5 +105,35 @@ void ParallaxBackground::editorRender() {
       gui::materialEditor(models[selected]->material);
       ImGui::End();
     }
+  }
+}
+
+#include "entity/entity.hpp"
+void DynamicPartAtlas::editorRender() {
+  if (ImGui::Begin("DynamicPart")) {
+
+    for (int i = 0; i < 100; i++) {
+      int part = i;
+
+      glm::vec2 textureSize =
+          glm::vec2(textureAtlas->textureData[0].cleanFile()->width,
+                    textureAtlas->textureData[0].cleanFile()->height);
+
+      glm::vec2 offset =
+          glm::vec2(coords[part * 4], coords[part * 4 + 1]) / textureSize;
+      glm::vec2 scale = glm::vec2(coords[part * 4 + 2], coords[part * 4 + 3]);
+
+      glm::vec2 renderScale = scale;
+      scale /= textureSize;
+
+      glm::vec2 uv1 = offset;
+      glm::vec2 uv2 = offset + scale;
+
+      gui::texture(textureAtlas, uv1, uv2, renderScale);
+
+      ImGui::InputInt("Part index", &editor_part);
+      ImGui::Text("%d\n", part);
+    }
+    ImGui::End();
   }
 }

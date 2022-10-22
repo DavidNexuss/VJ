@@ -6,17 +6,6 @@
 #include <glm/ext/matrix_clip_space.hpp>
 using namespace shambhala;
 
-Tile StaticTile::getTile(int tileindex) {
-  Tile tile;
-  float p = 16.0f / 512.0f;
-  tile.xstart = (tileindex % 32) * p;
-  tile.ystart = float(tileindex / 32) * p;
-  tile.xend = tile.xstart + p;
-  tile.yend = tile.ystart + p;
-  std::swap(tile.yend, tile.ystart);
-  return tile;
-}
-
 TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
   tiles.resize(sizex * sizey);
   this->sizex = sizex;
@@ -27,6 +16,7 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
   Program *renderProgram =
       loader::loadProgram("programs/tiled.fs", "programs/regular.vs");
 
+  rootNode = shambhala::createNode("Tile map root");
   // Create regular model
   {
     model = shambhala::createModel();
@@ -47,6 +37,7 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
     model->material = shambhala::createMaterial();
     model->material->set("input", dyn);
     model->node = shambhala::createNode("tileMap");
+    model->node->setParentNode(rootNode);
   }
 
   // Create baked model
@@ -57,8 +48,10 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
     bakedModel->mesh = util::createTexturedQuad();
     bakedModel->material = shambhala::createMaterial();
     bakedModel->node = shambhala::createNode("tileMapBacked");
+    bakedModel->node->setParentNode(rootNode);
   }
 
+  // Create final result model
   {
 
     illuminationModel = shambhala::createModel();
@@ -67,6 +60,7 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
     illuminationModel->mesh = util::createTexturedQuad();
     illuminationModel->material = shambhala::createMaterial();
     illuminationModel->node = shambhala::createNode("tileMapShadows");
+    illuminationModel->node->setParentNode(rootNode);
   }
 
   enableBake(true);
@@ -77,162 +71,6 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
   addModel(illuminationModel);
 }
 
-int TileMap::spawnFace(simple_vector<TileAttribute> &vertexBuffer,
-                       simple_vector<int> &indexBuffer, int count, Tile tile,
-                       float x, float y, float p, int orientation) {
-
-  float z = float(orientation % 2) * p;
-  if (orientation == 0 || orientation == 1) {
-    vertexBuffer[count] = {glm::vec3(x, y, z),
-                           glm::vec2(tile.xstart, tile.ystart)};
-
-    vertexBuffer[count + 1] = {glm::vec3(x + p, y, z),
-                               glm::vec2(tile.xend, tile.ystart)};
-
-    vertexBuffer[count + 2] = {glm::vec3(x, y + p, z),
-                               glm::vec2(tile.xstart, tile.yend)};
-
-    vertexBuffer[count + 3] = {glm::vec3(x + p, y + p, z),
-                               glm::vec2(tile.xend, tile.yend)};
-  } else if (orientation == 2 || orientation == 3) {
-
-    vertexBuffer[count] = {glm::vec3(x + z, y, 0.0),
-                           glm::vec2(tile.xstart, tile.ystart)};
-
-    vertexBuffer[count + 1] = {glm::vec3(x + z, y, 1.0),
-                               glm::vec2(tile.xend, tile.ystart)};
-
-    vertexBuffer[count + 2] = {glm::vec3(x + z, y + p, 0.0),
-                               glm::vec2(tile.xstart, tile.yend)};
-
-    vertexBuffer[count + 3] = {glm::vec3(x + z, y + p, 1.0),
-                               glm::vec2(tile.xend, tile.yend)};
-  } else if (orientation == 4 || orientation == 5) {
-
-    vertexBuffer[count] = {glm::vec3(x, y + z, 0.0),
-                           glm::vec2(tile.xstart, tile.ystart)};
-
-    vertexBuffer[count + 1] = {glm::vec3(x, y + z, 1.0),
-                               glm::vec2(tile.xend, tile.ystart)};
-
-    vertexBuffer[count + 2] = {glm::vec3(x + p, y + z, 0.0),
-                               glm::vec2(tile.xstart, tile.yend)};
-
-    vertexBuffer[count + 3] = {glm::vec3(x + p, y + z, 1.0),
-                               glm::vec2(tile.xend, tile.yend)};
-  }
-  bool swizz = orientation == 1 || orientation == 2 || orientation == 5;
-
-  if (!swizz) {
-    indexBuffer.push(count + 2);
-    indexBuffer.push(count + 1);
-    indexBuffer.push(count);
-
-    indexBuffer.push(count + 1);
-    indexBuffer.push(count + 2);
-    indexBuffer.push(count + 3);
-  } else {
-
-    indexBuffer.push(count);
-    indexBuffer.push(count + 1);
-    indexBuffer.push(count + 2);
-
-    indexBuffer.push(count + 3);
-    indexBuffer.push(count + 2);
-    indexBuffer.push(count + 1);
-  }
-  return count + 4;
-}
-
-int TileMap::spawnTile(simple_vector<TileAttribute> &vertexBuffer,
-                       simple_vector<int> &indexBuffer, int count, Tile tile,
-                       int x, int y) {
-  return spawnFace(vertexBuffer, indexBuffer, count, tile, x, y, 1.0, 1);
-}
-
-int TileMap::spawnVoxel(simple_vector<TileAttribute> &vertexBuffer,
-                        simple_vector<int> &indexBuffer, int count, Tile tile,
-                        int x, int y) {
-  static int l = 1;
-  static float p = 1.0f / l;
-  for (int i = 0; i < l; i++) {
-    for (int j = 0; j < l; j++) {
-      float xx = (x * l + i) / float(l);
-      float yy = (y * l + j) / float(l);
-
-      count = spawnFace(vertexBuffer, indexBuffer, count, tile, xx, yy, p, 0);
-      count = spawnFace(vertexBuffer, indexBuffer, count, tile, xx, yy, p, 1);
-      count = spawnFace(vertexBuffer, indexBuffer, count, tile, xx, yy, p, 2);
-      count = spawnFace(vertexBuffer, indexBuffer, count, tile, xx, yy, p, 3);
-      count = spawnFace(vertexBuffer, indexBuffer, count, tile, xx, yy, p, 4);
-      count = spawnFace(vertexBuffer, indexBuffer, count, tile, xx, yy, p, 5);
-    }
-  }
-  return count;
-}
-
-void TileMap::updateShadows() {
-  if (illuminationModel == nullptr) {
-    illuminationModel = shambhala::createModel();
-    illuminationModel->mesh = shambhala::createMesh();
-    illuminationModel->mesh->vbo = shambhala::createVertexBuffer();
-    illuminationModel->mesh->ebo = shambhala::createIndexBuffer();
-    illuminationModel->program = loader::loadProgram(
-        "programs/tiled_shadows.fs", "programs/tiled_shadows.vs");
-
-    illuminationModel->mesh->vbo->attributes = {{Standard::aPosition, 3},
-                                                {Standard::aUV, 2}};
-    illuminationModel->node = shambhala::createNode();
-    illuminationModel->node->setName("Illumination");
-    illuminationModel->zIndex = 10;
-    addModel(illuminationModel);
-  }
-
-  simple_vector<int> indices;
-  simple_vector<TileAttribute> vertices;
-
-  indices.resize(0);
-  vertices.resize(4 * sizex * sizey);
-
-  int count = 0;
-  glm::vec3 lightDir = glm::normalize(glm::vec3(-0.1, -0.8, 0.0));
-
-  for (int i = 0; i < tiles.size(); i++) {
-    int x = i % sizex;
-    int y = i / sizey;
-    if (tiles[i]) {
-      float px = (y + 1) / lightDir.y;
-      float dx = px * lightDir.x;
-
-      Tile tile = atlas->getTile(tiles[i]);
-      vertices[count] = {glm::vec3(x - dx, 0.0, 0.0),
-                         glm::vec2(tile.xstart, tile.ystart)};
-
-      vertices[count + 1] = {glm::vec3(x + 1 - dx, 0.0, 0.0),
-                             glm::vec2(tile.xend, tile.ystart)};
-
-      vertices[count + 2] = {glm::vec3(x, y + 1, 0.0),
-                             glm::vec2(tile.xstart, tile.yend)};
-
-      vertices[count + 3] = {glm::vec3(x + 1, y + 1, 0.0),
-                             glm::vec2(tile.xend, tile.yend)};
-
-      indices.push(count);
-      indices.push(count + 1);
-      indices.push(count + 2);
-
-      indices.push(count + 3);
-      indices.push(count + 2);
-      indices.push(count + 1);
-      count += 4;
-    }
-  }
-
-  illuminationModel->mesh->vbo->vertexBuffer = vertices.drop();
-  illuminationModel->mesh->ebo->indexBuffer = indices.drop();
-  illuminationModel->mesh->vbo->updateData = true;
-  illuminationModel->mesh->ebo->updateData = true;
-}
 void TileMap::updateMesh() {
   simple_vector<TileAttribute> vertices;
   simple_vector<int> indices;
@@ -281,7 +119,7 @@ void TileMap::updateMesh() {
 
 void TileMap::bakeShadows() {
 
-  static FrameBuffer *fbo = nullptr;
+  bakeCount++;
   static worldmats::SimpleCamera *camera = new worldmats::SimpleCamera;
   static Program *shadowGenerator = loader::loadProgram(
       "programs/tiled_shadow_generator.fs", "programs/regular.vs");
@@ -341,17 +179,16 @@ void TileMap::bakeShadows() {
   illuminationModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.001));
 }
 void TileMap::bake() {
-  static FrameBuffer *fbo = nullptr;
   static worldmats::SimpleCamera *camera = new worldmats::SimpleCamera;
 
-  if (fbo == nullptr) {
-    fbo = shambhala::createFramebuffer();
+  if (bake_fbo == nullptr) {
+    bake_fbo = shambhala::createFramebuffer();
     FrameBufferAttachmentDescriptor desc;
     desc.externalFormat = GL_RGBA;
     desc.internalFormat = GL_RGBA;
     desc.type = GL_UNSIGNED_BYTE;
     desc.useNeareast = true;
-    fbo->addChannel(desc);
+    bake_fbo->addChannel(desc);
   }
 
   TileBake bakeResult;
@@ -363,7 +200,7 @@ void TileMap::bake() {
   {
     viewport()->fakeViewportSize(bakeResult.size.x, bakeResult.size.y);
     shambhala::updateViewport();
-    fbo->begin(bakeResult.size.x, bakeResult.size.y);
+    bake_fbo->begin(bakeResult.size.x, bakeResult.size.y);
     {
       camera->setViewMatrix(glm::mat4(1.0f));
       camera->setProjectionMatrix(
@@ -376,7 +213,7 @@ void TileMap::bake() {
       device::useMaterial(this->model->node);
       device::drawCall();
     }
-    fbo->end();
+    bake_fbo->end();
     viewport()->restoreViewport();
     shambhala::updateViewport();
   }
@@ -384,7 +221,7 @@ void TileMap::bake() {
 
   glEnable(GL_BLEND);
 
-  bakeResult.bakedTexture = fbo->colorAttachments[0];
+  bakeResult.bakedTexture = bake_fbo->colorAttachments[0];
   this->bakeInformation = bakeResult;
 
   UTexture texture;
@@ -437,13 +274,41 @@ void TileMap::step(shambhala::StepInfo info) {
   }
 }
 
-void TileMap::serialize() {
-  printf("%d %d\n", sizex, sizey);
-  for (int i = 0; i < tiles.size(); i++) {
-    printf("%d ", tiles[i]);
+#include <ostream>
+std::string TileMap::serialize() {
+  std::ostringstream ss;
+  ss << "TILEMAP\n";
+  ss << sizex << " " << sizey << "\n";
+  ss << "16 16\n";
+  ss << "tile.png---dat \n";
+  ss << "32 32\n";
+  for (int i = 0; i < sizey; i++) {
+    for (int j = 0; j < sizex; j++) {
+      ss << tiles[i * sizex + j] << " ";
+    }
+    ss << "\n";
   }
+  return ss.str();
 }
+
+void TileMap::save() { levelResource.cleanFile()->write(); }
 
 void TileMap::loadLevel(IResource *leveldata) {
   this->levelResource.acquire(leveldata);
 }
+
+bool TileMap::inside(glm::vec2 position) {
+  float x1 = glm::floor(position.x);
+  float y1 = glm::floor(position.y);
+
+  int x = x1;
+  int y = y1;
+
+  if (x < 0 || y < 0 || x >= sizex || y >= sizey)
+    return 0;
+
+  bool partialhit = tiles[x * sizex + y];
+  return partialhit;
+}
+
+void TileMap::signalHit() {}

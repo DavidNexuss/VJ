@@ -7,19 +7,26 @@ struct StreamSerializer : public ISerializer {
   void serialize(const char *name, float value, int index = 0) override;
   void serialize(const char *name, glm::vec2 value, int index = 0) override;
   void serialize(const char *name, glm::vec3 value, int index = 0) override;
+  void serialize(const char *name, const char *value, int index = 0) override;
 
   io_buffer end() override;
 
   float deserializeFloat(const char *name, int index = 0) override;
   glm::vec2 deserializeVec2(const char *name, int index = 0) override;
-  void deserializeBegin(io_buffer buffer) override;
+
+  void deserialize(io_buffer buffer) override;
 
 private:
   std::string currentData = "";
-  std::string deserializeData = "";
+
+  struct DeserializedData : public DeserializeEntry {
+    std::string data;
+  };
 
   struct DeserializeState {
-    std::unordered_map<std::string, std::string> keyVals;
+    simple_vector<DeserializedData> data;
+    std::unordered_map<std::string, int> keysToData;
   };
+  DeserializeState deserializeState;
 };
 } // namespace shambhala
