@@ -25,7 +25,7 @@ glm::vec2 Player::getShootingCenter() {
 static float maxShootingCharge = 5.0;
 static float minshootingDelay = 1.2;
 static float shootspeed = 3.0;
-static float playerspeed = 20.0;
+static float playerspeed = 6.0;
 
 static glm::vec2 transformedPosition(glm::vec3 p, Node *node) {
   glm::vec4 result = node->getCombinedMatrix() * glm::vec4(p, 1.0);
@@ -80,7 +80,9 @@ void Player::step(shambhala::StepInfo info) {
   x -= viewport()->isKeyPressed(KEY_J);
   y -= viewport()->isKeyPressed(KEY_K);
 
-  playerVelocity = glm::vec2(x, y) * playerspeed * viewport()->deltaTime;
+  glm::vec2 acceleration = glm::vec2(x, y);
+  playerVelocity += acceleration * playerspeed * viewport()->deltaTime;
+  playerVelocity = playerVelocity * 0.8f;
   glm::vec2 oldPlayerPosition = playerPosition;
   playerPosition += playerVelocity * viewport()->deltaTime;
   updatePlayerPosition();
