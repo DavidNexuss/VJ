@@ -12,19 +12,40 @@
 
 using namespace shambhala;
 
+static int playerCoords[] = {20, 14, 43, 34};
 struct ComponentSystem {
-  ShotComponent *shotComponent;
+  ShotComponent *shotComponent = nullptr;
+  Player *playerComponent = nullptr;
 
   ComponentSystem() {
+    initShotComponent();
+    initPlayer();
+  }
+
+  void initShotComponent() {
+
     shotComponent = new ShotComponent;
     addModel(shotComponent);
     addComponent(shotComponent);
-    test();
+  }
+  void initPlayer() {
+
+    DynamicPartAtlas *dyn = new DynamicPartAtlas;
+    dyn->textureAtlas = loader::loadTexture("textures/player.png", 4);
+    dyn->textureAtlas->useNeareast = true;
+    dyn->coords = playerCoords;
+    dyn->renderingProgram =
+        loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
+
+    playerComponent = new Player(shotComponent, dyn);
+    playerComponent->setName("Player");
+    addComponent(playerComponent);
   }
 
-  void test() {}
-
-  void registerEntity(Entity *ent) { shotComponent->addEntity(ent); }
+  void registerEntity(Entity *ent) {
+    shotComponent->addEntity(ent);
+    playerComponent->addEntity(ent);
+  }
 };
 
 ComponentSystem *comp;
@@ -57,19 +78,6 @@ void setupShip() {
   shambhala::addComponent(turret);
 }
 
-static int playerCoords[] = {20, 14, 43, 34};
-void setupPlayerShip() {
-  DynamicPartAtlas *dyn = new DynamicPartAtlas;
-  dyn->textureAtlas = loader::loadTexture("textures/player.png", 4);
-  dyn->textureAtlas->useNeareast = true;
-  dyn->coords = playerCoords;
-  dyn->renderingProgram =
-      loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
-
-  Player *p = new Player(comp->shotComponent, dyn);
-  p->setName("Player");
-  addComponent(p);
-}
 void setupBackground() {
   Material *mat;
 
@@ -212,7 +220,6 @@ void loadTestScene() {
   setupBackground();
   setupShip();
   setupBasic();
-  setupPlayerShip();
 }
 int main() {
   Joc joc;

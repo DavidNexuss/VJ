@@ -8,8 +8,13 @@ struct Player : public shambhala::LogicComponent, EntityComponent {
   void step(shambhala::StepInfo info) override;
 
   glm::vec2 getShootingCenter();
+  AABB containingBox();
+
+  void editorRender() override;
 
 private:
+  void updatePlayerPosition();
+
   float shootingDelay = 0.0;
   float shootingCharge = 0.0;
   shambhala::Node *playerPositionNode;
@@ -18,4 +23,6 @@ private:
 
   ShotComponent *shot = nullptr;
   shambhala::Model *ship_model = nullptr;
+
+  bool isPositionValid(shambhala::Node *node);
 };

@@ -16,5 +16,5 @@ void main() {
   }
   shadow_val = shadow_val / 16.0;
   color = texture(input, st) - shadow_val * 0.5;
-  color.a += shadow_val * 1.6;
+  color.a += shadow_val * 2.0;
 }

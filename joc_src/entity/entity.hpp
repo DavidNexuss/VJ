@@ -7,6 +7,11 @@ struct DynamicPart {
   glm::vec2 scale;
 };
 
+struct AABB {
+  glm::vec2 lower;
+  glm::vec2 higher;
+};
+
 struct DynamicPartAtlas : public shambhala::LogicComponent {
 
   void editorRender() override;
@@ -30,6 +35,7 @@ private:
 struct Entity {
 
   virtual bool inside(glm::vec2 position) = 0;
+  virtual bool inside(glm::vec2 lower, glm::vec2 higher) = 0;
   virtual void signalHit() = 0;
 };
 

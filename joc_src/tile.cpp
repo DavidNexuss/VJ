@@ -316,3 +316,22 @@ bool TileMap::inside(glm::vec2 position) {
 }
 
 void TileMap::signalHit() {}
+
+bool TileMap::inside(glm::vec2 lowerCorner, glm::vec2 highCorner) {
+  int i = lowerCorner.x;
+  int j = lowerCorner.y;
+
+  int ii = highCorner.x;
+  int jj = highCorner.y;
+
+  // TODO get real corners x and y
+  for (int x = i; x < ii; x++) {
+    for (int y = j; y < jj; y++) {
+      if (x >= 0 && y >= 0 && x < sizex && y < sizey) {
+        if (inside(glm::vec2(x, y)))
+          return true;
+      }
+    }
+  }
+  return false;
+}
