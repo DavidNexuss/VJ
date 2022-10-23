@@ -18,18 +18,10 @@ struct ComponentSystem {
     shotComponent = new ShotComponent;
     addModel(shotComponent);
     addComponent(shotComponent);
-    // test();
+    test();
   }
 
-  void test() {
-    int n = 2000;
-    for (int i = 0; i < n; i++) {
-      float p = i / float(n);
-      float x = glm::cos(p * M_PI * 2);
-      float y = glm::sin(p * M_PI * 2);
-      shotComponent->addShot(glm::vec2(-3.0, 10.0), glm::vec2(x, y), 1);
-    }
-  }
+  void test() {}
 
   void registerEntity(Entity *ent) { shotComponent->addEntity(ent); }
 };
@@ -103,8 +95,9 @@ TileMap *createLayer(const char *filename, int sizex, int sizey, int zindex,
   TileMap *tiles =
       new TileMap(sizex, sizey, new StaticTileAtlas, texture, zindex);
   tiles->loadLevel(resource::ioMemoryFile(filename));
-  addComponent(tiles);
   tiles->rootNode->transform(util::translate(0.0, 0.0, z));
+
+  addComponent(tiles);
   return tiles;
 }
 void setupLevel() {
@@ -202,7 +195,7 @@ void loadTestScene() {
   setupComponentSystem();
   setupLevel();
   setupBackground();
-  // setupShip();
+  setupShip();
   setupBasic();
 }
 int main() {

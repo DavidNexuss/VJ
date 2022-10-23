@@ -9,7 +9,7 @@ using namespace shambhala;
 
 //-----------------------------[TILE MAP]-----------------------------------
 
-bool tilehit = false;
+int tilehit = 0;
 void TileMap::editorStep(shambhala::StepInfo info) {
 
   glm::mat4 transform = model->node->getCombinedMatrix();
@@ -29,7 +29,7 @@ void TileMap::editorStep(shambhala::StepInfo info) {
 
   if (x >= 0 && y >= 0 && x < sizex && y < sizey) {
 
-    tilehit = inside(glm::vec2(glm::vec2(intersection)));
+    tilehit = get(x, y);
 
     if (viewport()->isRightMousePressed()) {
       set(x, y, this->editorMaterial);

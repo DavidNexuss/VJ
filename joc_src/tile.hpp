@@ -56,6 +56,7 @@ private:
   int editorMaterial = 1;
 
 public:
+  int get(int i, int j);
   void set(int i, int j, int mat);
   void step(shambhala::StepInfo info) override;
   void editorStep(shambhala::StepInfo info) override;

@@ -1,3 +1,4 @@
+:q
 #include "shot.hpp"
 #include "ext/math.hpp"
 #include "ext/util.hpp"
@@ -11,24 +12,16 @@ ShotComponent::ShotComponent() {
   node = shambhala::createNode();
   program = loader::loadProgram("programs/shot.fs", "programs/instanced.vs");
   material = shambhala::createMaterial();
+
   node->setName("ShotNode");
-  node->transform(util::translate(-0.5, -0.5, 0.2));
-  zIndex = 2;
   setName("ShotComponent");
 }
 
-static int maximumShots = 500;
 void ShotComponent::addShot(glm::vec2 position, glm::vec2 direction, int type) {
   shot_positions.push({position, 0.0});
   shot_velocity.push({direction, 0.0});
   shots.push(Shot{type});
   needsUniformFlush = true;
-
-  if (shot_positions.size() > maximumShots) {
-    shot_positions.removeNShift(0);
-    shot_velocity.removeNShift(0);
-    shots.removeNShift(0);
-  }
 }
 
 void ShotComponent::step(shambhala::StepInfo info) {
@@ -40,16 +33,18 @@ void ShotComponent::step(shambhala::StepInfo info) {
 
   static std::vector<int> hitted;
   hitted.clear();
+
   for (int i = 0; i < shots.size(); i++) {
     bool hit = false;
     for (int j = 0; j < entities.size(); j++) {
       Entity *ent = entities[j];
       if (ent->inside(glm::vec2(shot_positions[i]))) {
         ent->signalHit();
-        if (!hit) {
-          hitted.push_back(i);
-          hit = true;
-        }
+      }
+
+      if (!hit) {
+        hitted.push_back(i);
+        hit = true;
       }
     }
   }
@@ -63,6 +58,7 @@ void ShotComponent::step(shambhala::StepInfo info) {
     shot_velocity.removeNShift(shot);
     shots.removeNShift(shot);
   }
+
   this->instance_count = shot_positions.size();
   needsUniformFlush = true;
 }
@@ -98,7 +94,7 @@ void ShotComponent::editorStep(shambhala::StepInfo info) {
   if (viewport()->isRightMousePressed()) {
     glm::vec3 intersection =
         ext::rayIntersection(info.mouseRay, ext::zplane(0.0));
-    int n = 10;
+    int n = 2000;
     for (int i = 0; i < n; i++) {
       float p = i / float(n);
       float x = glm::cos(p * M_PI * 2);

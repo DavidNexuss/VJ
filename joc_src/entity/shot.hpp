@@ -7,6 +7,7 @@ struct ShotComponent : public shambhala::LogicComponent,
                        public EntityComponent {
 
   ShotComponent();
+  void editorStep(shambhala::StepInfo info) override;
   void addShot(glm::vec2 position, glm::vec2 direction, int type);
   void step(shambhala::StepInfo info) override;
   void draw() override;
