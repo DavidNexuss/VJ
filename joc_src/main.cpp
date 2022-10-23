@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "entity/player.hpp"
 #include "entity/shot.hpp"
 #include "entity/turret.hpp"
 #include "ext/util.hpp"
@@ -54,6 +55,20 @@ void setupShip() {
   turret->target(shambhala::createNode());
   shambhala::addComponent(dyn);
   shambhala::addComponent(turret);
+}
+
+static int playerCoords[] = {20, 14, 43, 34};
+void setupPlayerShip() {
+  DynamicPartAtlas *dyn = new DynamicPartAtlas;
+  dyn->textureAtlas = loader::loadTexture("textures/player.png", 4);
+  dyn->textureAtlas->useNeareast = true;
+  dyn->coords = playerCoords;
+  dyn->renderingProgram =
+      loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
+
+  Player *p = new Player(comp->shotComponent, dyn);
+  p->setName("Player");
+  addComponent(p);
 }
 void setupBackground() {
   Material *mat;
@@ -197,6 +212,7 @@ void loadTestScene() {
   setupBackground();
   setupShip();
   setupBasic();
+  setupPlayerShip();
 }
 int main() {
   Joc joc;

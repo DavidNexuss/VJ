@@ -18,9 +18,11 @@ ShotComponent::ShotComponent() {
 }
 
 static int maximumShots = 500;
-void ShotComponent::addShot(glm::vec2 position, glm::vec2 direction, int type) {
+void ShotComponent::addShot(glm::vec2 position, glm::vec2 direction, int type,
+                            float sizeoffset) {
   shot_positions.push({position, 0.0});
   shot_velocity.push({direction, 0.0});
+  shot_scale.push({sizeoffset});
   shots.push(Shot{type});
   needsUniformFlush = true;
 
@@ -28,6 +30,7 @@ void ShotComponent::addShot(glm::vec2 position, glm::vec2 direction, int type) {
     shot_positions.removeNShift(0);
     shot_velocity.removeNShift(0);
     shots.removeNShift(0);
+    shot_scale.removeNShift(0);
   }
 }
 
@@ -62,6 +65,7 @@ void ShotComponent::step(shambhala::StepInfo info) {
     shot_positions.removeNShift(shot);
     shot_velocity.removeNShift(shot);
     shots.removeNShift(shot);
+    shot_scale.removeNShift(shot);
   }
   this->instance_count = shot_positions.size();
   needsUniformFlush = true;
@@ -74,6 +78,14 @@ void ShotComponent::uniformFlush() {
     positions.VEC3PTR = &shot_positions[0];
     positions.count = this->instance_count;
     device::useUniform("uPositionOffset", positions);
+  }
+
+  {
+    Uniform size;
+    size.type = shambhala::FLOATPTR;
+    size.FLOATPTR = &shot_scale[0];
+    size.count = this->instance_count;
+    device::useUniform("uSizeOffset", size);
   }
 }
 void ShotComponent::draw() {
