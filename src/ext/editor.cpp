@@ -284,24 +284,17 @@ struct NodeTreeWindow : public EditorWindow {
   }
 };
 
-io_buffer toIoBuffer(const std::string &text) {
-  io_buffer buffer;
-  buffer.data = new uint8_t[text.size()];
-  buffer.length = text.size() + 1;
-  mempcpy(buffer.data, &text[0], text.size());
-  buffer.data[text.size()] = 0;
-  return buffer;
-}
 #include <imguiText/TextEditor.h>
-void gui::textEditor(IResource *resource, const char *windowName) {
+void gui::textEditor(ResourceHandler handler, const char *windowName) {
   static TextEditor editor;
-  static IResource *currentResource = nullptr;
+  static IResource *resource = nullptr;
 
-  if (currentResource != resource) {
+  if (resource != handler.cleanFile() || handler.file()) {
+    resource = handler.cleanFile();
     editor.SetText((const char *)resource->read()->data);
-    currentResource = resource;
     editor.SetReadOnly(resource->readOnly);
     editor.SetShowWhitespaces(false);
+    handler.signalAck();
   }
 
   ImGui::Begin(windowName, nullptr,
@@ -311,15 +304,15 @@ void gui::textEditor(IResource *resource, const char *windowName) {
   if (ImGui::BeginMenuBar()) {
     if (ImGui::BeginMenu("File")) {
       if (ImGui::MenuItem("Update")) {
-        io_buffer *buffer = resource->read();
-        delete[] buffer->data;
-        *buffer = toIoBuffer(editor.GetText());
+        resource->set(io_buffer::create(editor.GetText()));
         resource->signalUpdate();
+        handler.signalAck();
       }
       if (ImGui::MenuItem("Save")) {
-        io_buffer *buffer = resource->read();
-        delete[] buffer->data;
-        *buffer = toIoBuffer(editor.GetText());
+        resource->set(io_buffer::create(editor.GetText()));
+        resource->signalUpdate();
+        resource->write();
+        handler.signalAck();
       }
       if (ImGui::MenuItem("Quit", "Alt-F4"))
         return;
@@ -429,7 +422,7 @@ struct ProgramWindow : public EditorWindow {
     }
 
     if (selectedShader != nullptr) {
-      gui::textEditor(selectedShader->file.cleanFile(), "ShaderEditor");
+      gui::textEditor(selectedShader->file, "ShaderEditor");
     }
   }
 };

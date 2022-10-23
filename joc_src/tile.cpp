@@ -6,12 +6,14 @@
 #include <glm/ext/matrix_clip_space.hpp>
 using namespace shambhala;
 
-TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
+TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
+                 int zindex) {
   tiles.resize(sizex * sizey);
   this->sizex = sizex;
   this->sizey = sizey;
   this->atlas = atlas;
   this->textureAtlas = text;
+  this->zindex = zindex;
 
   Program *renderProgram =
       loader::loadProgram("programs/tiled.fs", "programs/regular.vs");
@@ -61,6 +63,7 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text) {
     illuminationModel->material = shambhala::createMaterial();
     illuminationModel->node = shambhala::createNode("tileMapShadows");
     illuminationModel->node->setParentNode(rootNode);
+    illuminationModel->zIndex = zindex;
   }
 
   enableBake(true);
@@ -143,6 +146,8 @@ void TileMap::bakeShadows() {
     fbo->clearColor.w = 1.0;
     fbo->begin(bakeResult.size.x, bakeResult.size.y);
     glm::mat4 viewMat(1.0f);
+    camera->set(Standard::uTransformMatrix, util::scale(sizex, sizey, 1.0));
+
     for (int i = 0; i < 200; i++) {
       camera->setViewMatrix(viewMat);
       viewMat = util::translate(-0.3 * 0.3, -0.6 * 0.3, 0.0) * viewMat;
@@ -153,7 +158,6 @@ void TileMap::bakeShadows() {
       device::useMesh(this->bakedModel->mesh);
       device::useMaterial(this->bakedModel->material);
       device::useMaterial(camera);
-      device::useMaterial(this->bakedModel->node);
 
       device::useUniform("shadowLevel", Uniform(float(i)));
       device::drawCall();
@@ -180,6 +184,7 @@ void TileMap::bakeShadows() {
 }
 void TileMap::bake() {
   static worldmats::SimpleCamera *camera = new worldmats::SimpleCamera;
+  camera->set(Standard::uTransformMatrix, glm::mat4(1.0));
 
   if (bake_fbo == nullptr) {
     bake_fbo = shambhala::createFramebuffer();
@@ -210,7 +215,6 @@ void TileMap::bake() {
       device::useMesh(this->model->mesh);
       device::useMaterial(this->model->material);
       device::useMaterial(camera);
-      device::useMaterial(this->model->node);
       device::drawCall();
     }
     bake_fbo->end();
@@ -271,6 +275,9 @@ void TileMap::step(shambhala::StepInfo info) {
   if (needsUpdate) {
     updateMesh();
     // updateShadows();
+
+    levelResource.cleanFile()->set(io_buffer::create(serialize()));
+    levelResource.signalAck();
   }
 }
 
@@ -282,7 +289,7 @@ std::string TileMap::serialize() {
   ss << "16 16\n";
   ss << "tile.png---dat \n";
   ss << "32 32\n";
-  for (int i = 0; i < sizey; i++) {
+  for (int i = sizey - 1; i >= 0; i--) {
     for (int j = 0; j < sizex; j++) {
       ss << tiles[i * sizex + j] << " ";
     }
@@ -295,6 +302,7 @@ void TileMap::save() { levelResource.cleanFile()->write(); }
 
 void TileMap::loadLevel(IResource *leveldata) {
   this->levelResource.acquire(leveldata);
+  this->levelResourceEditor.acquire(leveldata);
 }
 
 bool TileMap::inside(glm::vec2 position) {

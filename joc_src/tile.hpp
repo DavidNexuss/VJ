@@ -14,11 +14,13 @@ struct TileBake {
 };
 
 struct TileMap : public shambhala::LogicComponent, public Entity {
-  TileMap(int sizex, int sizey, TileAtlas *atlas, shambhala::Texture *text);
+  TileMap(int sizex, int sizey, TileAtlas *atlas, shambhala::Texture *text,
+          int zindex);
 
-  int zindex = 10;
+  shambhala::Node *rootNode = nullptr;
 
 private:
+  int zindex = 10;
   // Baking
 
   shambhala::FrameBuffer *fbo = nullptr;
@@ -26,13 +28,14 @@ private:
 
   // Resources
   ResourceHandler levelResource;
+  ResourceHandler levelResourceEditor;
+
   TileAtlas *atlas;
   shambhala::Texture *textureAtlas;
 
   shambhala::Model *model = nullptr;
   shambhala::Model *bakedModel = nullptr;
   shambhala::Model *illuminationModel = nullptr;
-  shambhala::Node *rootNode = nullptr;
 
   TileBake bakeInformation;
   TileBake bakeInformationShadow;

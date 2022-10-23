@@ -57,6 +57,7 @@ MemoryResource *shambhala::IIO::readFile(const std::string &path) {
   return buff;
 }
 void shambhala::IIO::writeFile(MemoryResource *resource) {
+  LOG("[IO] Writing resource %s to disk\n", resource->resourcename.c_str());
   internal_writeFile(resource->resourcename, resource->buffer);
 }
 

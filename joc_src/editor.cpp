@@ -23,10 +23,6 @@ void TileMap::editorStep(shambhala::StepInfo info) {
   size = size * 0.5f;
   offset = plane.x * float(sizex) * 0.5f + plane.y * float(sizey) * 0.5f;
 
-  util::renderPlaneGrid(plane.x, plane.y,
-                        plane.origin - glm::vec3(0.0, 0.0, 0.01) + offset,
-                        glm::vec4(1.0), size);
-
   glm::vec3 intersection = ext::rayIntersection(info.mouseRay, plane);
   int x = intersection.x;
   int y = intersection.y;
@@ -62,6 +58,23 @@ void TileMap::editorStep(shambhala::StepInfo info) {
   this->editorMaterial = this->editorMaterial % (32 * 32);
 }
 void TileMap::editorRender() {
+  {
+    glm::mat4 transform = model->node->getCombinedMatrix();
+
+    Plane plane;
+    plane.x = glm::vec3(transform[0]);
+    plane.y = glm::vec3(transform[1]);
+    plane.origin = glm::vec3(transform[3]);
+
+    glm::vec3 offset;
+    glm::vec2 size = {sizex, sizey};
+    size = size * 0.5f;
+    offset = plane.x * float(sizex) * 0.5f + plane.y * float(sizey) * 0.5f;
+
+    util::renderPlaneGrid(plane.x, plane.y,
+                          plane.origin - glm::vec3(0.0, 0.0, 0.01) + offset,
+                          glm::vec4(1.0), size);
+  }
 
   if (ImGui::Begin("Tile")) {
     ImGui::InputInt("Current: ", &this->editorMaterial);
@@ -84,7 +97,7 @@ void TileMap::editorRender() {
   }
 
   if (this->levelResource.cleanFile())
-    gui::textEditor(this->levelResource.cleanFile(), "LevelResource");
+    gui::textEditor(this->levelResourceEditor, "LevelResource");
 }
 
 #include "parallax.hpp"

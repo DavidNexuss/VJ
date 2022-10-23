@@ -18,7 +18,7 @@ struct ComponentSystem {
     shotComponent = new ShotComponent;
     addModel(shotComponent);
     addComponent(shotComponent);
-    test();
+    // test();
   }
 
   void test() {
@@ -98,6 +98,15 @@ void setupBackground() {
   shambhala::addComponent(background);
 }
 
+TileMap *createLayer(const char *filename, int sizex, int sizey, int zindex,
+                     Texture *texture, float z) {
+  TileMap *tiles =
+      new TileMap(sizex, sizey, new StaticTileAtlas, texture, zindex);
+  tiles->loadLevel(resource::ioMemoryFile(filename));
+  addComponent(tiles);
+  tiles->rootNode->transform(util::translate(0.0, 0.0, z));
+  return tiles;
+}
 void setupLevel() {
 
   Texture *baseColor = shambhala::createTexture();
@@ -109,17 +118,20 @@ void setupLevel() {
   int sizex = 200;
   int sizey = 20;
 
-  TileMap *tiles = new TileMap(sizex, sizey, new StaticTileAtlas, baseColor);
-  tiles->loadLevel(resource::ioMemoryFile("levels/level01.txt"));
+  TileMap *map =
+      createLayer("levels/level01.txt", sizex, sizey, 1, baseColor, 0.0);
+  comp->registerEntity(map);
+  map->setName("MainLevel");
 
-  shambhala::addComponent(tiles);
-  comp->registerEntity(tiles);
+  map =
+      createLayer("levels/level01_bak.txt", sizex, sizey, 0, baseColor, -0.01);
+  map->setName("MainLevelBackground");
 
-  tiles = new TileMap(sizex, sizey, new StaticTileAtlas, baseColor);
-  tiles->loadLevel(resource::ioMemoryFile("levels/level02.txt"));
-  tiles->zindex = 9;
-  shambhala::addComponent(tiles);
-  comp->registerEntity(tiles);
+  map = createLayer("levels/level01_1.txt", sizex, sizey, -1, baseColor, -5.0);
+  map->setName("Level Back");
+
+  map = createLayer("levels/level01_2.txt", sizex, sizey, 11, baseColor, 5.0);
+  map->setName("Level Front");
 
   // Setup floor
   {
@@ -190,7 +202,7 @@ void loadTestScene() {
   setupComponentSystem();
   setupLevel();
   setupBackground();
-  setupShip();
+  // setupShip();
   setupBasic();
 }
 int main() {

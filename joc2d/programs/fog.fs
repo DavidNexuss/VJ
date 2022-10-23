@@ -23,5 +23,4 @@ void main() {
   color.x *= 0.4;
   color.y *= (0.2 + sin(uTime * 0.1 + vUV.x) * 0.2);
   color.z *= 0.3;
-  color.xyz *= color.a;
 }
