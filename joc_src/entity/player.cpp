@@ -13,6 +13,7 @@ static float playerspeed = 6.0;
 
 Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {
   this->shot = shot;
+  shot->addEntity(this);
   ship_model = atlas->createDynamicPart(0);
   ship_model->zIndex = 3;
   shambhala::addModel(ship_model);
@@ -35,10 +36,18 @@ glm::vec2 Player::getShootingCenter() {
 }
 
 void Player::handleCollision(Collision col) {
-  if (col.typeClass == 2) {
+  if (col.typeClass == COLLISION_ENEMY_SHOT) {
+    printf("AUCH!\n");
   }
 
   PhsyicalObject::handleCollision(col);
+}
+Collision Player::inside(glm::vec2 position) {
+  Collision col;
+  col.typeClass = COLLISION_PLAYER;
+  if (containingBox(getLocalBox()).inside(position))
+    return col;
+  return Collision{};
 }
 void Player::step(shambhala::StepInfo info) {
 

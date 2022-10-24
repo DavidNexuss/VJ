@@ -12,6 +12,7 @@ uniform mat4 uTransformMatrix;
 out mat3 vTBN;
 out vec2 vUV;
 out vec3 vWorldPos;
+flat out int vInstanceID;
 
 uniform vec3 uPositionOffset[500];
 uniform float uSizeOffset[500];
@@ -30,4 +31,5 @@ void main() {
 
     vTBN = mat3(T, B, N);
     vUV = aUV;
+    vInstanceID = gl_InstanceID;
 }

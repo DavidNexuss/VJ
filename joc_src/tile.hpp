@@ -65,7 +65,6 @@ public:
   void save();
   void loadLevel(IResource *leveldata);
 
-  Collision inside(glm::vec2 lowerCorner, glm::vec2 highCorner) override;
-  Collision inside(glm::vec2 position) override;
-  void signalHit() override;
+  Collision inside(glm::vec2 p) override;
+  void signalHit(Collision col) override;
 };

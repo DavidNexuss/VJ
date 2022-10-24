@@ -53,8 +53,20 @@ void ShotComponent::step(shambhala::StepInfo info) {
     bool hit = false;
     for (int j = 0; j < entities.size(); j++) {
       Entity *ent = entities[j];
-      if (ent->inside(glm::vec2(shot_positions[i]))) {
-        ent->signalHit();
+      Collision col = ent->inside(glm::vec2(shot_positions[i]));
+      if (!col.isEmpty()) {
+        Collision chit;
+        chit.typeClass =
+            shots[i].type == 0 ? COLLISION_PLAYER_SHOT : COLLISION_ENEMY_SHOT;
+        if (chit.typeClass == COLLISION_PLAYER_SHOT &&
+            col.typeClass == COLLISION_PLAYER)
+          continue;
+        if (chit.typeClass == COLLISION_ENEMY_SHOT &&
+            col.typeClass == COLLISION_ENEMY)
+          continue;
+
+        ent->signalHit(col);
+
         if (!hit) {
           hitted.push_back(i);
           hit = true;
@@ -85,6 +97,14 @@ void ShotComponent::uniformFlush() {
     positions.VEC3PTR = &shot_positions[0];
     positions.count = this->instance_count;
     device::useUniform("uPositionOffset", positions);
+  }
+
+  {
+    Uniform type;
+    type.type = shambhala::INTPTR;
+    type.INTPTR = (int *)&shots[0];
+    type.count = this->instance_count;
+    device::useUniform("type", type);
   }
 
   {

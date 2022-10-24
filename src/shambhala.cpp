@@ -183,6 +183,9 @@ bool Uniform::bind(GLuint glUniformID) const {
   case UniformType::INT:
     glUniform1i(glUniformID, INT);
     break;
+  case UniformType::INTPTR:
+    glUniform1iv(glUniformID, count, INTPTR);
+    break;
   case UniformType::SAMPLER2D:
     glUniform1i(glUniformID, SAMPLER2D.unit);
     device::useTexture(SAMPLER2D);

@@ -320,9 +320,12 @@ Collision TileMap::inside(glm::vec2 position) {
   return Collision{};
 }
 
-void TileMap::signalHit() {}
+void TileMap::signalHit(Collision col) {}
 
-Collision TileMap::inside(glm::vec2 lowerCorner, glm::vec2 highCorner) {
+/*
+Collision TileMap::inside(AABB box) {
+  glm::vec2 lowerCorner = box.lower;
+  glm::vec2 highCorner = box.higher;
   int i = lowerCorner.x;
   int j = lowerCorner.y;
 
@@ -342,4 +345,4 @@ Collision TileMap::inside(glm::vec2 lowerCorner, glm::vec2 highCorner) {
     }
   }
   return Collision{};
-}
+} */

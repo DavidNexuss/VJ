@@ -109,8 +109,9 @@ struct DynamicTexture {
   o(VEC2, glm::vec2) o(VEC3, glm::vec3) o(VEC4, glm::vec4) o(MAT2, glm::mat2)  \
       o(MAT3, glm::mat3) o(MAT4, glm::mat4) o(FLOAT, float) o(BOOL, bool)      \
           o(INT, int) o(SAMPLER2D, UTexture) o(VEC3PTR, const glm::vec3 *)     \
-              o(BINDLESS_TEXTURE, GLuint64) o(DYNAMIC_TEXTURE, DynamicTexture) \
-                  o(FLOATPTR, float *) o(VEC2PTR, const glm::vec2 *)
+              o(INTPTR, int *) o(BINDLESS_TEXTURE, GLuint64)                   \
+                  o(DYNAMIC_TEXTURE, DynamicTexture) o(FLOATPTR, float *)      \
+                      o(VEC2PTR, const glm::vec2 *)
 
 enum UniformType {
 #define UNIFORMS_ENUMS_DECLARATION(v, T) v,
