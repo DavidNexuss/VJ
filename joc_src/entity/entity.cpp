@@ -69,3 +69,55 @@ DynamicPartAtlas *DynamicPartAtlas::create(shambhala::Program *program,
   atlas->coords = corrds;
   return atlas;
 }
+
+static glm::vec2 transformedPosition(glm::vec2 p, Node *node) {
+  glm::vec4 result = node->getCombinedMatrix() * glm::vec4(p, 0.0, 1.0);
+  return glm::vec2(result);
+}
+
+glm::vec2 AABB::corner(int index) {
+  glm::vec2 position;
+  position.x = (index % 2) == 0 ? lower.x : higher.x;
+  position.y = (index / 2) == 0 ? lower.y : higher.y;
+  return position;
+}
+AABB PhsyicalComponent::containingBox(AABB originalBox) {
+
+  glm::vec2 a = transformedPosition(originalBox.corner(0), immediateNode);
+  glm::vec2 b = transformedPosition(originalBox.corner(1), immediateNode);
+  glm::vec2 c = transformedPosition(originalBox.corner(2), immediateNode);
+  glm::vec2 d = transformedPosition(originalBox.corner(3), immediateNode);
+
+  glm::vec2 min = glm::min(glm::min(a, b), glm::min(c, d));
+  glm::vec2 max = glm::max(glm::max(a, b), glm::max(c, d));
+  return AABB{min, max};
+}
+
+Collision PhsyicalComponent::collisionCheck() {
+  AABB playerAABB = containingBox(getLocalBox());
+  for (int i = 0; i < entities.size(); i++) {
+    Collision col = entities[i]->inside(playerAABB.lower, playerAABB.higher);
+    if (!col.isEmpty())
+      return col;
+  }
+  return Collision{};
+}
+
+void PhsyicalComponent::updateNodePosition(glm::vec2 nodePosition) {
+
+  positionNode->setOffset(glm::vec3(nodePosition, 0.15));
+}
+void PhsyicalComponent::updatePosition(glm::vec2 acceleration) {
+
+  velocity += acceleration * viewport()->deltaTime;
+  velocity = velocity * damping;
+  glm::vec2 oldPlayerPosition = position;
+  position += velocity * viewport()->deltaTime;
+  updateNodePosition(position);
+  Collision col = collisionCheck();
+  if (!col.isEmpty()) {
+    handleCollision(col);
+    position = oldPlayerPosition;
+    updateNodePosition(position);
+  }
+}

@@ -310,14 +310,19 @@ void TileMap::loadLevel(IResource *leveldata) {
   this->levelResourceEditor.acquire(leveldata);
 }
 
-bool TileMap::inside(glm::vec2 position) {
+Collision TileMap::inside(glm::vec2 position) {
 
-  return get(position.x, position.y) != 0;
+  if (get(position.x, position.y) != 0) {
+    Collision col;
+    col.typeClass = COLLISION_WORLD;
+    return col;
+  }
+  return Collision{};
 }
 
 void TileMap::signalHit() {}
 
-bool TileMap::inside(glm::vec2 lowerCorner, glm::vec2 highCorner) {
+Collision TileMap::inside(glm::vec2 lowerCorner, glm::vec2 highCorner) {
   int i = lowerCorner.x;
   int j = lowerCorner.y;
 
@@ -328,10 +333,13 @@ bool TileMap::inside(glm::vec2 lowerCorner, glm::vec2 highCorner) {
   for (int x = i; x < ii; x++) {
     for (int y = j; y < jj; y++) {
       if (x >= 0 && y >= 0 && x < sizex && y < sizey) {
-        if (inside(glm::vec2(x, y)))
-          return true;
+        if (inside(glm::vec2(x, y))) {
+          Collision col;
+          col.typeClass = COLLISION_WORLD;
+          return col;
+        }
       }
     }
   }
-  return false;
+  return Collision{};
 }
