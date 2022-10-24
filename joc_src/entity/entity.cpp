@@ -81,7 +81,7 @@ glm::vec2 AABB::corner(int index) {
   position.y = (index / 2) == 0 ? lower.y : higher.y;
   return position;
 }
-AABB PhsyicalComponent::containingBox(AABB originalBox) {
+AABB PhsyicalObject::containingBox(AABB originalBox) {
 
   glm::vec2 a = transformedPosition(originalBox.corner(0), immediateNode);
   glm::vec2 b = transformedPosition(originalBox.corner(1), immediateNode);
@@ -93,21 +93,25 @@ AABB PhsyicalComponent::containingBox(AABB originalBox) {
   return AABB{min, max};
 }
 
-Collision PhsyicalComponent::collisionCheck() {
+void PhsyicalObject::setEntityComponent(EntityComponent *comp) {
+  component = comp;
+}
+Collision PhsyicalObject::collisionCheck() {
   AABB playerAABB = containingBox(getLocalBox());
-  for (int i = 0; i < entities.size(); i++) {
-    Collision col = entities[i]->inside(playerAABB.lower, playerAABB.higher);
+  for (int i = 0; i < component->entities.size(); i++) {
+    Collision col =
+        component->entities[i]->inside(playerAABB.lower, playerAABB.higher);
     if (!col.isEmpty())
       return col;
   }
   return Collision{};
 }
 
-void PhsyicalComponent::updateNodePosition(glm::vec2 nodePosition) {
+void PhsyicalObject::updateNodePosition(glm::vec2 nodePosition) {
 
   positionNode->setOffset(glm::vec3(nodePosition, 0.15));
 }
-void PhsyicalComponent::updatePosition(glm::vec2 acceleration) {
+void PhsyicalObject::updatePosition(glm::vec2 acceleration) {
 
   velocity += acceleration * viewport()->deltaTime;
   velocity = velocity * damping;
@@ -116,8 +120,13 @@ void PhsyicalComponent::updatePosition(glm::vec2 acceleration) {
   updateNodePosition(position);
   Collision col = collisionCheck();
   if (!col.isEmpty()) {
-    handleCollision(col);
     position = oldPlayerPosition;
     updateNodePosition(position);
+    position += glm::vec2(velocity.x, 0.0) * viewport()->deltaTime;
+    updateNodePosition(position);
+    Collision col = collisionCheck();
+    if (!col.isEmpty()) {
+      handleCollision(col);
+    }
   }
 }

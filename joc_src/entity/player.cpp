@@ -25,6 +25,7 @@ Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {
   setImmediateNode(ship_model->getNode());
   setPositionNode(playerPosition);
   setDamping(0.8);
+  setEntityComponent(this);
 }
 
 glm::vec2 Player::getShootingCenter() {
@@ -37,7 +38,7 @@ void Player::handleCollision(Collision col) {
   if (col.typeClass == 2) {
   }
 
-  PhsyicalComponent::handleCollision(col);
+  PhsyicalObject::handleCollision(col);
 }
 void Player::step(shambhala::StepInfo info) {
 

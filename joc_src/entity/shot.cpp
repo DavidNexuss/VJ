@@ -19,9 +19,10 @@ ShotComponent::ShotComponent() {
 
 static int maximumShots = 500;
 void ShotComponent::addShot(glm::vec2 position, glm::vec2 direction, int type,
-                            float sizeoffset) {
+                            float sizeoffset, glm::vec2 acceleration) {
   shot_positions.push({position, 0.0});
   shot_velocity.push({direction, 0.0});
+  shot_acceleration.push({acceleration, 0.0});
   shot_scale.push({sizeoffset});
   shots.push(Shot{type});
   needsUniformFlush = true;
@@ -31,12 +32,17 @@ void ShotComponent::addShot(glm::vec2 position, glm::vec2 direction, int type,
     shot_velocity.removeNShift(0);
     shots.removeNShift(0);
     shot_scale.removeNShift(0);
+    shot_acceleration.removeNShift(0);
   }
 }
 
 void ShotComponent::step(shambhala::StepInfo info) {
 
   // Physics update
+  for (int i = 0; i < shots.size(); i++) {
+    shot_velocity[i] += shot_acceleration[i] * viewport()->deltaTime;
+  }
+
   for (int i = 0; i < shots.size(); i++) {
     shot_positions[i] += shot_velocity[i] * viewport()->deltaTime;
   }
@@ -66,6 +72,7 @@ void ShotComponent::step(shambhala::StepInfo info) {
     shot_velocity.removeNShift(shot);
     shots.removeNShift(shot);
     shot_scale.removeNShift(shot);
+    shot_acceleration.removeNShift(shot);
   }
   this->instance_count = shot_positions.size();
   needsUniformFlush = true;

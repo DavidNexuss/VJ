@@ -20,10 +20,10 @@ struct DynamicPartAtlas : public shambhala::LogicComponent {
   static DynamicPartAtlas *create(shambhala::Program *,
                                   shambhala::Texture *text, int *corrds);
 
-private:
   void configureNode(int part, shambhala::Node *node);
   void configureMaterial(int part, shambhala::Material *material);
 
+private:
   int editor_part = 0;
 };
 
@@ -58,7 +58,7 @@ struct AABB {
   glm::vec2 corner(int index);
 };
 
-struct PhsyicalComponent : public EntityComponent {
+struct PhsyicalObject {
   Collision collisionCheck();
   void updatePosition(glm::vec2 acceleration);
 
@@ -81,7 +81,10 @@ struct PhsyicalComponent : public EntityComponent {
 
   void updateNodePosition(glm::vec2 position);
 
+  void setEntityComponent(EntityComponent *comp);
+
 private:
+  EntityComponent *component;
   glm::vec2 position = glm::vec2(0.0);
   glm::vec2 velocity = glm::vec2(0.0);
   float damping = 1.0;

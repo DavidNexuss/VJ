@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "entity/enemies/grenade_guy.hpp"
 #include "entity/player.hpp"
 #include "entity/shot.hpp"
 #include "entity/turret.hpp"
@@ -16,6 +17,7 @@ static int playerCoords[] = {20, 14, 43, 34};
 struct ComponentSystem {
   ShotComponent *shotComponent = nullptr;
   Player *playerComponent = nullptr;
+  simple_vector<EntityComponent *> components;
 
   ComponentSystem() {
     initShotComponent();
@@ -40,11 +42,19 @@ struct ComponentSystem {
     playerComponent = new Player(shotComponent, dyn);
     playerComponent->setName("Player");
     addComponent(playerComponent);
+
+    GrenadeGuy *guy = new GrenadeGuy(shotComponent);
+    guy->setName("Guy");
+    addComponent(guy);
+    components.push(guy);
   }
 
   void registerEntity(Entity *ent) {
     shotComponent->addEntity(ent);
     playerComponent->addEntity(ent);
+    for (int i = 0; i < components.size(); i++) {
+      components[i]->addEntity(ent);
+    }
   }
 };
 

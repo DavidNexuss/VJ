@@ -2,7 +2,9 @@
 #include "shot.hpp"
 #include <shambhala.hpp>
 
-struct Player : public shambhala::LogicComponent, public PhsyicalComponent {
+struct Player : public shambhala::LogicComponent,
+                public PhsyicalObject,
+                public EntityComponent {
 
   Player(ShotComponent *shotComponent, DynamicPartAtlas *atlas);
   void step(shambhala::StepInfo info) override;
