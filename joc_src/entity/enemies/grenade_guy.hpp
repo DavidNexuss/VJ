@@ -2,6 +2,25 @@
 #include "../shot.hpp"
 #include "shambhala.hpp"
 #include <glm/common.hpp>
+
+struct EnemyClass {
+  DynamicPartAtlas *atlas;
+  glm::vec2 shotCenter;
+  glm::mat4 scaleTransform;
+  int regularPart = 0;
+  int attackPart = 0;
+};
+
+struct EnemyInstance {
+  bool hit = false;
+  bool isShooting = false;
+  float animationDelay = 0.0;
+  float shootDelay = 0.0;
+  int animationIndex;
+  shambhala::Model *model;
+  shambhala::Node *center;
+};
+
 struct GrenadeGuy : public PhsyicalObject,
                     public shambhala::LogicComponent,
                     public EntityComponent,
