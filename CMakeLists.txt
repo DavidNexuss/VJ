@@ -18,7 +18,7 @@ target_link_libraries(main shambhala stbimage GL GLEW glfw assimp)
 
 file(GLOB_RECURSE JOC joc_src/*.cpp joc_src/*.hpp)
 add_executable(joc ${JOC})
-target_link_libraries(joc shambhala stbimage GL GLEW glfw assimp)
+target_link_libraries(joc shambhala stbimage GL GLEW glfw assimp openal)
 
 set(CMAKE_CXX_FLAGS "-O3 -flto")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DDEBUG" )

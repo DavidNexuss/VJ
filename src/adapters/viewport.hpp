@@ -42,9 +42,9 @@ struct IViewport {
   virtual void imguiBeginRender() = 0;
   virtual void imguiEndRender() = 0;
 
-  bool mousePressed;
-  bool middleMousePressed;
-  bool rightMousePressed;
+  bool mousePressed = false;
+  bool middleMousePressed = false;
+  bool rightMousePressed = false;
 
   glm::vec2 getMouseViewportCoords();
 
@@ -72,14 +72,14 @@ struct IViewport {
   void setScrollY(float y);
 
 protected:
-  float scrollX, scrollY;
-  int backedWidth;
-  int backedHeight;
+  float scrollX = 0.0, scrollY = 0.0;
+  int backedWidth = -1;
+  int backedHeight = -1;
   bool inputEnabled = true;
-  int currentFrame;
+  int currentFrame = -1;
 
-  float screenWidth, screenHeight;
-  float xpos, ypos;
+  float screenWidth = -1, screenHeight = -1;
+  float xpos = -1, ypos = -1;
 
   std::unordered_map<int, int> pressed;
 };
