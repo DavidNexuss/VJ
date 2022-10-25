@@ -23,15 +23,16 @@ void audio::useSoundModel(SoundModel *model) {
   glm::vec3 position =
       model->node->getCombinedMatrix() * glm::vec4(glm::vec3(0.0), 1.0);
 
-  alSourcef(model->al_source, AL_PITCH, model->pitch);
-  alSourcef(model->al_source, AL_GAIN, 1);
-  alSource3f(model->al_source, AL_POSITION, position.x, position.y, position.z);
+  ALC(alSourcef(model->al_source, AL_PITCH, model->pitch));
+  ALC(alSourcef(model->al_source, AL_GAIN, 1.0));
+  ALC(alSource3f(model->al_source, AL_POSITION, position.x, position.y,
+                 position.z));
+
   alSource3f(model->al_source, AL_VELOCITY, model->velocity.x,
              model->velocity.y, model->velocity.z);
   alSourcei(model->al_source, AL_LOOPING, AL_FALSE);
 
   useSoundMesh(model->mesh);
-  alSourcei(model->al_source, AL_BUFFER, model->mesh->al_buffer);
 }
 
 SoundMesh *audio::createSoundMesh() { return new SoundMesh; }
@@ -44,14 +45,14 @@ void audio::useSoundMesh(SoundMesh *mesh) {
     return;
 
   if (mesh->al_buffer == -1) {
-    alGenBuffers((ALuint)1, &mesh->al_buffer);
+    ALC(alGenBuffers((ALuint)1, &mesh->al_buffer));
   }
 
   SoundResource *file = mesh->soundResource.file();
   if (file) {
     file->read();
-    alBufferData(mesh->al_buffer, file->format, file->data, file->size,
-                 file->freq);
+    ALC(alBufferData(mesh->al_buffer, file->format, file->data, file->size,
+                     file->freq));
 
     mesh->soundResource.signalAck();
   }
@@ -59,12 +60,14 @@ void audio::useSoundMesh(SoundMesh *mesh) {
 
 void SoundModel::play() {
   useSoundModel(this);
-  alSourcePlay(al_source);
+  ALC(alSourcei(al_source, AL_BUFFER, mesh->al_buffer));
+  ALC(alSourcePlay(al_source));
 }
 
 SoundResource *audio::createSoundResource(const char *name) {
   SoundResource *resource = new SoundResource;
   resource->resourcename = std::string(name);
+  resource->signalUpdate();
   return resource;
 }
 

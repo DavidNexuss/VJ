@@ -1,5 +1,6 @@
 #include "entity.hpp"
 #include "shot.hpp"
+#include <device/shambhala_audio.hpp>
 #include <shambhala.hpp>
 
 struct Player : public shambhala::LogicComponent,
@@ -23,6 +24,7 @@ private:
 
   ShotComponent *shot = nullptr;
 
+  shambhala::audio::SoundModel *soundModel;
   shambhala::Model *ship_model;
   shambhala::Node *playerPosition;
 };

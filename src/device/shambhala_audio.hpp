@@ -10,13 +10,13 @@ namespace audio {
 // Sound Components
 
 struct SoundResource : public IResource {
-  ALsizei size;
-  ALsizei freq;
-  ALenum format;
-  ALvoid *data;
+  ALsizei size = 0;
+  ALfloat freq = 0;
+  ALenum format = 0;
+  ALvoid *data = nullptr;
   ALboolean loop = AL_FALSE;
 
-  io_buffer io;
+  io_buffer io = {};
   io_buffer *read() override;
 };
 

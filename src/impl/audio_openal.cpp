@@ -3,13 +3,15 @@
 #include "simple_vector.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <AL/alut.h>
+#include <core/core.hpp>
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 
 struct PhysicalDevice {
-  ALCdevice *device;
-  ALCcontext *context;
+  ALCdevice *device = nullptr;
+  ALCcontext *context = nullptr;
 };
 struct AudioDevice {
   simple_vector<PhysicalDevice> devices;
@@ -24,7 +26,11 @@ static AudioDevice device;
 static PhysicalDevice createDevice(const ALCchar *device) {
   PhysicalDevice dev;
   dev.device = alcOpenDevice(device);
+  HardCheck(dev.device != nullptr);
   dev.context = alcCreateContext(dev.device, NULL);
+  HardCheck(alcMakeContextCurrent(dev.context));
+
+  dprintf(2, "[AL] al device created\n");
   return dev;
 }
 
@@ -42,6 +48,9 @@ void AudioOpenAL::destroyDevice() {
 }
 bool AudioOpenAL::initDevice() {
   device.devices.push(createDevice(NULL));
+  alutInitWithoutContext(NULL, NULL);
+
+  dprintf(2, "[AL] al device initialized\n");
   return true;
 }
 
@@ -68,5 +77,9 @@ static void list_audio_devices(const ALCchar *devices) {
   fprintf(stdout, "----------\n");
 }
 
-void AudioOpenAL::loadwave(const char *name, ALenum *format, ALvoid *data,
-                           ALsizei *size, ALsizei *freq, ALboolean *loop) {}
+void AudioOpenAL::loadwave(const char *name, ALenum *format, ALvoid **data,
+                           ALsizei *size, ALfloat *freq, ALboolean *loop) {
+  *data = alutLoadMemoryFromFile(name, format, size, freq);
+
+  printf("[ALUT] Loading from memory %s to %p for %d\n", name, *data, *size);
+}

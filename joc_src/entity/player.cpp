@@ -1,4 +1,5 @@
 #include "player.hpp"
+#include "device/shambhala_audio.hpp"
 #include "ext/util.hpp"
 #include "imgui.h"
 #include "shambhala.hpp"
@@ -27,6 +28,13 @@ Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {
   setPositionNode(playerPosition);
   setDamping(0.8);
   setEntityComponent(this);
+
+  this->soundModel = shambhala::audio::createSoundModel();
+  this->soundModel->node = ship_model->getNode();
+  this->soundModel->mesh = shambhala::audio::createSoundMesh();
+  this->soundModel->mesh->soundResource.acquire(
+      shambhala::audio::createSoundResource("joc2d/music/music.wav"));
+  this->soundModel->play();
 }
 
 glm::vec2 Player::getShootingCenter() {
@@ -90,6 +98,9 @@ void Player::step(shambhala::StepInfo info) {
     hit = glm::max(hit, 0.0f);
     ship_model->material->set("hit", hit);
   }
+
+  // Audio
+  { audio::useSoundModel(this->soundModel); }
 }
 
 void Player::editorRender() {
