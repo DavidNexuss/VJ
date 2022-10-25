@@ -66,5 +66,6 @@ public:
   void loadLevel(IResource *leveldata);
 
   Collision inside(glm::vec2 p) override;
+  Collision inside(AABB collisionBox) override;
   void signalHit(Collision col) override;
 };

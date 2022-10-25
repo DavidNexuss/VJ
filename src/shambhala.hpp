@@ -4,6 +4,7 @@
 #include "adapters/serialize.hpp"
 #include "adapters/viewport.hpp"
 #include "core/core.hpp"
+#include "core/resource.hpp"
 #include "simple_vector.hpp"
 #include <glm/glm.hpp>
 #include <list>
@@ -508,6 +509,17 @@ struct EngineControllers {
 
 struct DeviceParameters {
   int maxTextureUnits;
+};
+
+// Sound Components
+
+struct SoudResource : public IResource {
+  io_buffer *read() override;
+};
+struct SoundModel {
+  ResourceHandlerAbstract<SoudResource> soundResource;
+  Node *node;
+  void play();
 };
 
 struct EngineParameters : public EngineControllers {};

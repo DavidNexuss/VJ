@@ -323,7 +323,6 @@ Collision TileMap::inside(glm::vec2 position) {
 
 void TileMap::signalHit(Collision col) {}
 
-/*
 Collision TileMap::inside(AABB box) {
   glm::vec2 lowerCorner = box.lower;
   glm::vec2 highCorner = box.higher;
@@ -346,4 +345,4 @@ Collision TileMap::inside(AABB box) {
     }
   }
   return Collision{};
-} */
+}
