@@ -127,6 +127,8 @@ void PhsyicalObject::updatePosition(glm::vec2 acceleration) {
     Collision col = collisionCheck();
     if (!col.isEmpty()) {
       handleCollision(col);
+      position = oldPlayerPosition;
+      updateNodePosition(oldPlayerPosition);
     }
   }
 }

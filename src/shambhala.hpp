@@ -346,6 +346,7 @@ struct ModelList {
   simple_vector<Model *> models;
 
   void add(Model *model);
+  void remove(Model *model);
   void forceSorting();
 
   int size() const;
@@ -614,6 +615,8 @@ void popRenderConfiguration();
 ModelList *getWorkingModelList();
 void setWorkingModelList(ModelList *modelList);
 void addModel(Model *model);
+void removeModel(Model *model);
+void destroyModel(Model *model);
 
 void buildSortPass();
 

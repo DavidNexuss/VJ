@@ -55,7 +55,9 @@ void ShotComponent::step(shambhala::StepInfo info) {
       Entity *ent = entities[j];
       Collision col = ent->inside(glm::vec2(shot_positions[i]));
       if (!col.isEmpty()) {
-        Collision chit;
+        Collision chit = col;
+        chit.velocity = shot_velocity[i];
+        chit.damage = shot_scale[i];
         chit.typeClass =
             shots[i].type == 0 ? COLLISION_PLAYER_SHOT : COLLISION_ENEMY_SHOT;
         if (chit.typeClass == COLLISION_PLAYER_SHOT &&
@@ -65,7 +67,7 @@ void ShotComponent::step(shambhala::StepInfo info) {
             col.typeClass == COLLISION_ENEMY)
           continue;
 
-        ent->signalHit(col);
+        ent->signalHit(chit);
 
         if (!hit) {
           hitted.push_back(i);

@@ -508,6 +508,8 @@ static void toolbar() {
       ImGuiWindowFlags_NoSavedSettings;
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
   ImGui::Begin("TOOLBAR", NULL, window_flags);
+  int fps = 1.0f / shambhala::viewport()->deltaTime;
+  ImGui::Text("FPS: %d | Frame time %f", fps, shambhala::viewport()->deltaTime);
   ImGui::PopStyleVar();
 
   ImGui::End();

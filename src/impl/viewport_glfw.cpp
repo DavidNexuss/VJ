@@ -81,6 +81,11 @@ void ViewportGLFW::hideMouse(bool hide) {
 void ViewportGLFW::dispatchRenderEvents() {
   glfwSwapBuffers(currentWindow);
   glfwPollEvents();
+
+  /*
+  float currentFrame = glfwGetTime();
+  deltaTime = (currentFrame - last_time) * 10.0f;
+  last_time = currentFrame; */
 }
 
 bool ViewportGLFW::shouldClose() {

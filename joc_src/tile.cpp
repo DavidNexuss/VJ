@@ -255,7 +255,8 @@ void TileMap::initmap(IResource *resource) {
   std::stringstream ss(std::string((const char *)buff->data));
   std::string trash;
   getline(ss, trash); // READ MARKUP
-  ss >> this->sizex >> this->sizey;
+  int trash1, trash2;
+  ss >> trash1 >> trash2;
   getline(ss, trash); // READ SIZE
   getline(ss, trash); // READ TILE SIZE
   getline(ss, trash); // READ TILENAME

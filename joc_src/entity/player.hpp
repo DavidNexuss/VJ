@@ -17,6 +17,7 @@ struct Player : public shambhala::LogicComponent,
 private:
   void updatePlayerPosition();
 
+  float hit = 0.0;
   float shootingDelay = 0.0;
   float shootingCharge = 0.0;
 

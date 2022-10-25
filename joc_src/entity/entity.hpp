@@ -35,6 +35,8 @@ const static int COLLISION_PLAYER_SHOT = 5;
 
 struct Collision {
   int typeClass = 0;
+  int typeInstance = 0;
+  glm::vec2 velocity;
   int damage = 0;
 
   inline bool isEmpty() { return typeClass == 0; }

@@ -209,4 +209,19 @@ public:
     }
     _size = _size - 1;
   }
+
+  void removeNShiftObject(T object) {
+    bool found = false;
+    int removeIndex;
+    for (int i = 0; i < _size && !found; i++) {
+      if (_data[i] == object) {
+        found = true;
+        removeIndex = i;
+      }
+    }
+
+    if (found) {
+      removeNShift(removeIndex);
+    }
+  }
 };

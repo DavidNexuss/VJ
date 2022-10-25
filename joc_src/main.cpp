@@ -14,6 +14,13 @@
 using namespace shambhala;
 
 static int playerCoords[] = {20, 14, 43, 34};
+
+static int guyCoords[] = {0,   32, 36, 32, 72,  32, 36, 32, 108, 32, 36, 32,
+                          144, 32, 36, 32, 180, 32, 36, 32, 216, 32, 36, 32,
+
+                          0,   64, 36, 32, 72,  64, 36, 32, 108, 64, 36, 32,
+                          144, 64, 36, 32, 180, 64, 36, 32};
+
 struct ComponentSystem {
   ShotComponent *shotComponent = nullptr;
   Player *playerComponent = nullptr;
@@ -22,6 +29,7 @@ struct ComponentSystem {
   ComponentSystem() {
     initShotComponent();
     initPlayer();
+    initEnemies();
   }
 
   void initShotComponent() {
@@ -42,11 +50,27 @@ struct ComponentSystem {
     playerComponent = new Player(shotComponent, dyn);
     playerComponent->setName("Player");
     addComponent(playerComponent);
+  }
+
+  void initEnemies() {
 
     GrenadeGuy *guy = new GrenadeGuy(shotComponent);
     guy->setName("Guy");
     addComponent(guy);
     components.push(guy);
+    {
+      EnemyClass guyClass;
+      guyClass.atlas = createEnemyAtlas("textures/grenade_guy.png", guyCoords);
+      guyClass.scaleTransform = util::scale(2.0);
+      guyClass.regularAnimationCount = 6;
+      guyClass.shootAnimationCount = 3;
+      guyClass.shotCenter = glm::vec2(0.2, 0.9);
+      guy->createEnemyClass(0, guyClass);
+
+      guy->spawnEnemy(0, 80, 11);
+      guy->spawnEnemy(0, 70, 11);
+      guy->spawnEnemy(0, 73, 15);
+    }
   }
 
   void registerEntity(Entity *ent) {
@@ -55,6 +79,17 @@ struct ComponentSystem {
     for (int i = 0; i < components.size(); i++) {
       components[i]->addEntity(ent);
     }
+  }
+
+private:
+  DynamicPartAtlas *createEnemyAtlas(const char *texturePath, int *cords) {
+
+    Texture *text = loader::loadTexture(texturePath, 4);
+    text->useNeareast = true;
+    shambhala::Program *program =
+        loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
+    DynamicPartAtlas *atlas = DynamicPartAtlas::create(program, text, cords);
+    return atlas;
   }
 };
 
@@ -141,7 +176,7 @@ void setupLevel() {
   baseColor->addTextureResource(
       resource::stbiTextureFile("textures/green_tile.png", 4));
 
-  int sizex = 200;
+  int sizex = 400;
   int sizey = 20;
 
   TileMap *map =

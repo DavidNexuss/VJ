@@ -90,11 +90,11 @@ void TileMap::editorRender() {
     gui::texture(textureAtlas, glm::vec2(0.0, 1.0), glm::vec2(1.0, 0.0),
                  glm::vec2(512.0));
   }
-
+  /*
   if (bakeInformation.bakedTexture >= 0 && ImGui::Begin("Baked world")) {
     gui::texture(bakeInformation.bakedTexture, glm::vec2(0.0, 1.0),
                  glm::vec2(1.0, 0.0), bakeInformation.size);
-  }
+  }*/
 
   if (this->levelResource.cleanFile())
     gui::textEditor(this->levelResourceEditor, "LevelResource");

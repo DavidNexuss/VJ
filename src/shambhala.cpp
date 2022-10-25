@@ -1176,6 +1176,11 @@ void ModelList::add(Model *model) {
   }
 }
 
+void ModelList::remove(Model *model) {
+  this->models.removeNShiftObject(model);
+  forceSorting();
+}
+
 bool Texture::needsUpdate() {
   for (int i = 0; i < textureData.size(); i++) {
     if (textureData[i].file())
@@ -1444,6 +1449,9 @@ void shambhala::setWorldMaterial(WorldMatID clas, Material *worldMaterial) {
 }
 
 void shambhala::addModel(Model *model) { getWorkingModelList()->add(model); }
+void shambhala::removeModel(Model *model) {
+  getWorkingModelList()->remove(model);
+}
 
 void shambhala::setWorkingModelList(ModelList *modelList) {
   if (modelList == nullptr) {
@@ -1489,6 +1497,11 @@ Node *shambhala::createNode(const char *name, Node *old) {
     newInstance->setParentNode(engine.rootNode);
   }
   return newInstance;
+}
+
+void shambhala::destroyModel(Model *model) {
+  delete model->node;
+  delete model;
 }
 
 const WorldMatCollection &shambhala::getWorldMaterials() {

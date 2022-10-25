@@ -4,8 +4,10 @@ out vec4 color;
 uniform sampler2D input;
 uniform vec2 uv_scale;
 uniform vec2 uv_offset;
+uniform float hit = 0.0;
 
 void main() { 
   vec2 st = vUV * uv_scale + uv_offset;
   color = texture2D(input,st);
+  color.yz *= (2.0 - hit)  / 2.0;
 }

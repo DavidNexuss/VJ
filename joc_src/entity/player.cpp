@@ -37,7 +37,7 @@ glm::vec2 Player::getShootingCenter() {
 
 void Player::handleCollision(Collision col) {
   if (col.typeClass == COLLISION_ENEMY_SHOT) {
-    printf("AUCH!\n");
+    hit = 2.0;
   }
 
   PhsyicalObject::handleCollision(col);
@@ -82,6 +82,13 @@ void Player::step(shambhala::StepInfo info) {
         this->shootingDelay = 0.0;
       }
     }
+  }
+
+  // Uniform update
+  {
+    hit -= viewport()->deltaTime;
+    hit = glm::max(hit, 0.0f);
+    ship_model->material->set("hit", hit);
   }
 }
 

@@ -17,5 +17,8 @@ struct ViewportGLFW : public IViewport {
   void imguiEndRender() override;
 
   void *createWindow(const WindowConfiguration &configuration) override;
+
+private:
+  float last_time = 0;
 };
 } // namespace shambhala
