@@ -20,8 +20,8 @@ struct EnemyClass {
   DynamicPartAtlas *atlas;
   glm::vec2 shotCenter = glm::vec2(0.0);
   glm::vec2 gravity = glm::vec2(0.0, -5.0);
-  glm::vec2 shotGravity = glm::vec2(0.0, -1.0);
-  glm::vec2 shotDirection = glm::vec2(-0.5, 0.5) * 3.0f;
+  glm::vec2 shotGravity = glm::vec2(0.0, -0.3);
+  glm::vec2 shotDirection = glm::vec2(-0.5, 0.5) * 4.0f;
   float shotSize = 3.0;
   float maxHealth = 8.0;
   int shootCount = 4;
