@@ -15,6 +15,11 @@ struct SimpleCamera : public Material {
   inline glm::mat4 getCombinedMatrix() { return combinedMatrix; }
   inline glm::mat4 getInvViewMatrix() { return invViewMatrix; }
 
+  inline bool cull(glm::vec3 point) {
+    glm::vec4 p = getCombinedMatrix() * glm::vec4(point, 1.0);
+    return p.x >= -1.0 && p.x <= 1.0 && p.y >= -1.0 && p.y <= 1.0;
+  }
+
 private:
   void updateMatrices();
   glm::mat4 viewMatrix = glm::mat4(1.0f);

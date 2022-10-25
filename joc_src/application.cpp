@@ -1,6 +1,7 @@
 #include "application.hpp"
 #include "ext/worldmat.hpp"
 #include <ext.hpp>
+#include <impl/audio_openal.hpp>
 #include <impl/io_linux.hpp>
 #include <impl/io_std.hpp>
 #include <impl/logger.hpp>
@@ -18,6 +19,7 @@ void Joc::enginecreate() {
   parameters.viewport = new shambhala::ViewportGLFW;
   parameters.logger = new shambhala::DefaultLogger;
   parameters.serializer = new shambhala::StreamSerializer;
+  parameters.audio = new AudioOpenAL;
 
   parameters.io->translators.push_back("assets/%s");
   parameters.io->translators.push_back("internal_assets/%s");

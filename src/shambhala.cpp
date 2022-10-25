@@ -1430,6 +1430,7 @@ void shambhala::destroyEngine() {}
 //---------------------[BEGIN ENGINECONFIGURATION]
 void shambhala::createEngine(EngineParameters parameters) {
   engine.controllers = parameters;
+  engine.controllers.audio->initDevice();
   engine.init();
 }
 
@@ -1470,6 +1471,7 @@ ISerializer *shambhala::serializer() { return engine.controllers.serializer; }
 IViewport *shambhala::viewport() { return engine.controllers.viewport; }
 IIO *shambhala::io() { return engine.controllers.io; }
 ILogger *shambhala::log() { return engine.controllers.logger; }
+audio::IAudio *shambhala::aud() { return engine.controllers.audio; }
 
 //---------------------[END ENGINECONFIGURATION]
 

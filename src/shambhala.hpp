@@ -1,4 +1,5 @@
 #pragma once
+#include "adapters/audio.hpp"
 #include "adapters/io.hpp"
 #include "adapters/log.hpp"
 #include "adapters/serialize.hpp"
@@ -505,21 +506,11 @@ struct EngineControllers {
   shambhala::IViewport *viewport = nullptr;
   shambhala::IIO *io = nullptr;
   shambhala::ILogger *logger = nullptr;
+  shambhala::audio::IAudio *audio = nullptr;
 };
 
 struct DeviceParameters {
   int maxTextureUnits;
-};
-
-// Sound Components
-
-struct SoudResource : public IResource {
-  io_buffer *read() override;
-};
-struct SoundModel {
-  ResourceHandlerAbstract<SoudResource> soundResource;
-  Node *node;
-  void play();
 };
 
 struct EngineParameters : public EngineControllers {};
@@ -636,6 +627,7 @@ void buildSortPass();
 ISerializer *serializer();
 IViewport *viewport();
 IIO *io();
+audio::IAudio *aud();
 
 void createEngine(EngineParameters parameters);
 void *createWindow(const WindowConfiguration &configuration);
