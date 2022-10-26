@@ -31,6 +31,8 @@ static PhysicalDevice createDevice(const ALCchar *device) {
   HardCheck(alcMakeContextCurrent(dev.context));
 
   dprintf(2, "[AL] al device created\n");
+
+  audio::debugDevice = dev.device;
   return dev;
 }
 

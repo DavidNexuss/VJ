@@ -6,6 +6,38 @@
 using namespace shambhala;
 using namespace shambhala::audio;
 
+struct SoundBindState {
+  simple_vector<ALuint> toRemoveSources;
+};
+
+static SoundBindState sound_bindState;
+
+void audio::device::diposeSource(ALuint source) {
+  sound_bindState.toRemoveSources.push(source);
+}
+
+bool audio::device::isPlaying(ALuint source) {
+  ALenum state;
+  ALC(alGetSourcei(source, AL_SOURCE_STATE, &state));
+  return (state == AL_PLAYING);
+}
+
+void audio::device::step_dispose() {
+  static simple_vector<ALuint> toRemove;
+  toRemove.clear();
+
+  for (int i = 0; i < sound_bindState.toRemoveSources.size(); i++) {
+    if (!isPlaying(sound_bindState.toRemoveSources[i])) {
+      toRemove.push(sound_bindState.toRemoveSources[i]);
+      sound_bindState.toRemoveSources.removeNShift(i);
+      i--;
+    }
+  }
+
+  if (toRemove.size())
+    ALC(alDeleteSources((ALuint)toRemove.size(), &toRemove[0]));
+}
+
 io_buffer *SoundResource::read() {
   aud()->loadwave(resourcename.c_str(), &format, &data, &size, &freq, &loop);
   io.data = (uint8_t *)data;
@@ -78,3 +110,11 @@ audio::SoundModel *util::spawnSoundModel(const char *name) {
   model->node = shambhala::createNode();
   return model;
 }
+
+SoundModel::~SoundModel() {
+  if (al_source != -1) {
+    audio::device::diposeSource(al_source);
+  }
+}
+
+void audio::loop_stepAudio() { device::step_dispose(); }

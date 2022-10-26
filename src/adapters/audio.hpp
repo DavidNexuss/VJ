@@ -3,12 +3,20 @@
 #include <AL/al.h>
 #include <glm/glm.hpp>
 
+struct ALCdevice;
+namespace shambhala {
+namespace audio {
+inline ALCdevice *debugDevice = nullptr;
+}
+} // namespace shambhala
 #define ALC(X)                                                                 \
   {                                                                            \
+    alGetError();                                                              \
     { X; }                                                                     \
     auto error = alGetError();                                                 \
     if (error != AL_NO_ERROR) {                                                \
-      LOG("Error", 0);                                                         \
+      LOG("Error %p %s", audio::debugDevice,                                   \
+          alcGetString(audio::debugDevice, error));                            \
     }                                                                          \
   }
 namespace shambhala {

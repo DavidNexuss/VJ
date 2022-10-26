@@ -26,6 +26,7 @@ struct SoundMesh {
 };
 
 struct SoundModel {
+
   SoundMesh *mesh;
   Node *node = nullptr;
 
@@ -36,12 +37,22 @@ struct SoundModel {
   void play();
 
   ALuint al_source = -1;
+
+  ~SoundModel();
 };
+
+namespace device {
+bool isPlaying(ALuint source);
+void diposeSource(ALuint source);
+void step_dispose();
+} // namespace device
 
 SoundMesh *createSoundMesh();
 SoundModel *createSoundModel();
 void useSoundModel(SoundModel *model);
 void useSoundMesh(SoundMesh *mesh);
+
+void loop_stepAudio();
 
 SoundResource *createSoundResource(const char *name);
 } // namespace audio

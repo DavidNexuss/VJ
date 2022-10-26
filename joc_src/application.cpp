@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "device/shambhala_audio.hpp"
 #include "ext/worldmat.hpp"
 #include <ext.hpp>
 #include <impl/audio_openal.hpp>
@@ -54,6 +55,7 @@ void Joc::loop() {
   editor::editorInit();
   do {
 
+    shambhala::audio::loop_stepAudio();
     shambhala::loop_begin();
     {
       shambhala::loop_io_sync_step();
