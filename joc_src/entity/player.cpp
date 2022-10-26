@@ -34,6 +34,7 @@ Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {
   this->soundModel->mesh = shambhala::audio::createSoundMesh();
   this->soundModel->mesh->soundResource.acquire(
       shambhala::audio::createSoundResource("joc2d/music/music.wav"));
+  this->soundModel->loop = true;
   this->soundModel->play();
 }
 

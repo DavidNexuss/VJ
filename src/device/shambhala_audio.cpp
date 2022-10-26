@@ -30,7 +30,7 @@ void audio::useSoundModel(SoundModel *model) {
 
   alSource3f(model->al_source, AL_VELOCITY, model->velocity.x,
              model->velocity.y, model->velocity.z);
-  alSourcei(model->al_source, AL_LOOPING, AL_FALSE);
+  alSourcei(model->al_source, AL_LOOPING, model->loop ? AL_TRUE : AL_FALSE);
 
   useSoundMesh(model->mesh);
 }

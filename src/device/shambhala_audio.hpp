@@ -32,6 +32,7 @@ struct SoundModel {
   // Update using node interpolation
   glm::vec3 velocity = glm::vec3(0.0);
   float pitch = 1.0;
+  bool loop = false;
   void play();
 
   ALuint al_source = -1;

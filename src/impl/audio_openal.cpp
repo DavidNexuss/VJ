@@ -79,7 +79,13 @@ static void list_audio_devices(const ALCchar *devices) {
 
 void AudioOpenAL::loadwave(const char *name, ALenum *format, ALvoid **data,
                            ALsizei *size, ALfloat *freq, ALboolean *loop) {
+  alutGetError();
   *data = alutLoadMemoryFromFile(name, format, size, freq);
+  ALenum error = alutGetError();
+  printf("[ALUT] Loading from memory %s to %p for %d, errorState %d \n", name,
+         *data, *size, error);
 
-  printf("[ALUT] Loading from memory %s to %p for %d\n", name, *data, *size);
+  if (error) {
+    printf("[ALUT] %s\n", alutGetErrorString(error));
+  }
 }
