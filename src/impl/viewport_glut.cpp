@@ -1,4 +1,5 @@
 #include "viewport_glut.hpp"
+#include <GL/freeglut_std.h>
 #include <GL/glut.h>
 
 using namespace shambhala;
@@ -7,7 +8,7 @@ static void keyboardDownCallback(unsigned char key, int x, int y) {}
 static void keyboardUpCallback(unsigned char key, int x, int y) {}
 static void motionCallback(int x, int y) {}
 static void mouseCallback(int button, int state, int x, int y) {}
-static void drawCallback() {}
+static void drawCallback() { glutSwapBuffers(); }
 static void idleCallback() {}
 
 void viewportGLUT::setActiveWindow(void *window) {}
@@ -34,3 +35,8 @@ void *viewportGLUT::createWindow(const WindowConfiguration &configuration) {
   glutMotionFunc(motionCallback);
   return nullptr;
 }
+
+void viewportGLUT::imguiBeginRender() {}
+void viewportGLUT::imguiEndRender() {}
+void viewportGLUT::imguiDispose() {}
+void viewportGLUT::imguiInit(int openglmajor, int openglminor) {}

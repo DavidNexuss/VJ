@@ -7,8 +7,15 @@
 #include <impl/io_std.hpp>
 #include <impl/logger.hpp>
 #include <impl/serialize.hpp>
-#include <impl/viewport_glfw.hpp>
 #include <shambhala.hpp>
+
+#ifdef GLFW
+#include <impl/viewport_glfw.hpp>
+#endif
+
+#ifdef GLUT
+#include <impl/viewport_glut.hpp>
+#endif
 
 using namespace shambhala;
 
@@ -17,7 +24,13 @@ void Joc::enginecreate() {
   // Setup engine and window
   EngineParameters parameters;
   parameters.io = new shambhala::LinuxIO;
+#ifdef GLUT
+  parameters.viewport = new shambhala::viewportGLUT;
+#endif
+
+#ifdef GLFW
   parameters.viewport = new shambhala::ViewportGLFW;
+#endif
   parameters.logger = new shambhala::DefaultLogger;
   parameters.serializer = new shambhala::StreamSerializer;
   parameters.audio = new AudioOpenAL;
@@ -52,7 +65,9 @@ void Joc::enginecreate() {
 }
 
 void Joc::loop() {
+#ifdef EDITOR
   editor::editorInit();
+#endif
   do {
 
     shambhala::audio::loop_stepAudio();
@@ -62,11 +77,13 @@ void Joc::loop() {
       shambhala::loop_beginRenderContext(mainShot.currentFrame);
       shambhala::loop_componentUpdate();
       mainCamera->render(mainShot);
+#ifdef EDITOR
       shambhala::loop_beginUIContext();
       editor::editorBeginContext();
       editor::editorRender(mainShot.currentFrame);
       editor::editorEndContext();
       shambhala::loop_endUIContext();
+#endif
       shambhala::loop_endRenderContext();
     }
     shambhala::loop_end();

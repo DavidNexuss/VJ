@@ -9,5 +9,10 @@ struct viewportGLUT : public IViewport {
   virtual void *createWindow(const WindowConfiguration &configuration) override;
   virtual void dispatchRenderEvents() override;
   virtual bool shouldClose() override;
+
+  virtual void imguiInit(int openglmajor, int openglminor) override;
+  virtual void imguiDispose() override;
+  virtual void imguiBeginRender() override;
+  virtual void imguiEndRender() override;
 };
 } // namespace shambhala

@@ -194,7 +194,9 @@ void DebugCamera::step(StepInfo info) {
     glm::vec3 offset =
         getInvViewMatrix() * glm::vec4(glm::vec3(moveDirection, 0.0), 0.0);
 
-    nextTarget = lastTarget + offset * distance;
+    moveOffset += offset * 10.0f;
+
+    // nextTarget = lastTarget + offset * distance;
 
     if (!middleMousePressed && middlepressed) {
       middlepressed = false;
@@ -214,7 +216,7 @@ void DebugCamera::step(StepInfo info) {
   glm::vec3 target = currentTarget * (1.0f - p) + nextTarget * p;
   glm::vec3 viewpos = target - interpDirection * distance;
 
-  Camera::lookAt(viewpos, target);
+  Camera::lookAt(viewpos + moveOffset, target + moveOffset);
   Camera::step(info);
 }
 

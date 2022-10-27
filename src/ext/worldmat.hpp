@@ -84,6 +84,7 @@ private:
   float lastBeta = 0.0;
 
   glm::vec3 lastTarget = glm::vec3(0.0);
+  glm::vec3 moveOffset = glm::vec3(0.0);
 };
 
 class FlyCamera : public Camera {
