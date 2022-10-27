@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.20)
 project(Shambhala)
 file(GLOB_RECURSE SRC src/*.cpp src/*.hpp)
 include_directories(src)
