@@ -4,6 +4,8 @@
 #include <ext.hpp>
 using namespace shambhala;
 
+static int max_colision_checks = 10;
+
 void DynamicPartAtlas::configureNode(int part, Node *node) {
 
   glm::vec2 scale = glm::vec2(coords[part * 4 + 2], coords[part * 4 + 3]);
@@ -111,8 +113,8 @@ void PhsyicalObject::updateNodePosition(glm::vec2 nodePosition) {
 
   positionNode->setOffset(glm::vec3(nodePosition, 0.15));
 }
-void PhsyicalObject::updatePosition(glm::vec2 acceleration) {
 
+bool PhsyicalObject::updatePositionStep(glm::vec2 acceleration, float delta) {
   velocity += acceleration * viewport()->deltaTime;
   velocity = velocity * damping;
   glm::vec2 oldPlayerPosition = position;
@@ -120,6 +122,7 @@ void PhsyicalObject::updatePosition(glm::vec2 acceleration) {
   updateNodePosition(position);
   Collision col = collisionCheck();
   if (!col.isEmpty()) {
+
     position = oldPlayerPosition;
     updateNodePosition(position);
     position += glm::vec2(velocity.x, 0.0) * viewport()->deltaTime;
@@ -129,6 +132,16 @@ void PhsyicalObject::updatePosition(glm::vec2 acceleration) {
       handleCollision(col);
       position = oldPlayerPosition;
       updateNodePosition(oldPlayerPosition);
+      return false;
     }
+  }
+  return true;
+}
+void PhsyicalObject::updatePosition(glm::vec2 acceleration) {
+  bool correct = false;
+  float delta = viewport()->deltaTime;
+  for (int i = 0; i < max_colision_checks && !correct; i++) {
+    correct |= updatePositionStep(acceleration, delta);
+    delta = delta * 0.5f;
   }
 }

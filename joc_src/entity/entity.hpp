@@ -37,6 +37,7 @@ struct Collision {
   int typeClass = 0;
   int typeInstance = 0;
   glm::vec2 velocity;
+  glm::vec2 shortestPosition;
   int damage = 0;
 
   inline bool isEmpty() { return typeClass == 0; }
@@ -113,6 +114,7 @@ struct PhsyicalObject {
   void setEntityComponent(EntityComponent *comp);
 
 private:
+  bool updatePositionStep(glm::vec2 acceleration, float delta);
   EntityComponent *component;
   glm::vec2 position = glm::vec2(0.0);
   glm::vec2 velocity = glm::vec2(0.0);

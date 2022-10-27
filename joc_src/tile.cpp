@@ -339,6 +339,7 @@ Collision TileMap::inside(AABB box) {
         if (inside(glm::vec2(x, y))) {
           Collision col;
           col.typeClass = COLLISION_WORLD;
+          col.shortestPosition = glm::vec2(x, y);
           return col;
         }
       }
