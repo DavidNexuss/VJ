@@ -235,18 +235,14 @@ Model *util::modelCreateSkyBox(
   }
   skyCubemap->textureMode = GL_TEXTURE_CUBE_MAP;
 
-  DynamicTexture dyn;
-  dyn.sourceTexture = skyCubemap;
-  dyn.unit = Standard::tSkyBox;
-  result->material->set(Standard::uSkyBox, dyn);
+  result->material->set(Standard::uSkyBox, skyCubemap);
 
   return result;
 }
 
 RenderCamera *util::createPassThroughCamera(RenderCamera *input) {
-  RenderCamera *result = shambhala::createRenderCamera();
-  result->addInput(input, 0, "input");
-  result->postprocessProgram = createPassthroughEffect();
+  RenderCamera *result = new PostProcessCamera(createPassthroughEffect());
+  result->set("input", input->renderOutput(0));
   return result;
 }
 const char *util::stacked(GLuint *array) {
@@ -294,7 +290,6 @@ void util::renderLine(glm::vec3 start, glm::vec3 end, Material *material) {
 
     renderModel = shambhala::createModel();
     renderModel->program = probe;
-    renderModel->node = shambhala::createNode();
     renderModel->mesh = shambhala::createMesh();
     renderModel->mesh->vbo = shambhala::createVertexBuffer();
     renderModel->mesh->vbo->vertexBuffer = {vertex_data, 6};
@@ -309,7 +304,7 @@ void util::renderLine(glm::vec3 start, glm::vec3 end, Material *material) {
   transform[2] = glm::vec4(offset, 0.0);
   transform[3] = glm::vec4(start, 1.0);
 
-  renderModel->node->setTransformMatrix(transform);
+  renderModel->getNode()->setTransformMatrix(transform);
   renderModel->material = material;
   renderModel->draw();
 }
@@ -325,7 +320,6 @@ void util::renderPoint(glm::vec3 start, glm::vec3 color) {
 
     renderModel = shambhala::createModel();
     renderModel->program = probe;
-    renderModel->node = shambhala::createNode();
     renderModel->mesh = shambhala::createMesh();
     renderModel->mesh->vbo = shambhala::createVertexBuffer();
     renderModel->mesh->vbo->vertexBuffer = {vertex_data, 6};
@@ -338,7 +332,7 @@ void util::renderPoint(glm::vec3 start, glm::vec3 color) {
   glm::mat4 transform = glm::mat4(1.0f);
   transform[3] = glm::vec4(start, 1.0);
 
-  renderModel->node->setTransformMatrix(transform);
+  renderModel->getNode()->setTransformMatrix(transform);
   renderModel->material = shambhala::createMaterial();
   renderModel->material->set("uColor", glm::vec4(color, 1.0));
   renderModel->draw();
@@ -353,14 +347,14 @@ int util::doSelectionPass(ModelList *models) {
   if (selectionBuffer == nullptr) {
     selectionBuffer = shambhala::createFramebuffer();
     selectionBuffer->setConfiguration(USE_RENDER_BUFFER | USE_DEPTH);
-    selectionBuffer->addChannel({GL_R8, GL_RED, GL_UNSIGNED_BYTE});
+    selectionBuffer->addOutput({GL_R8, GL_RED, GL_UNSIGNED_BYTE});
   }
 
   glDisable(GL_MULTISAMPLE);
   selectionBuffer->begin(viewport()->getScreenWidth(),
                          viewport()->getScreenHeight());
 
-  device::useProgram(selection);
+  selection->use();
 
   const std::vector<int> &order = models->getRenderOrder();
   for (int i = 0; i < order.size(); i++) {
@@ -368,9 +362,9 @@ int util::doSelectionPass(ModelList *models) {
     if (model->hint_selectionpass && model->isEnabled()) {
 
       selectionMaterial->set("uModelID", model->hint_modelid);
-      device::useMesh(model->mesh);
-      device::useMaterial(model->node);
-      device::useMaterial(selectionMaterial);
+      model->mesh->use();
+      model->getNode()->use();
+      selectionMaterial->use();
       device::drawCall();
     }
   }
@@ -394,29 +388,12 @@ void util::renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
     planeModel->material = shambhala::createMaterial();
     planeModel->material->set("uColor", color);
     planeModel->mesh = createScreen();
-    planeModel->node = shambhala::createNode();
   }
-  glm::mat4 transform = planeModel->node->transformMatrix;
+  glm::mat4 transform = planeModel->getNode()->transformMatrix;
   transform[0] = glm::vec4(x * size.x, 0.0);
   transform[1] = glm::vec4(y * size.y, 0.0);
   transform[2] = glm::vec4(glm::normalize(glm::cross(x, y)), 0.0);
   transform[3] = glm::vec4(origin, 1.0);
-  planeModel->node->setTransformMatrix(transform);
+  planeModel->getNode()->setTransformMatrix(transform);
   planeModel->draw();
-}
-
-UTexture util::utextrue(Texture *texture, int unit) {
-  UTexture utexture;
-  utexture.unit = unit;
-  utexture.mode = GL_TEXTURE_2D;
-  device::useTexture(texture);
-  utexture.unit = texture->_textureID;
-  return utexture;
-}
-
-DynamicTexture util::dyntexture(Texture *texture, int unit) {
-  DynamicTexture dyn;
-  dyn.unit = unit;
-  dyn.sourceTexture = texture;
-  return dyn;
 }

@@ -147,9 +147,9 @@ void ShotComponent::uniformFlush() {
 void ShotComponent::draw() {
   glDisable(GL_DEPTH_TEST);
   if (this->instance_count != 0) {
-    device::useProgram(program);
-    device::useMesh(mesh);
-    device::useMaterial(node);
+    program->use();
+    mesh->use();
+    node->use();
 
     if (needsUniformFlush) {
       uniformFlush();

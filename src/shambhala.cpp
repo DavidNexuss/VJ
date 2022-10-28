@@ -19,7 +19,6 @@
   } while (0)
 
 #define TEXTURE_CACHING 1
-
 using namespace shambhala;
 
 void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
@@ -42,13 +41,21 @@ struct SelectionHint {
 
 struct Engine : public SelectionHint {
   EngineControllers controllers;
+
+  // Global State
   simple_vector<ModelList *> workingLists;
-  DeviceParameters gpu_params;
+  simple_vector<Material *> materialsStack;
+  simple_vector<LogicComponent *> components;
+
+  // Root configuration
+  Material *wCamera;
   RenderConfiguration *renderConfig;
   Node *rootNode;
-  simple_vector<LogicComponent *> components;
   GLuint vao = -1;
-  int currentFrame;
+  int currentFrame = 0;
+
+  // Misc
+  DeviceParameters gpu_params;
 
   const char *errorProgramFS = "programs/error.fs";
   const char *errorProgramVS = "programs/error.vs";
@@ -73,10 +80,7 @@ struct Engine : public SelectionHint {
 static Engine engine;
 //---------------------[BEGIN NODE]
 
-Node::Node() {
-  clean = false;
-  hasCustomBindFunction = true;
-}
+Node::Node() { clean = false; }
 
 void Node::setDirty() {
   clean = false;
@@ -186,19 +190,15 @@ bool Uniform::bind(GLuint glUniformID) const {
   case UniformType::INTPTR:
     glUniform1iv(glUniformID, count, INTPTR);
     break;
-  case UniformType::SAMPLER2D:
-    glUniform1i(glUniformID, SAMPLER2D.unit);
-    device::useTexture(SAMPLER2D);
+  case UniformType::ITEXTURE:
+    glUniform1i(glUniformID,
+                device::bindTexture(ITEXTURE->gl(), ITEXTURE->getMode()));
     break;
-  case UniformType::DYNAMIC_TEXTURE:
-    glUniform1i(glUniformID, DYNAMIC_TEXTURE.unit);
-    device::useTexture(DYNAMIC_TEXTURE);
-    break;
-  case UniformType::BINDLESS_TEXTURE:
-    glUniformHandleui64ARB(glUniformID, BINDLESS_TEXTURE);
-    break;
+  case UniformType::UTEXTURE:
+    glUniform1i(glUniformID,
+                device::bindTexture(UTEXTURE.textureID, UTEXTURE.textureMode));
   }
-  if (type != UniformType::SAMPLER2D)
+  if (type != UniformType::ITEXTURE)
     dirty = false;
   REGISTER_UNIFORM_FLUSH();
   return true;
@@ -408,10 +408,15 @@ struct BindState {
 
   GLuint currentVao = -1;
 
+  GLuint nextUnboundUnit = 0;
+
   void clearState() {
     currentVao = -1;
     currentProgram = -1;
+    nextUnboundUnit = 0;
   }
+
+  void drawCallClearState() { nextUnboundUnit = 0; }
   void printBindState() {}
 };
 static BindState gBindState;
@@ -438,8 +443,9 @@ void device::bindRenderBuffer(GLuint rbo) {
   glBindRenderbuffer(GL_RENDERBUFFER, rbo);
 }
 
-void device::bindTexture(GLuint textureId, GLenum mode) {
-  device::bindTexture(textureId, mode, Standard::tCreation);
+int device::bindTexture(GLuint textureId, GLenum mode) {
+  device::bindTexture(textureId, mode, gBindState.nextUnboundUnit);
+  return gBindState.nextUnboundUnit++;
 }
 
 void device::bindTexture(GLuint textureId, GLenum mode, int textureUnit) {
@@ -521,7 +527,6 @@ struct UseState {
   bool modelCullFrontFace = false;
   bool meshCullFrontFace = false;
 
-  WorldMatCollection worldMaterials;
   float lineWidth = 0.0f;
 
   void clearState() {
@@ -536,197 +541,185 @@ struct UseState {
 };
 static UseState guseState;
 
-bool device::useShader(Shader *shader, GLint type) {
-  IResource *file = shader->file.file();
-  if (shader->shader == -1 || file) {
-    if (shader->shader != -1) {
-      device::disposeShader(shader->shader);
+bool Shader::use(GLint type) {
+
+  IResource *file = this->file.file();
+  if (gl_shader == -1 || file) {
+    if (gl_shader != -1) {
+      device::disposeShader(gl_shader);
     }
 
-    shader->shader = device::compileShader((const char *)file->read()->data,
-                                           type, file->resourcename);
-    shader->file.signalAck();
+    gl_shader = device::compileShader((const char *)file->read()->data, type,
+                                      file->resourcename);
+    this->file.signalAck();
     return true;
   }
   return false;
 }
-void device::useProgram(Program *program) {
 
-  // SoftCheck(program != nullptr, LOG("[Warning] Trying to use a null
-  // program!", 0););
+GLuint Program::gl() {
 
-  if (program == nullptr || program->errored) {
-    device::useProgram(engine.defaultProgram);
-    return;
-  }
-
-  if (guseState.currentProgram == program || guseState.ignoreProgramUse)
-    return;
   // Check program compilation with shaders
-  bool programUpdate = program->shaderProgram == -1;
+  bool programUpdate = gl_shaderProgram == -1;
 
   /// Compile shaders
   for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
-    if (program->shaders[i] != nullptr) {
-      programUpdate |=
-          device::useShader(program->shaders[i], i + GL_FRAGMENT_SHADER);
+    if (shaders[i] != nullptr) {
+      programUpdate |= shaders[i]->use(i + GL_FRAGMENT_SHADER);
     }
   }
 
   // Link program
   if (programUpdate) {
 
-    program->compilationCount++;
+    compilationCount++;
     GLuint shaders[SHADER_TYPE_COUNT + 1] = {0};
     int currentShader = 0;
 
     for (int i = 0; i < SHADER_TYPE_COUNT; i++) {
-      if (program->shaders[i] != nullptr) {
-        shaders[currentShader++] = program->shaders[i]->shader;
+      if (this->shaders[i] != nullptr) {
+        shaders[currentShader++] = this->shaders[i]->gl_shader;
       }
     }
     GLint status;
 
-    if (program->shaderProgram != -1) {
-      device::disposeProgram(program->shaderProgram);
+    if (gl_shaderProgram != -1) {
+      device::disposeProgram(gl_shaderProgram);
     }
 
-    program->shaderProgram = device::compileProgram(shaders, &status);
-    program->errored = !status;
+    gl_shaderProgram = device::compileProgram(shaders, &status);
+    errored = !status;
   }
 
-  device::bindProgram(program->shaderProgram);
-  guseState.currentProgram = program;
-  useWorldMaterials();
+  return gl_shaderProgram;
+}
+void Program::use() {
+
+  if (errored)
+    return engine.defaultProgram->use();
+
+  if (guseState.currentProgram == this || guseState.ignoreProgramUse)
+    return;
+
+  device::bindProgram(gl());
+  guseState.currentProgram = this;
+
+  for (int i = 0; i < engine.materialsStack.size(); i++) {
+    engine.materialsStack[i]->use();
+  }
 }
 
 void device::ignoreProgramBinding(bool ignore) {
   guseState.ignoreProgramUse = ignore;
 }
 
-void device::useIndexBuffer(IndexBuffer *indexBuffer) {
+void IndexBuffer::use() {
 
-  if (indexBuffer == guseState.currentIndexBuffer)
+  if (this == guseState.currentIndexBuffer)
     return;
 
-  guseState.currentIndexBuffer = indexBuffer;
-  if (indexBuffer->indexBuffer.size() &&
-      (indexBuffer->updateData || indexBuffer->ebo == -1)) {
+  guseState.currentIndexBuffer = this;
+  if (indexBuffer.size() && (needsUpdate() || gl_ebo == -1)) {
 
-    device::createEBO(indexBuffer->indexBuffer, &indexBuffer->ebo);
-    indexBuffer->updateData = false;
+    device::createEBO(indexBuffer, &gl_ebo);
+    ackUpdate();
   }
 
-  device::bindEbo(indexBuffer->ebo);
+  device::bindEbo(gl_ebo);
 }
 
-void device::useVertexBuffer(VertexBuffer *vertexbuffer) {
+void VertexBuffer::use() {
 
   // Skip if buffer is already bound and updated
-  if (vertexbuffer == guseState.currentVertexBuffer &&
-      !vertexbuffer->updateData)
+  if (this == guseState.currentVertexBuffer && !needsUpdate())
     return;
 
-  guseState.currentVertexBuffer = vertexbuffer;
+  guseState.currentVertexBuffer = this;
 
-  SoftCheck(vertexbuffer->vertexBuffer.size() > 0,
-            { LOG("Vertex buffer empty!\n", 0); });
+  SoftCheck(vertexBuffer.size() > 0, { LOG("Vertex buffer empty!\n", 0); });
 
-  if (vertexbuffer->vertexBuffer.size() == 0)
+  if (vertexBuffer.size() == 0)
     return;
 
   // Create vertexBuffer
-  if (vertexbuffer->vbo == -1 ||
-      vertexbuffer->vboSize < vertexbuffer->vertexBuffer.size()) {
+  if (gl_vbo == -1 || vertexBuffer.size()) {
 
-    device::createVBO(vertexbuffer->vertexBuffer, &vertexbuffer->vbo);
-    vertexbuffer->vboSize = vertexbuffer->vertexBuffer.size();
+    device::createVBO(vertexBuffer, &gl_vbo);
+    vboSize = vertexBuffer.size();
 
     // Reallocate buffer memory
-  } else if (vertexbuffer->updateData &&
-             vertexbuffer->vertexBuffer.size() <= vertexbuffer->vboSize) {
-    device::bindVbo(vertexbuffer->vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, vertexbuffer->vertexBuffer.size(),
-                    vertexbuffer->vertexBuffer.data());
+  } else if (needsUpdate() && vertexBuffer.size() <= vboSize) {
+    device::bindVbo(gl_vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertexBuffer.size(),
+                    vertexBuffer.data());
   }
 
-  vertexbuffer->updateData = false;
-  device::bindVbo(vertexbuffer->vbo);
+  ackUpdate();
+  device::bindVbo(gl_vbo);
 
   // Bind attributes
-  SoftCheck(vertexbuffer->attributes.size() != 0, {
+  SoftCheck(attributes.size() != 0, {
     LOG("[Warning] Vertexbuffer with not attributes! %d",
-        (int)vertexbuffer->attributes.size());
+        (int)attributes.size());
   });
   int offset = 0;
-  int stride = vertexbuffer->vertexSize();
-  for (int i = 0; i < vertexbuffer->attributes.size(); i++) {
-    int index = vertexbuffer->attributes[i].index;
-    int divisor = vertexbuffer->attributes[i].attributeDivisor;
-    int size = vertexbuffer->attributes[i].size;
+  int stride = vertexSize();
+  for (int i = 0; i < attributes.size(); i++) {
+    int index = attributes[i].index;
+    int divisor = attributes[i].attributeDivisor;
+    int size = attributes[i].size;
 
-    device::bindAttribute(vertexbuffer->vbo, index, size, stride,
-                          offset * sizeof(float), divisor);
-    offset += vertexbuffer->attributes[i].size;
+    device::bindAttribute(gl_vbo, index, size, stride, offset * sizeof(float),
+                          divisor);
+    offset += attributes[i].size;
   }
 }
-void device::useMesh(Mesh *mesh) {
-  SoftCheck(mesh != nullptr, log()->log("[Warning] Null mesh use"););
-  if (guseState.currentMesh == mesh)
+
+void Mesh::use() {
+
+  if (guseState.currentMesh == this)
     return;
-  device::useVertexBuffer(mesh->vbo);
-  if (mesh->ebo)
-    device::useIndexBuffer(mesh->ebo);
 
-  guseState.currentMesh = mesh;
-  guseState.meshCullFrontFace = mesh->invertedFaces;
+  vbo->use();
+  if (ebo)
+    ebo->use();
+
+  guseState.currentMesh = this;
+  guseState.meshCullFrontFace = invertedFaces;
 }
 
-void device::useTexture(UTexture texture) {
-  device::bindTexture(texture.texID, texture.mode, texture.unit);
-}
+GLuint Texture::gl() {
 
-void device::useTexture(Texture *texture) {
+  if (gl_textureID == -1)
+    gl_textureID = textureMode == GL_TEXTURE_CUBE_MAP
+                       ? device::createCubemap()
+                       : device::createTexture(!useNeareast, clamp);
 
-  SoftCheck(texture != nullptr, log()->log("[Warning] Null texture use", 1););
-  if (texture->_textureID == -1)
-    texture->_textureID =
-        texture->textureMode == GL_TEXTURE_CUBE_MAP
-            ? device::createCubemap()
-            : device::createTexture(!texture->useNeareast, texture->clamp);
-
-  if (texture->needsUpdate()) {
-    GLenum target = texture->textureMode;
-    device::bindTexture(texture->_textureID, target);
-    for (int i = 0; i < texture->textureData.size(); i++) {
-      TextureResource *textureResource = texture->textureData[i].file();
+  if (needsUpdate()) {
+    GLenum target = textureMode;
+    device::bindTexture(gl_textureID, target);
+    for (int i = 0; i < textureData.size(); i++) {
+      TextureResource *textureResource = textureData[i].file();
       if (textureResource) {
-        GLenum target = texture->textureMode == GL_TEXTURE_CUBE_MAP
+        GLenum target = textureMode == GL_TEXTURE_CUBE_MAP
                             ? (GL_TEXTURE_CUBE_MAP_POSITIVE_X + i)
                             : GL_TEXTURE_2D;
         device::uploadTexture(target, textureResource->textureBuffer,
                               textureResource->width, textureResource->height,
                               textureResource->components,
                               textureResource->hdrSpace);
-        texture->textureData[i].signalAck();
+        textureData[i].signalAck();
       }
     }
     glGenerateMipmap(target);
   }
-}
-
-void device::useTexture(DynamicTexture texture) {
-  device::useTexture(texture.sourceTexture);
-  UTexture text{};
-  text.mode = texture.sourceTexture->textureMode;
-  text.texID = texture.sourceTexture->_textureID;
-  text.unit = texture.unit;
-  device::useTexture(text);
+  return gl_textureID;
 }
 
 // TODO:Improve quality, also check if caching is any useful
-void device::useModelConfiguration(ModelConfiguration *configuration) {
+void ModelConfiguration::use() {
 
+  ModelConfiguration *configuration = this;
   guseState.modelCullFrontFace = configuration->cullFrontFace;
 
   if (!guseState.hasModelConfiguration ||
@@ -749,8 +742,7 @@ void device::useModelConfiguration(ModelConfiguration *configuration) {
 }
 
 void device::useUniform(const char *name, const Uniform &value) {
-  GLuint uniformId =
-      device::getUniform(guseState.currentProgram->shaderProgram, name);
+  GLuint uniformId = device::getUniform(guseState.currentProgram->gl(), name);
 
   // SoftCheck(uniformId != -1, LOG("[Warning] Attempted to use an invalid
   // uniform %s", name););
@@ -758,37 +750,19 @@ void device::useUniform(const char *name, const Uniform &value) {
     value.bind(uniformId);
 }
 
-void device::useWorldMaterials() {
-
-  // Bind worldMaterials
-  for (auto &worldmat : guseState.worldMaterials) {
-    useMaterial(worldmat.second);
-  }
-}
-void device::useMaterial(Material *material) {
-  if (material == nullptr)
-    return;
-
-  SoftCheck(material != nullptr, log()->log("[Warning] Null material use"););
-
-  if (material->setupProgram) {
-    shambhala::setupMaterial(material, material->setupProgram);
+void Material::use() {
+  if (setupProgram) {
+    shambhala::setupMaterial(this, setupProgram);
   }
 
-  if (material->hasCustomBindFunction) {
-    material->bind(guseState.currentProgram);
-  }
-  for (auto &uniform : material->uniforms) {
-    useUniform(uniform.first.c_str(), uniform.second);
+  bind(guseState.currentProgram);
+  for (auto &uniform : uniforms) {
+    device::useUniform(uniform.first.c_str(), uniform.second);
   }
 
-  for (int i = 0; i < material->childMaterials.size(); i++) {
-    device::useMaterial(material->childMaterials[i]);
+  for (int i = 0; i < childMaterials.size(); i++) {
+    childMaterials[i]->use();
   }
-}
-
-void device::useModelList(ModelList *modelList) {
-  guseState.currentModelList = modelList;
 }
 
 void device::renderPass() {
@@ -830,6 +804,8 @@ void device::drawCall(DrawCallArgs args) {
       glDrawArrays(guseState.currentModelConfiguration.renderMode, 0,
                    guseState.currentMesh->vertexCount());
   }
+
+  gBindState.drawCallClearState();
 }
 
 DeviceParameters device::queryDeviceParameters() {
@@ -843,6 +819,20 @@ DeviceParameters device::queryDeviceParameters() {
 
 // --------------------[BEGIN FRAMEBUFFER]
 
+GLuint FrameBufferOutput::gl() {
+  return framebuffer->getOutputAttachment(attachmentIndex);
+}
+FrameBufferOutput *FrameBuffer::getOutputTexture(int index) {
+  auto *out = new FrameBufferOutput;
+  out->framebuffer = this;
+  out->attachmentIndex = index;
+}
+GLuint FrameBuffer::getOutputAttachment(int index) {
+  if (index == Standard::attachmentDepthBuffer)
+    return gl_depthBuffer;
+  return colorAttachments[index];
+}
+
 GLuint FrameBuffer::createDepthStencilBuffer() {
   GLuint rbo = device::createRenderBuffer();
   device::bindRenderBuffer(rbo);
@@ -852,8 +842,8 @@ GLuint FrameBuffer::createDepthStencilBuffer() {
 }
 
 void FrameBuffer::initialize() {
-  _framebuffer = device::createFramebuffer();
-  device::bindFrameBuffer(_framebuffer);
+  gl_framebuffer = device::createFramebuffer();
+  device::bindFrameBuffer(gl_framebuffer);
   colorAttachments.resize(attachmentsDefinition.size());
   glGenTextures(colorAttachments.size(), &colorAttachments[0]);
   for (int i = 0; i < colorAttachments.size(); i++) {
@@ -877,29 +867,29 @@ void FrameBuffer::initialize() {
 
   if (combinedDepthStencil()) {
     if (configuration & USE_RENDER_BUFFER) {
-      stencilDepthBuffer = createDepthStencilBuffer();
+      gl_stencilDepthBuffer = createDepthStencilBuffer();
       glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
-                                GL_RENDERBUFFER, stencilDepthBuffer);
+                                GL_RENDERBUFFER, gl_stencilDepthBuffer);
     } else {
-      stencilDepthBuffer = device::createTexture(false);
-      device::uploadDepthStencilTexture(stencilDepthBuffer, bufferWidth,
+      gl_stencilDepthBuffer = device::createTexture(false);
+      device::uploadDepthStencilTexture(gl_stencilDepthBuffer, bufferWidth,
                                         bufferHeight);
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
-                             GL_TEXTURE_2D, stencilDepthBuffer, 0);
+                             GL_TEXTURE_2D, gl_stencilDepthBuffer, 0);
     }
   } else {
     if (configuration & USE_DEPTH) {
-      depthBuffer = device::createTexture(false);
-      device::uploadDepthTexture(depthBuffer, bufferWidth, bufferHeight);
+      gl_depthBuffer = device::createTexture(false);
+      device::uploadDepthTexture(gl_depthBuffer, bufferWidth, bufferHeight);
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-                             depthBuffer, 0);
+                             gl_depthBuffer, 0);
     }
 
     if (configuration & USE_STENCIL) {
-      stencilBuffer = device::createTexture(false);
-      device::uploadStencilTexture(stencilBuffer, bufferWidth, bufferHeight);
+      gl_stencilBuffer = device::createTexture(false);
+      device::uploadStencilTexture(gl_stencilBuffer, bufferWidth, bufferHeight);
       glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT,
-                             GL_TEXTURE_2D, stencilBuffer, 0);
+                             GL_TEXTURE_2D, gl_stencilBuffer, 0);
     }
   }
 
@@ -926,24 +916,24 @@ void FrameBuffer::dispose() {
 
   if (combinedDepthStencil()) {
     if (configuration & USE_RENDER_BUFFER)
-      glDeleteRenderbuffers(1, &stencilDepthBuffer);
+      glDeleteRenderbuffers(1, &gl_stencilDepthBuffer);
     else
-      glDeleteTextures(1, &stencilDepthBuffer);
+      glDeleteTextures(1, &gl_stencilDepthBuffer);
   } else {
     if (configuration & USE_DEPTH) {
-      glDeleteTextures(1, &depthBuffer);
+      glDeleteTextures(1, &gl_depthBuffer);
     }
     if (configuration & USE_STENCIL) {
-      glDeleteTextures(1, &stencilBuffer);
+      glDeleteTextures(1, &gl_stencilBuffer);
     }
   }
-  glDeleteFramebuffers(1, &_framebuffer);
+  glDeleteFramebuffers(1, &gl_framebuffer);
 }
 
 void FrameBuffer::resize(int screenWidth, int screenHeight) {
   if (bufferWidth == screenWidth && bufferHeight == screenHeight)
     return;
-  if (_framebuffer != -1)
+  if (gl_framebuffer != -1)
     dispose();
 
   bufferWidth = screenWidth;
@@ -952,18 +942,33 @@ void FrameBuffer::resize(int screenWidth, int screenHeight) {
   initialize();
 }
 
+void FrameBuffer::begin() { begin(desiredWidth, desiredHeight); }
+
 void FrameBuffer::begin(int screenWidth, int screenHeight) {
+
+  if (screenWidth == -1)
+    screenWidth = viewport()->getScreenWidth();
+  if (screenHeight == -1)
+    screenHeight = viewport()->getScreenHeight();
+
   resize(screenWidth, screenHeight);
-  glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, gl_framebuffer);
   SoftCheck(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE,
-            LOG("[DEVICE] Incomplete framebuffer %d ", _framebuffer););
+            LOG("[DEVICE] Incomplete framebuffer %d ", gl_framebuffer););
   glClearColor(clearColor.x, clearColor.y, clearColor.z, clearColor.w);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  shambhala::viewport()->fakeViewportSize(screenWidth, screenHeight);
+  shambhala::updateViewport();
 }
 
-void FrameBuffer::end() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+void FrameBuffer::end() {
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  shambhala::viewport()->restoreViewport();
+  shambhala::updateViewport();
+}
 
-void FrameBuffer::addChannel(const FrameBufferAttachmentDescriptor &fbodef) {
+void FrameBuffer::addOutput(const FrameBufferAttachmentDescriptor &fbodef) {
   attachmentsDefinition.push(fbodef);
 }
 
@@ -1001,30 +1006,21 @@ void Model::draw() {
 
   if (depthMask)
     glDepthMask(GL_FALSE);
-  device::useModelConfiguration(this);
-  device::useMesh(mesh);
-  device::useProgram(program);
+  this->use();
+  mesh->use();
+  program->use();
+  node->use();
 
   if (hint_modelid == engine.hint_selected_modelid &&
       hint_selection_material != nullptr) {
 
-    device::useMaterial(hint_selection_material);
+    hint_selection_material->use();
   } else if (material != nullptr)
-    device::useMaterial(material);
+    material->use();
 
-  device::useMaterial(node);
   device::drawCall(*this);
   if (depthMask)
     glDepthMask(GL_TRUE);
-}
-
-Model *Model::createInstance() {
-  Model *newInstance = shambhala::createModel();
-  *newInstance = *this;
-  if (newInstance->node != nullptr) {
-    newInstance->node = shambhala::createNode(newInstance->node);
-  }
-  return newInstance;
 }
 
 Node *Model::getNode() {
@@ -1050,15 +1046,9 @@ void ModelList::forceSorting() { shouldSort = true; }
 
 int ModelList::size() const { return models.size(); }
 Model *ModelList::get(int index) const { return models[index]; }
-ModelList *ModelList::createInstance() {
-  ModelList *newInstance = shambhala::createModelList();
-  *newInstance = *this;
-  for (int i = 0; i < models.size(); i++) {
-    models[i] = models[i]->createInstance();
-  }
-  newInstance->forceSorting();
-  return newInstance;
-}
+
+void ModelList::use() { guseState.currentModelList = this; }
+
 //---------------------[MODELLIST END]
 
 //---------------------[LOGIC COMPONENT BEGIN]
@@ -1192,156 +1182,34 @@ bool Texture::needsUpdate() {
 
 //---------------------[BEGIN RENDERCAMERA]
 
-RenderCamera::RenderCamera() { hasCustomBindFunction = true; }
+PostProcessCamera::PostProcessCamera(const char *path)
+    : PostProcessCamera(
+          util::createScreenProgram(resource::ioMemoryFile(path))) {}
 
-RenderCamera *RenderCamera::render(const RenderShot &shot) {
-  beginRender(shot);
-  endRender(shot);
-  return this;
-}
+PostProcessCamera::PostProcessCamera(Program *program) {}
 
-void RenderCamera::beginRender(const RenderShot &shot) {
-
-  if (shot.currentFrame == currentFrame)
-    return;
-
-  for (int i = 0; i < renderBindings.size(); i++) {
-    renderBindings[i].renderCamera->render(shot);
+GLuint RenderCameraOutput::gl() {
+  if (camera->currentFrame != engine.currentFrame) {
+    camera->begin();
+    pushMaterial(camera);
+    camera->render();
+    camera->end();
+    camera->currentFrame = engine.currentFrame;
   }
 
-  shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera, this);
-
-  if (width != 0 || height != 0) {
-    shambhala::viewport()->fakeViewportSize(width, height);
-    shambhala::updateViewport();
-  }
+  return camera->getOutputTexture(attachmentIndex)->gl();
 }
 
-void RenderCamera::endRender(const RenderShot &shot) {
+ITexture *RenderCamera::renderOutput(int attachmentIndex) {
 
-  if (shot.currentFrame == currentFrame)
-    return;
-
-  currentFrame = shot.currentFrame;
-  engine.currentFrame = currentFrame;
-
-  bool useFrameBuffer = frameBuffer != nullptr && !shot.isRoot;
-
-  if (useFrameBuffer) {
-    frameBuffer->begin(viewport()->getScreenWidth(),
-                       viewport()->getScreenHeight());
-  }
-
-  if (overrideProgram) {
-    device::useProgram(overrideProgram);
-    device::ignoreProgramBinding(true);
-  }
-
-  if (postprocessProgram) {
-    static Mesh *screenmesh = util::createScreen();
-    device::useMesh(screenmesh);
-    device::useProgram(postprocessProgram);
-  }
-
-  if (postprocessProgram) {
-    device::drawCall();
-  } else {
-    device::useModelList(shot.scenes[modelListInput]);
-    device::renderPass();
-  }
-  if (overrideProgram) {
-    device::ignoreProgramBinding(false);
-  }
-
-  if (useFrameBuffer) {
-    frameBuffer->end();
-  }
-
-  shambhala::setWorldMaterial(Standard::clas_worldMatRenderCamera,
-                              engine.defaultMaterial);
-
-  if (width != 0 || height != 0) {
-    viewport()->restoreViewport();
-    shambhala::updateViewport();
-  }
-}
-
-// TODO: Fix actually call this function
-void RenderCamera::bind(Program *activeProgram) {
-  for (int i = 0; i < renderBindings.size(); i++) {
-    if (renderBindings[i].attachmentIndex < 0) {
-      UTexture texture;
-      texture.mode = GL_TEXTURE_2D;
-      texture.texID = renderBindings[i].renderCamera->frameBuffer->depthBuffer;
-      texture.unit = Standard::tDepthTexture;
-      device::useUniform(renderBindings[i].uniformAttribute, texture);
-    } else {
-      UTexture texture;
-      texture.mode = GL_TEXTURE_2D;
-      texture.texID = renderBindings[i]
-                          .renderCamera->frameBuffer
-                          ->colorAttachments[renderBindings[i].attachmentIndex];
-      texture.unit = Standard::tAttachmentTexture + i;
-      device::useUniform(renderBindings[i].uniformAttribute, texture);
-    }
-  }
-}
-
-void RenderCamera::setModelList(int modelListIndex) {
-  this->modelListInput = modelListIndex;
-}
-
-void RenderCamera::addInput(RenderCamera *child, int attachmentIndex,
-                            const char *uniformAttribute) {
-  RenderBinding renderBinding;
-  renderBinding.attachmentIndex = attachmentIndex;
-  renderBinding.renderCamera = child;
-  renderBinding.uniformAttribute = uniformAttribute;
-  renderBindings.push(renderBinding);
-}
-
-void RenderCamera::addDummyInput(RenderCamera *child) {
-  dummyInput.push(child);
-}
-RenderCamera *RenderCamera::getDummyInput(int index) {
-  return dummyInput[index];
-}
-int RenderCamera::getDummyInputCount() { return dummyInput.size(); }
-
-void RenderCamera::addOutput(FrameBufferAttachmentDescriptor desc) {
-  if (frameBuffer == nullptr)
-    frameBuffer = shambhala::createFramebuffer();
-  frameBuffer->addChannel(desc);
-}
-
-void RenderCamera::setFrameBufferConfiguration(
-    FrameBufferDescriptorFlags flags) {
-  if (frameBuffer == nullptr) {
-    frameBuffer = shambhala::createFramebuffer();
-  }
-  frameBuffer->setConfiguration(flags);
-}
-
-int RenderCamera::getWidth() {
-  if (frameBuffer != nullptr)
-    return frameBuffer->getWidth();
-  return viewport()->getScreenWidth();
-}
-int RenderCamera::getHeight() {
-  if (frameBuffer != nullptr)
-    return frameBuffer->getHeight();
-  return viewport()->getScreenHeight();
-}
-
-void RenderCamera::setSize(int width, int height) {
-  this->width = width;
-  this->height = height;
+  this->outputs.resize(attachmentIndex + 1);
+  this->outputs[attachmentIndex].camera = this;
+  this->outputs[attachmentIndex].attachmentIndex = attachmentIndex;
+  return &this->outputs[attachmentIndex];
 }
 
 //---------------------[END RENDERCAMERA]
 
-//---------------------[BEGIN RENDERSHOT]
-void RenderShot::updateFrame() { this->currentFrame++; }
 //---------------------[END RENDERSHOT]
 //---------------------[BEGIN ENGINE]
 
@@ -1353,6 +1221,7 @@ void shambhala::loop_beginRenderContext(int frame) {
   engine_prepareRender();
   engine_prepareDeclarativeRender();
   viewport()->notifyFrame(frame);
+  engine.currentFrame = frame;
 }
 
 void shambhala::engine_clearState() {
@@ -1412,9 +1281,8 @@ StepInfo shambhala::getStepInfo() {
 
   StepInfo info;
   // TODO: Hard cast
-  info.mouseRay =
-      ext::createRay((worldmats::Camera *)getWorldMaterial(Standard::wCamera),
-                     viewport()->getMouseViewportCoords());
+  info.mouseRay = ext::createRay((worldmats::Camera *)engine.wCamera,
+                                 viewport()->getMouseViewportCoords());
   return info;
 }
 void shambhala::loop_io_sync_step() { io()->filewatchMonitor(); }
@@ -1440,13 +1308,6 @@ void *shambhala::createWindow(const WindowConfiguration &configuration) {
 void shambhala::setActiveWindow(void *window) {
   viewport()->setActiveWindow(window);
   viewport()->imguiInit(4, 2);
-}
-
-Material *shambhala::getWorldMaterial(WorldMatID clas) {
-  return guseState.worldMaterials[clas];
-}
-void shambhala::setWorldMaterial(WorldMatID clas, Material *worldMaterial) {
-  guseState.worldMaterials[clas] = worldMaterial;
 }
 
 void shambhala::addModel(Model *model) { getWorkingModelList()->add(model); }
@@ -1501,14 +1362,18 @@ Node *shambhala::createNode(const char *name, Node *old) {
   return newInstance;
 }
 
-void shambhala::destroyModel(Model *model) {
-  delete model->node;
-  delete model;
-}
+void shambhala::destroyModel(Model *model) { delete model; }
 
 const WorldMatCollection &shambhala::getWorldMaterials() {
-  return guseState.worldMaterials;
+  return engine.materialsStack;
 }
+
+void shambhala::pushMaterial(Material *mat) {
+  engine.materialsStack.push(mat);
+  if (mat->hint_isCamera)
+    engine.wCamera = mat;
+}
+void shambhala::popMaterial() { engine.materialsStack.pop(); }
 
 Node *shambhala::createNode() {
   return shambhala::createNode(nullptr, nullptr);
@@ -1641,19 +1506,19 @@ static int iscapital(char x) {
     return 0;
 }
 void shambhala::setupMaterial(Material *material, Program *program) {
-  device::useProgram(program);
-  material->setupProgramCompilationCount = program->compilationCount;
+  GLuint shaderProgram = program->gl();
+  material->setupProgramCompilationCount = program->getCompilationCount();
   material->setupProgram = program;
   int uniformCount;
-  glGetProgramiv(program->shaderProgram, GL_ACTIVE_UNIFORMS, &uniformCount);
+  glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &uniformCount);
   static int buffer_size = 128;
   static char buffer[128];
   for (int i = 0; i < uniformCount; i++) {
     GLsizei length;
     GLint size;
     GLenum type;
-    glGetActiveUniform(program->shaderProgram, (GLuint)i, buffer_size, &length,
-                       &size, &type, buffer);
+    glGetActiveUniform(shaderProgram, (GLuint)i, buffer_size, &length, &size,
+                       &type, buffer);
     std::string name(buffer);
 
     // IGNORE WORLD MATERIALS TODO:

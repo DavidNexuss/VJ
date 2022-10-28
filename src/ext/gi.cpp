@@ -121,7 +121,7 @@ Texture *gi::bakeAmbientOcclusion(ModelList *modelList, int size, int bounces) {
       VertexBuffer *vbo = model->mesh->vbo;
       IndexBuffer *ebo = model->mesh->ebo;
 
-      float *transform = (float *)&model->node->getTransformMatrix();
+      float *transform = (float *)&model->getNode()->getTransformMatrix();
       int pOffset = sizeof(float) * bindings[j].positionOffset;
       int nOffset = sizeof(float) * bindings[j].normalOffset;
       int uvOffset = sizeof(float) * bindings[j].uvOffset;
@@ -152,10 +152,9 @@ Texture *gi::bakeAmbientOcclusion(ModelList *modelList, int size, int bounces) {
         glViewport(vp[0], vp[1], vp[2], vp[3]);
         shambhala::engine_clearState();
         shambhala::engine_prepareRender();
-        shambhala::device::useProgram(aoProgram);
-        shambhala::device::useMesh(model->mesh);
-        shambhala::device::useUniform(Standard::uLightmap,
-                                      DynamicTexture{lightmapResult});
+        aoProgram->use();
+        model->mesh->use();
+        shambhala::device::useUniform(Standard::uLightmap, lightmapResource);
         shambhala::device::useUniform(Standard::uProjectionMatrix, proj);
         shambhala::device::useUniform(Standard::uViewMatrix, view);
         shambhala::device::drawCall();

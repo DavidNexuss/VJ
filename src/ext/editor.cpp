@@ -18,8 +18,7 @@ ImVec2 vec2(glm::vec2 v) { return ImVec2{v.x, v.y}; }
 void renderCamera(RenderCamera *renderCamera) {
   ImVec2 size{float(renderCamera->getWidth()),
               float(renderCamera->getHeight())};
-  ImGui::Image((void *)(intptr_t)renderCamera->frameBuffer->colorAttachments[0],
-               size);
+  ImGui::Image((void *)(intptr_t)renderCamera->getOutputAttachment(0), size);
 }
 
 void texture(GLuint _id, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size) {
@@ -28,7 +27,7 @@ void texture(GLuint _id, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size) {
   ImGui::Image(id, vec2(size), vec2(uv), vec2(uv2));
 }
 void texture(Texture *text, glm::vec2 uv, glm::vec2 uv2, glm::vec2 size) {
-  return texture(text->_textureID, uv, uv2, size);
+  return texture(text->gl(), uv, uv2, size);
 }
 
 void toggleButton(const char *name, bool *enable) {
@@ -161,9 +160,9 @@ struct EditorState {
       ImGui::Begin(name);
 
       ImVec2 windowsize = ImGui::GetWindowSize();
-      tab.second.renderCamera->setSize(windowsize.x, windowsize.y);
-      tab.second.shot.currentFrame = frame;
-      gui::renderCamera(tab.second.renderCamera->render(tab.second.shot));
+      tab.second.renderCamera->setWidth(windowsize.x);
+      tab.second.renderCamera->setHeight(windowsize.y);
+      gui::renderCamera(tab.second.renderCamera);
       ImGui::End();
     }
   }
@@ -438,9 +437,9 @@ struct GlobalMaterial : public EditorWindow {
     names.resize(shambhala::getWorldMaterials().size());
 
     int index = 0;
-    for (const auto &it : shambhala::getWorldMaterials()) {
+    auto &mats = shambhala::getWorldMaterials();
+    for (int i = 0; i < mats.size(); i++) {
       names[index] = "Mat" + std::to_string(index);
-      indices[index++] = it.first;
     }
   };
 };
@@ -452,7 +451,7 @@ struct ModelWindow : public EditorWindow {
   void render(int frame) override {
     simple_vector<std::string> names;
     for (int i = 0; i < getWorkingModelList()->size(); i++) {
-      names.push(getWorkingModelList()->get(i)->node->getName());
+      names.push(getWorkingModelList()->get(i)->getNode()->getName());
     }
     last_selected = gui::selectableList(names, last_selected);
     if (last_selected > -1 &&

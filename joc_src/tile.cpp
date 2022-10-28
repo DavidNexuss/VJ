@@ -33,11 +33,8 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
     }
 
     model->program = renderProgram;
-    DynamicTexture dyn;
-    dyn.sourceTexture = text;
-    dyn.unit = 0;
     model->material = shambhala::createMaterial();
-    model->material->set("input", dyn);
+    model->material->set("input", text);
     model->node = shambhala::createNode("tileMap");
     model->node->setParentNode(rootNode);
   }
@@ -112,8 +109,8 @@ void TileMap::updateMesh() {
   vertices.resize(count);
   model->mesh->vbo->vertexBuffer = vertices.drop();
   model->mesh->ebo->indexBuffer = indices.drop();
-  model->mesh->vbo->updateData = true;
-  model->mesh->ebo->updateData = true;
+  model->mesh->vbo->signalUpdate();
+  model->mesh->ebo->signalUpdate();
   needsUpdate = false;
 
   bake();
@@ -134,15 +131,13 @@ void TileMap::bakeShadows() {
     desc.internalFormat = GL_RGBA;
     desc.type = GL_UNSIGNED_BYTE;
     desc.useNeareast = true;
-    fbo->addChannel(desc);
+    fbo->addOutput(desc);
   }
 
   TileBake bakeResult;
   bakeResult.size = glm::vec2(sizex, sizey) * 16.0f;
   shambhala::engine_clearState();
   {
-    viewport()->fakeViewportSize(bakeResult.size.x, bakeResult.size.y);
-    shambhala::updateViewport();
     fbo->clearColor.w = 1.0;
     fbo->begin(bakeResult.size.x, bakeResult.size.y);
     glm::mat4 viewMat(1.0f);
@@ -154,30 +149,25 @@ void TileMap::bakeShadows() {
       camera->setProjectionMatrix(
           glm::ortho(0.0f, float(sizex), 0.0f, float(sizey)));
 
-      device::useProgram(shadowGenerator);
-      device::useMesh(this->bakedModel->mesh);
-      device::useMaterial(this->bakedModel->material);
-      device::useMaterial(camera);
+      shadowGenerator->use();
+      bakedModel->mesh->use();
+      bakedModel->material->use();
+      camera->use();
 
       device::useUniform("shadowLevel", Uniform(float(i)));
       device::drawCall();
     }
     fbo->end();
-    viewport()->restoreViewport();
-    shambhala::updateViewport();
   }
   shambhala::engine_clearState();
-  bakeResult.bakedTexture = fbo->colorAttachments[0];
+  bakeResult.bakedTexture = fbo->getOutputAttachment(0);
   this->bakeInformationShadow = bakeResult;
 
   UTexture texture;
-  texture.mode = GL_TEXTURE_2D;
-  texture.texID = bakeInformationShadow.bakedTexture;
-  texture.unit = 1;
+  texture.textureID = bakeInformationShadow.bakedTexture;
   UTexture base;
-  base.mode = GL_TEXTURE_2D;
-  base.texID = bakeInformation.bakedTexture;
-  base.unit = 0;
+  base.textureID = bakeInformation.bakedTexture;
+
   illuminationModel->material->set("input", base);
   illuminationModel->material->set("shadow", texture);
   illuminationModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.001));
@@ -193,7 +183,7 @@ void TileMap::bake() {
     desc.internalFormat = GL_RGBA;
     desc.type = GL_UNSIGNED_BYTE;
     desc.useNeareast = true;
-    bake_fbo->addChannel(desc);
+    bake_fbo->addOutput(desc);
   }
 
   TileBake bakeResult;
@@ -203,35 +193,30 @@ void TileMap::bake() {
 
   glDisable(GL_BLEND);
   {
-    viewport()->fakeViewportSize(bakeResult.size.x, bakeResult.size.y);
-    shambhala::updateViewport();
     bake_fbo->begin(bakeResult.size.x, bakeResult.size.y);
     {
       camera->setViewMatrix(glm::mat4(1.0f));
       camera->setProjectionMatrix(
           glm::ortho(0.0f, float(sizex), 0.0f, float(sizey)));
 
-      device::useProgram(this->model->program);
-      device::useMesh(this->model->mesh);
-      device::useMaterial(this->model->material);
-      device::useMaterial(camera);
+      this->model->program->use();
+      this->model->mesh->use();
+      this->model->material->use();
+      camera->use();
+
       device::drawCall();
     }
     bake_fbo->end();
-    viewport()->restoreViewport();
-    shambhala::updateViewport();
   }
   shambhala::engine_clearState();
 
   glEnable(GL_BLEND);
 
-  bakeResult.bakedTexture = bake_fbo->colorAttachments[0];
+  bakeResult.bakedTexture = bake_fbo->getOutputAttachment(0);
   this->bakeInformation = bakeResult;
 
   UTexture texture;
-  texture.mode = GL_TEXTURE_2D;
-  texture.texID = bakeInformation.bakedTexture;
-  texture.unit = 0;
+  texture.textureID = bakeInformation.bakedTexture;
   bakedModel->material->set("input", texture);
   bakedModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.001));
 }

@@ -58,7 +58,7 @@ void Joc::enginecreate() {
   // Adds debug camera
   {
     worldmats::DebugCamera *debugCamera = new worldmats::DebugCamera;
-    shambhala::setWorldMaterial(Standard::wCamera, debugCamera);
+    shambhala::pushMaterial(debugCamera);
     addComponent(debugCamera);
   }
   shambhala::setWorkingModelList(mainShot.scenes[0]);
@@ -68,26 +68,31 @@ void Joc::loop() {
 #ifdef EDITOR
   editor::editorInit();
 #endif
+
+  int frame = 0;
   do {
 
     shambhala::audio::loop_stepAudio();
     shambhala::loop_begin();
     {
+
+      getWorkingModelList()->use();
       shambhala::loop_io_sync_step();
-      shambhala::loop_beginRenderContext(mainShot.currentFrame);
+      shambhala::loop_beginRenderContext(frame);
       shambhala::loop_componentUpdate();
-      mainCamera->render(mainShot);
+      shambhala::device::renderPass();
+      // mainCamera->render(mainShot);
 #ifdef EDITOR
       shambhala::loop_beginUIContext();
       editor::editorBeginContext();
-      editor::editorRender(mainShot.currentFrame);
+      editor::editorRender(frame);
       editor::editorEndContext();
       shambhala::loop_endUIContext();
 #endif
       shambhala::loop_endRenderContext();
     }
     shambhala::loop_end();
-    mainShot.updateFrame();
+    frame++;
 
   } while (!shambhala::loop_shouldClose());
 }

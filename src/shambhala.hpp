@@ -32,7 +32,7 @@ namespace shambhala {
 
 struct Material;
 using WorldMatID = int;
-using WorldMatCollection = std::unordered_map<WorldMatID, Material *>;
+using WorldMatCollection = simple_vector<Material *>;
 
 struct UIComponent {
   bool uiRender = false;
@@ -63,6 +63,36 @@ template <typename T> struct EngineComponent : public UIComponent {
   }
 };
 
+struct Updatable {
+  inline void signalUpdate() { _needsUpdate = true; }
+  inline void ackUpdate() { _needsUpdate = false; }
+  inline bool needsUpdate() { return _needsUpdate; }
+
+private:
+  bool _needsUpdate = true;
+};
+
+struct EngineResource {
+  void setConfigurationResource(IResource *resource);
+
+  void save();
+  void load();
+
+  io_buffer serialized();
+  inline void signalDirty() { dirty = true; }
+
+  const char *configurationResourcePath();
+
+protected:
+  virtual io_buffer serialize() = 0;
+  virtual void deserialize(io_buffer buffer) = 0;
+
+private:
+  io_buffer serialized_buffer;
+  IResource *configurationResource = nullptr;
+  bool dirty = true;
+};
+
 enum ShaderType {
   FRAGMENT_SHADER = 0,
   VERTEX_SHADER,
@@ -72,48 +102,54 @@ enum ShaderType {
   SHADER_TYPE_COUNT
 };
 
+struct Program;
 struct Shader {
-  GLuint shader = -1;
   ResourceHandler file;
+  bool use(GLint type);
+
+private:
+  GLuint gl_shader = -1;
+  friend Program;
 };
 
 struct Program {
   Shader *shaders[SHADER_TYPE_COUNT] = {0};
-  GLuint shaderProgram = -1;
-  int compilationCount = 0;
-
   bool hint_skybox = false;
+
+  void use();
+  inline int getCompilationCount() { return compilationCount; }
+  GLuint gl();
+
+private:
+  int compilationCount = 0;
   bool errored = false;
+  GLuint gl_shaderProgram = -1;
+};
+
+struct ITexture {
+  virtual GLuint gl() = 0;
+  virtual GLenum getMode() { return GL_TEXTURE_2D; }
 };
 
 struct UTexture {
-  GLuint texID = -1;
-  int unit = 0;
-  GLenum mode = GL_TEXTURE_2D;
+
   UTexture() {}
-  UTexture(GLuint _texID, int _unit) : texID(_texID), unit(_unit) {}
-  UTexture(GLuint _texID, int _unit, GLenum _mode)
-      : texID(_texID), unit(_unit), mode(_mode) {}
-};
-
-struct Texture;
-struct DynamicTexture {
-  Texture *sourceTexture = nullptr;
-  int unit = 0;
-
-  DynamicTexture() {}
-  DynamicTexture(Texture *sourceTexture) {
-    this->sourceTexture = sourceTexture;
+  UTexture(GLuint textureID) { this->textureID = textureID; }
+  UTexture(GLuint textureID, GLenum textureMode) {
+    this->textureID = textureID;
+    this->textureMode = textureMode;
   }
+
+  GLuint textureID = -1;
+  GLenum textureMode = GL_TEXTURE_2D;
 };
 
 #define UNIFORMS_LIST(o)                                                       \
   o(VEC2, glm::vec2) o(VEC3, glm::vec3) o(VEC4, glm::vec4) o(MAT2, glm::mat2)  \
       o(MAT3, glm::mat3) o(MAT4, glm::mat4) o(FLOAT, float) o(BOOL, bool)      \
-          o(INT, int) o(SAMPLER2D, UTexture) o(VEC3PTR, const glm::vec3 *)     \
-              o(INTPTR, int *) o(BINDLESS_TEXTURE, GLuint64)                   \
-                  o(DYNAMIC_TEXTURE, DynamicTexture) o(FLOATPTR, float *)      \
-                      o(VEC2PTR, const glm::vec2 *)
+          o(INT, int) o(ITEXTURE, ITexture *) o(VEC3PTR, const glm::vec3 *)    \
+              o(INTPTR, int *) o(FLOATPTR, float *)                            \
+                  o(VEC2PTR, const glm::vec2 *) o(UTEXTURE, UTexture)
 
 enum UniformType {
 #define UNIFORMS_ENUMS_DECLARATION(v, T) v,
@@ -148,8 +184,6 @@ public:
   bool bind(GLuint glUniformID) const;
 };
 
-struct Texture;
-
 struct VertexAttribute {
   int index;
   int size;
@@ -158,57 +192,42 @@ struct VertexAttribute {
   int stride;
 };
 
-struct VertexBuffer {
+struct VertexBuffer : public Updatable {
   simple_vector<uint8_t> vertexBuffer;
   simple_vector<VertexAttribute> attributes;
-  GLuint vbo = -1;
-  int vboSize = 0;
 
   bool hint_allocation_dynamic = false;
   bool hint_allocation_stream = false;
-  bool updateData = false;
   int vertexSize() const;
 
+  GLuint gl();
+  void use();
+
 private:
+  int vboSize = 0;
   mutable int _vertexsize = -1;
+  GLuint gl_vbo = -1;
 };
 
-struct IndexBuffer {
+struct IndexBuffer : public Updatable {
   simple_vector<Standard::meshIndex> indexBuffer;
-  GLuint ebo = -1;
-  bool updateData = false;
+  void use();
+  GLuint gl();
+
+private:
+  GLuint gl_ebo = -1;
 };
 
 struct Mesh {
-  // int meshLayout = 0;
   VertexBuffer *vbo = nullptr;
   IndexBuffer *ebo = nullptr;
 
   bool invertedFaces = false;
   int vertexCount();
 
+  void use();
+
   VertexAttribute getAttribute(int attribIndex);
-};
-
-struct EngineResource {
-  void setConfigurationResource(IResource *resource);
-
-  void save();
-  void load();
-
-  io_buffer serialized();
-  inline void signalDirty() { dirty = true; }
-
-  const char *configurationResourcePath();
-
-protected:
-  virtual io_buffer serialize() = 0;
-  virtual void deserialize(io_buffer buffer) = 0;
-
-private:
-  io_buffer serialized_buffer;
-  IResource *configurationResource = nullptr;
-  bool dirty = true;
 };
 
 struct Material : public EngineResource {
@@ -226,26 +245,33 @@ struct Material : public EngineResource {
   UNIFORMS_LIST(UNIFORMS_FUNC_DECLARATION)
 #undef UNIFORMS_FUNC_DECLARATION
 
+  // Uniforms collection
   std::unordered_map<std::string, Uniform> uniforms;
-  VertexBuffer *vbo = nullptr;
+
+  // Various hints
+
+  bool hint_isCamera = false;
+
+  // This is for cretaing a uniform collection template from a shader
   Program *setupProgram = nullptr;
   int setupProgramCompilationCount = 0;
 
-  bool hasCustomBindFunction = false;
-  virtual void bind(Program *program) {}
-
-  simple_vector<Material *> childMaterials;
+  void use();
 
   void addMaterial(Material *);
   void popNextMaterial();
   bool isDefined(const std::string &uniformName);
-
   inline void setCount(const std::string &name, int count) {
     uniforms[name].count = count;
   }
 
   io_buffer serialize() override;
   void deserialize(io_buffer buffer) override;
+
+protected:
+  virtual void bind(Program *program) {}
+
+  simple_vector<Material *> childMaterials;
 };
 
 #undef UNIFORMS_LIST
@@ -289,6 +315,8 @@ struct ModelConfiguration {
   uint32_t skipRenderMask = 0;
 
   int zIndex = 0;
+
+  void use();
 };
 
 struct DrawCallArgs {
@@ -304,7 +332,6 @@ struct Model : public ModelConfiguration, public DrawCallArgs {
   int hint_class = 0;
   bool hint_raycast = false;
   bool hint_editor = false;
-
   bool hint_selectionpass = false;
   int hint_modelid = 0;
   Material *hint_selection_material = nullptr;
@@ -314,11 +341,10 @@ struct Model : public ModelConfiguration, public DrawCallArgs {
   virtual void draw();
   bool ready() const;
 
-  Model *createInstance();
-
   bool isEnabled();
 
   Node *getNode();
+  void setNode(Node *node);
 };
 
 struct StepInfo {
@@ -339,11 +365,6 @@ private:
   shambhala::Node *rootNode = nullptr;
 };
 
-struct UpdateLayer {
-  int classMask;
-  virtual void step(Model *model);
-};
-
 struct ModelList {
   simple_vector<Model *> models;
 
@@ -351,16 +372,16 @@ struct ModelList {
   void remove(Model *model);
   void forceSorting();
 
+  void use();
   int size() const;
   Model *get(int index) const;
   const std::vector<int> &getRenderOrder();
-
-  ModelList *createInstance();
 
 private:
   std::vector<int> modelindices;
   bool shouldSort = true;
 };
+
 struct TextureResource : public IResource {
   uint8_t *textureBuffer = nullptr;
   int width;
@@ -369,16 +390,23 @@ struct TextureResource : public IResource {
   bool hdrSpace = false;
   virtual io_buffer *read() override;
 };
-struct Texture {
-  simple_vector<ResourceHandlerAbstract<TextureResource>> textureData;
+
+struct Texture : public ITexture {
 
   GLenum textureMode = GL_TEXTURE_2D;
-  GLuint _textureID = -1;
   bool useNeareast = false;
   bool clamp = false;
 
   bool needsUpdate();
   void addTextureResource(TextureResource *textureData);
+
+  GLuint gl() override;
+  GLenum getMode() override { return textureMode; }
+
+  simple_vector<ResourceHandlerAbstract<TextureResource>> textureData;
+
+private:
+  GLuint gl_textureID = -1;
 };
 
 enum FrameBufferDescriptorFlags {
@@ -400,10 +428,23 @@ struct FrameBufferAttachmentDescriptor {
   bool useNeareast;
 };
 
+struct FrameBuffer;
+struct FrameBufferOutput : public ITexture {
+  GLuint gl() override;
+
+private:
+  FrameBuffer *framebuffer;
+  int attachmentIndex;
+  friend FrameBuffer;
+};
+
 class FrameBuffer {
   FrameBufferDescriptorFlags configuration = FRAME_BUFFER_NULL;
-  GLuint _framebuffer = -1;
+  GLuint gl_framebuffer = -1;
   int bufferWidth = -1, bufferHeight = -1;
+
+  int desiredWidth = -1;
+  int desiredHeight = -1;
 
   void initialize();
   void dispose();
@@ -416,82 +457,66 @@ class FrameBuffer {
            !(configuration & SEPARATE_DEPTH_STENCIL);
   }
 
+  simple_vector<GLuint> colorAttachments;
+  simple_vector<FrameBufferAttachmentDescriptor> attachmentsDefinition;
+
 public:
-  void addChannel(const FrameBufferAttachmentDescriptor &fbodef);
+  FrameBufferOutput *getOutputTexture(int index);
+  GLuint getOutputAttachment(int index);
+  void addOutput(const FrameBufferAttachmentDescriptor &configuration);
+
   void begin(int width, int height);
+  void begin();
   void end();
 
-  GLuint stencilDepthBuffer;
+  void setConfiguration(FrameBufferDescriptorFlags flags);
+
+  inline void setWidth(int width) { desiredWidth = width; }
+  inline void setHeight(int height) { desiredHeight = height; }
+  int getWidth();
+  int getHeight();
 
   glm::vec4 clearColor = glm::vec4(0.0);
-  GLuint depthBuffer;
-  GLuint stencilBuffer;
 
-  vector<GLuint> colorAttachments;
-  vector<FrameBufferAttachmentDescriptor> attachmentsDefinition;
-
-  void setConfiguration(FrameBufferDescriptorFlags flags);
-  int getWidth();
-  int getHeight();
+  GLuint gl_stencilDepthBuffer;
+  GLuint gl_depthBuffer;
+  GLuint gl_stencilBuffer;
 };
-
-struct RenderCamera;
-struct RenderBinding {
-  RenderCamera *renderCamera = nullptr;
-  int attachmentIndex;
-  const char *uniformAttribute;
-};
-
-struct RenderCamera;
 
 struct RenderShot {
-  int currentFrame = 0;
+  int frame = 0;
   bool isRoot = false;
   simple_vector<ModelList *> scenes;
-
-  void updateFrame();
 };
 
-struct IRenderable {
-  virtual RenderCamera *render(const RenderShot &shot) = 0;
-};
-
-struct RenderCamera : public Material, IRenderable {
-  FrameBuffer *frameBuffer = nullptr;
-  int modelListInput = 0;
-
-  simple_vector<RenderBinding> renderBindings;
-  simple_vector<RenderCamera *> dummyInput;
-
-  Program *overrideProgram = nullptr;
-  Program *postprocessProgram = nullptr;
-
-  RenderCamera();
-
-  void beginRender(const RenderShot &shot);
-  void endRender(const RenderShot &shot);
-
-  virtual RenderCamera *render(const RenderShot &shot) override;
-  virtual void bind(Program *activeProgram) override;
-
-  void addInput(RenderCamera *child, int attachmentIndex,
-                const char *uniformAttribute);
-  void addDummyInput(RenderCamera *child);
-  RenderCamera *getDummyInput(int index);
-  int getDummyInputCount();
-
-  void addOutput(FrameBufferAttachmentDescriptor desc);
-  void setFrameBufferConfiguration(FrameBufferDescriptorFlags);
-  int getWidth();
-  int getHeight();
-  void setSize(int width, int height);
-  void setModelList(int index);
+struct RenderCamera;
+struct RenderCameraOutput : public ITexture {
+  GLuint gl() override;
 
 private:
-  int width = 0;
-  int height = 0;
-  int currentFrame = 0;
+  RenderCamera *camera;
+  int attachmentIndex;
+  friend RenderCamera;
 };
+
+struct RenderCamera : public Material, public FrameBuffer {
+
+  ITexture *renderOutput(int attachmentIndex);
+  virtual void render() {}
+
+private:
+  int currentFrame = 0;
+  int boundModelList = 0;
+  simple_vector<RenderCameraOutput> outputs;
+  friend RenderCameraOutput;
+};
+
+struct PostProcessCamera : public RenderCamera {
+  PostProcessCamera(Program *postprocess);
+  PostProcessCamera(const char *shader);
+};
+
+using RenderCamera = RenderCamera;
 
 struct RenderConfiguration {
   int mssaLevel = 0;
@@ -554,32 +579,19 @@ void bindProgram(GLuint program);
 void bindVao(GLuint vao);
 void bindVbo(GLuint vbo);
 void bindEbo(GLuint ebo);
-void bindTexture(GLuint textureId, GLenum mode);
+int bindTexture(GLuint textureId, GLenum mode);
 void bindTexture(GLuint textureId, GLenum mode, int textureUnit);
+
 void bindRenderBuffer(GLuint renderBuffer);
 void bindFrameBuffer(GLuint frameBuffer);
+
 void cullFrontFace(bool frontFace);
-
-void useModelConfiguration(ModelConfiguration *configuration);
-void useTexture(UTexture texture);
-void useTexture(DynamicTexture texture);
-void useTexture(Texture *texture);
-bool useShader(Shader *shader, GLint type);
-void useProgram(Program *program);
-void useWorldMaterials();
-void useVertexBuffer(VertexBuffer *vertexbuffer);
-void useIndexBuffer(IndexBuffer *indexBuffer);
-void useMesh(Mesh *mesh);
-void useMaterial(Material *material);
-void useModel(Model *model);
-void useUniform(const char *name, const Uniform &value);
-void useModelList(ModelList *modelList);
-
 void ignoreProgramBinding(bool ignore);
 
+void useUniform(const char *name, const Uniform &value);
 void drawCall(DrawCallArgs args = DrawCallArgs{});
-void renderPass();
 DeviceParameters queryDeviceParameters();
+void renderPass();
 } // namespace device
 
 Node *createNode();
@@ -595,10 +607,11 @@ Shader *createShader();
 FrameBuffer *createFramebuffer();
 Material *createMaterial();
 ModelList *createModelList();
-RenderCamera *createRenderCamera();
 VertexBuffer *createVertexBuffer();
 IndexBuffer *createIndexBuffer();
+RenderCamera *createRenderCamera();
 StepInfo getStepInfo();
+const simple_vector<Material *> &getWorldMaterials();
 
 Node *getRootNode();
 
@@ -606,14 +619,8 @@ void setupMaterial(Material *material, Program *program);
 void disposeModelList(ModelList *list);
 
 // DeclarativeRenderer
-Material *getWorldMaterial(WorldMatID);
-void setWorldMaterial(WorldMatID clas, Material *worldMaterial);
-void addWorldMaterial(Material *worldMaterial);
-const WorldMatCollection &getWorldMaterials();
-
-void removeWorldMaterial(Material *worldMaterial);
-void pushRenderConfiguration(RenderConfiguration *configuration);
-void popRenderConfiguration();
+void pushMaterial(Material *mat);
+void popMaterial();
 
 ModelList *getWorkingModelList();
 void setWorkingModelList(ModelList *modelList);

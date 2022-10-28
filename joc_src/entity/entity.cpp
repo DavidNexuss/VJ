@@ -15,10 +15,6 @@ void DynamicPartAtlas::configureNode(int part, Node *node) {
   node->setTransformMatrix(transform);
 }
 void DynamicPartAtlas::configureMaterial(int part, Material *material) {
-  DynamicTexture dyn;
-  dyn.sourceTexture = textureAtlas;
-  dyn.unit = 0;
-
   glm::vec2 textureSize =
       glm::vec2(textureAtlas->textureData[0].cleanFile()->width,
                 textureAtlas->textureData[0].cleanFile()->height);
@@ -28,7 +24,7 @@ void DynamicPartAtlas::configureMaterial(int part, Material *material) {
   offset /= textureSize;
   scale /= textureSize;
 
-  material->set("input", dyn);
+  material->set("input", textureAtlas);
   material->set("uv_scale", scale);
   material->set("uv_offset", offset);
   material->set("textureSize", textureSize);

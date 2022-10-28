@@ -77,12 +77,7 @@ createMaterialInstance(const aiScene *scene, aiMaterial *material,
     vector<Texture *> materialtextures =
         loadMaterialTextures(material, configuration.textureTypes[i]);
 
-    // Sets glTexture unit!!!
-    // TODO: Fix
-    DynamicTexture dtex;
-    dtex.sourceTexture = materialtextures[0];
-    dtex.unit = i;
-    minstance->set(configuration.textureNames[i], dtex);
+    minstance->set(configuration.textureNames[i], materialtextures[0]);
   }
   if (configuration.materialInstanceAmbientCoef) {
     aiColor3D ka;
@@ -304,7 +299,7 @@ Node *processNode(aiNode *node, const aiScene *scene, Scene &result,
     model->mesh = context.loadMesh(scene, node->mMeshes[i], configuration);
     model->material = context.loadMaterial(
         scene, scene->mMeshes[node->mMeshes[i]]->mMaterialIndex, configuration);
-    model->node = engineNode;
+    model->setNode(engineNode);
     shambhala::getWorkingModelList()->add(model);
   }
 
@@ -342,7 +337,7 @@ Node *processNodeCombine(aiNode *node, const aiScene *scene, Scene &result,
 
   Model *model = shambhala::createModel();
   model->mesh = createMeshCombined(meshes, transforms, configuration);
-  model->node = engineNode;
+  model->setNode(engineNode);
   shambhala::getWorkingModelList()->add(model);
   return engineNode;
 }

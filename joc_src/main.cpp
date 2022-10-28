@@ -219,10 +219,7 @@ void setupLevel() {
       floorTexture->addTextureResource(
           resource::stbiTextureFile("textures/floor.png", 3));
 
-      DynamicTexture dyn;
-      dyn.unit = 5;
-      dyn.sourceTexture = floorTexture;
-      model->material->set("input", dyn);
+      model->material->set("input", floorTexture);
     }
     {
       Texture *floorTexture = shambhala::createTexture();
@@ -231,10 +228,7 @@ void setupLevel() {
       floorTexture->addTextureResource(
           resource::stbiTextureFile("textures/floor2.png", 3));
 
-      DynamicTexture dyn;
-      dyn.unit = 6;
-      dyn.sourceTexture = floorTexture;
-      model->material->set("input2", dyn);
+      model->material->set("input2", floorTexture);
     }
     addModel(model);
   }
@@ -251,11 +245,11 @@ void setupBasic() {
 
   worldmats::Clock *clock = new worldmats::Clock;
   clock->setName("Clock");
-  shambhala::setWorldMaterial(2, clock);
+  shambhala::pushMaterial(clock);
   shambhala::addComponent(clock);
 
   ResWorldMat *worldMat = new ResWorldMat;
-  shambhala::setWorldMaterial(11, worldMat);
+  shambhala::pushMaterial(worldMat);
   shambhala::addComponent(worldMat);
 }
 void loadTestScene() {

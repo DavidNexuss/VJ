@@ -38,8 +38,5 @@ void renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
                      glm::vec4 color = glm::vec4(1.0),
                      glm::vec2 size = glm::vec2(50.0f));
 const char *stacked(GLuint *parameters);
-
-UTexture utextrue(Texture *texture, int unit);
-DynamicTexture dyntexture(Texture *texture, int unit);
 } // namespace util
 } // namespace shambhala
