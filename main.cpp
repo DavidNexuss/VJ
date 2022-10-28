@@ -57,10 +57,7 @@ Material *createPbrMaterial(const simple_vector<TextureResource *> &textureData,
   for (int i = 0; i < textureData.size(); i++) {
     Texture *text = shambhala::createTexture();
     text->addTextureResource(textureData[i]);
-    DynamicTexture dyn;
-    dyn.sourceTexture = text;
-    dyn.unit = Standard::tBaseColor + i;
-    mat->set(std::string(uniforms[i]), dyn);
+    mat->set(std::string(uniforms[i]), text);
   }
   return mat;
 }
@@ -212,7 +209,7 @@ ModelList *loadPlayer() {
 ModelList *loadWorld() {
   ModelList *modelList = loadWeapon();
   shambhala::setWorkingModelList(modelList);
-  shambhala::setWorldMaterial(Standard::wSky, createSkyBox());
+  shambhala::pushMaterial(createSkyBox());
   return modelList;
 }
 
