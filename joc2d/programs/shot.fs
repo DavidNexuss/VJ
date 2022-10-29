@@ -24,8 +24,6 @@ void main() {
   int t = type[vInstanceID];
 
   vec2 st = (vUV * uv_scale + uv_offset) - vec2(0.5);
-  st = floor(st * pixelize) / pixelize;
-
   vec3 tint_color;
   vec3 inner_tint_color;
   if(t == 1) { 
@@ -38,7 +36,6 @@ void main() {
 
   vec4 a = light(st * 1, tint_color, 3);
   vec4 b = light(st * 0.9, inner_tint_color, 3);
-
   color = a - b;
   color.a = max(color.a,0.0);
   color.a = dot(color.xyz,vec3(1.0));
@@ -47,5 +44,8 @@ void main() {
   color.a = min(color.a,1.0);
   color.a = max(color.a,0.0);
 }
+
+
+
 
 

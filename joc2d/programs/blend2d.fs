@@ -28,11 +28,12 @@ vec3 gammaCorrection(vec3 color, float gamma, float exposure) {
 }
 void main() {
 	
-  vec3 baseColor = texture2D(scene, vUV).xyz * 0.4;
+  vec3 baseColor = texture2D(scene, vUV).xyz * 0.5;
   vec3 bloomColor = getBloom(0.005) * 0.6 + getBloom(0.0005) * 0.2;
   color = bloomColor + baseColor;
   color = gammaCorrection(color,1.5,0.6);
 }
+
 
 
 
