@@ -42,4 +42,10 @@ void main() {
   color = a - b;
   color.a = max(color.a,0.0);
   color.a = dot(color.xyz,vec3(1.0));
+  color.xyz = min(color.xyz, vec3(1.0));
+  color.xyz = max(color.xyz, vec3(0.0));
+  color.a = min(color.a,1.0);
+  color.a = max(color.a,0.0);
 }
+
+

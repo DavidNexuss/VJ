@@ -10,7 +10,7 @@ using namespace std;
 using namespace shambhala;
 using namespace shambhala::worldmats;
 
-SimpleCamera::SimpleCamera() {}
+SimpleCamera::SimpleCamera() { hint_isCamera = true; }
 
 void SimpleCamera::setViewMatrix(const glm::mat4 &viewMatrix) {
   this->viewMatrix = viewMatrix;

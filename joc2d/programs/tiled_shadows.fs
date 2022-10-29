@@ -15,6 +15,10 @@ void main() {
     }
   }
   shadow_val = shadow_val / 16.0;
-  color = texture(input, st) - shadow_val * 0.5;
+  color = texture(input, st) - shadow_val * 0.15;
   color.a += shadow_val * 2.0;
+  color.a = clamp(color.a,0.0,1.0);
 }
+
+
+

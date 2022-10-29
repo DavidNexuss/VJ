@@ -11,6 +11,7 @@ uniform float zspeed;
 uniform float vzspeed;
 uniform vec3 uViewPos;
 uniform float uAR;
+uniform float hdr;
 
 void main() { 
   vec2 st = vUV - offset + pivot * sin(uTime) + vec2(uViewPos.x * (zspeed),uViewPos.y * (vzspeed));
@@ -19,5 +20,5 @@ void main() {
   st.y = min(st.y,0.99);
   st.y = max(st.y,0.01);
   st.y = 1.0 - st.y;
-  color = texture(input, st);
+  color = texture(input, st) * (1 + hdr);
 }

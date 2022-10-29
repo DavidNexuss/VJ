@@ -950,10 +950,10 @@ void FrameBuffer::begin() { begin(desiredWidth, desiredHeight); }
 
 void FrameBuffer::begin(int screenWidth, int screenHeight) {
 
-  if (screenWidth == -1)
-    screenWidth = viewport()->getScreenWidth();
-  if (screenHeight == -1)
-    screenHeight = viewport()->getScreenHeight();
+  if (screenWidth < 0)
+    screenWidth = viewport()->getScreenWidth() / -desiredWidth;
+  if (screenHeight < 0)
+    screenHeight = viewport()->getScreenHeight() / -desiredHeight;
 
   resize(screenWidth, screenHeight);
   glBindFramebuffer(GL_FRAMEBUFFER, gl_framebuffer);
@@ -1205,9 +1205,11 @@ GLuint RenderCameraOutput::gl() {
   if (camera->currentFrame != engine.currentFrame) {
     camera->currentFrame = engine.currentFrame;
 
+    engine_clearState();
     camera->begin();
     camera->render();
     camera->end();
+    engine_clearState();
   }
 
   return camera->getOutputTexture(attachmentIndex)->gl();
