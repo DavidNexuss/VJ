@@ -6,6 +6,7 @@
 #include "simple_vector.hpp"
 #include "standard.hpp"
 #include <algorithm>
+#include <cstdio>
 #include <ext.hpp>
 #include <ext/util.hpp>
 #include <memory>
@@ -197,9 +198,9 @@ bool Uniform::bind(GLuint glUniformID) const {
   case UniformType::UTEXTURE:
     glUniform1i(glUniformID,
                 device::bindTexture(UTEXTURE.textureID, UTEXTURE.textureMode));
+    break;
   }
-  if (type != UniformType::ITEXTURE)
-    dirty = false;
+
   REGISTER_UNIFORM_FLUSH();
   return true;
 }
@@ -416,7 +417,6 @@ struct BindState {
     nextUnboundUnit = 0;
   }
 
-  void drawCallClearState() { nextUnboundUnit = 0; }
   void printBindState() {}
 };
 static BindState gBindState;
@@ -642,7 +642,7 @@ void VertexBuffer::use() {
     return;
 
   // Create vertexBuffer
-  if (gl_vbo == -1 || vertexBuffer.size()) {
+  if (gl_vbo == -1 || (vertexBuffer.size() && needsUpdate())) {
 
     device::createVBO(vertexBuffer, &gl_vbo);
     vboSize = vertexBuffer.size();
@@ -744,8 +744,6 @@ void ModelConfiguration::use() {
 void device::useUniform(const char *name, const Uniform &value) {
   GLuint uniformId = device::getUniform(guseState.currentProgram->gl(), name);
 
-  // SoftCheck(uniformId != -1, LOG("[Warning] Attempted to use an invalid
-  // uniform %s", name););
   if (uniformId != -1)
     value.bind(uniformId);
 }
@@ -804,8 +802,6 @@ void device::drawCall(DrawCallArgs args) {
       glDrawArrays(guseState.currentModelConfiguration.renderMode, 0,
                    guseState.currentMesh->vertexCount());
   }
-
-  gBindState.drawCallClearState();
 }
 
 DeviceParameters device::queryDeviceParameters() {
@@ -826,6 +822,7 @@ FrameBufferOutput *FrameBuffer::getOutputTexture(int index) {
   auto *out = new FrameBufferOutput;
   out->framebuffer = this;
   out->attachmentIndex = index;
+  return out;
 }
 GLuint FrameBuffer::getOutputAttachment(int index) {
   if (index == Standard::attachmentDepthBuffer)
@@ -842,12 +839,20 @@ GLuint FrameBuffer::createDepthStencilBuffer() {
 }
 
 void FrameBuffer::initialize() {
-  gl_framebuffer = device::createFramebuffer();
+  if (gl_framebuffer == -1)
+    gl_framebuffer = device::createFramebuffer();
   device::bindFrameBuffer(gl_framebuffer);
-  colorAttachments.resize(attachmentsDefinition.size());
-  glGenTextures(colorAttachments.size(), &colorAttachments[0]);
+
+  if (colorAttachments.size() != attachmentsDefinition.size()) {
+
+    int lastTexture = colorAttachments.size();
+    colorAttachments.resize(attachmentsDefinition.size());
+    glGenTextures(attachmentsDefinition.size() - lastTexture,
+                  &colorAttachments[lastTexture]);
+  }
+
   for (int i = 0; i < colorAttachments.size(); i++) {
-    device::bindTexture(colorAttachments[i], GL_TEXTURE_2D);
+    device::bindTexture(colorAttachments[i], GL_TEXTURE_2D, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, attachmentsDefinition[i].internalFormat,
                  bufferWidth, bufferHeight, 0,
                  attachmentsDefinition[i].externalFormat,
@@ -912,7 +917,6 @@ void FrameBuffer::initialize() {
 
 void FrameBuffer::dispose() {
   device::bindFrameBuffer(0);
-  glDeleteTextures(colorAttachments.size(), colorAttachments.data());
 
   if (combinedDepthStencil()) {
     if (configuration & USE_RENDER_BUFFER)
@@ -927,7 +931,6 @@ void FrameBuffer::dispose() {
       glDeleteTextures(1, &gl_stencilBuffer);
     }
   }
-  glDeleteFramebuffers(1, &gl_framebuffer);
 }
 
 void FrameBuffer::resize(int screenWidth, int screenHeight) {
@@ -1186,26 +1189,34 @@ PostProcessCamera::PostProcessCamera(const char *path)
     : PostProcessCamera(
           util::createScreenProgram(resource::ioMemoryFile(path))) {}
 
-PostProcessCamera::PostProcessCamera(Program *program) {}
+PostProcessCamera::PostProcessCamera(Program *program) {
+  this->postProcessProgram = program;
+}
+
+void PostProcessCamera::render() {
+  util::renderScreen(this, postProcessProgram);
+}
+
+void RenderCamera::render() { shambhala::device::renderPass(); }
 
 GLuint RenderCameraOutput::gl() {
   if (camera->currentFrame != engine.currentFrame) {
+    camera->currentFrame = engine.currentFrame;
+
     camera->begin();
-    pushMaterial(camera);
     camera->render();
     camera->end();
-    camera->currentFrame = engine.currentFrame;
   }
 
   return camera->getOutputTexture(attachmentIndex)->gl();
 }
 
-ITexture *RenderCamera::renderOutput(int attachmentIndex) {
+RenderCameraOutput *RenderCamera::renderOutput(int attachmentIndex) {
 
-  this->outputs.resize(attachmentIndex + 1);
-  this->outputs[attachmentIndex].camera = this;
-  this->outputs[attachmentIndex].attachmentIndex = attachmentIndex;
-  return &this->outputs[attachmentIndex];
+  RenderCameraOutput *result = new RenderCameraOutput;
+  result->camera = this;
+  result->attachmentIndex = attachmentIndex;
+  return result;
 }
 
 //---------------------[END RENDERCAMERA]

@@ -38,5 +38,7 @@ void renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
                      glm::vec4 color = glm::vec4(1.0),
                      glm::vec2 size = glm::vec2(50.0f));
 const char *stacked(GLuint *parameters);
+
+void renderScreen(Material *material, Program *program);
 } // namespace util
 } // namespace shambhala

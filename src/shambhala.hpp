@@ -15,19 +15,6 @@
 #include <unordered_map>
 #include <vector>
 
-#pragma once
-#define ENUM_OPERATORS(T)                                                      \
-  inline T operator~(T a) { return (T) ~(int)a; }                              \
-  inline T operator|(T a, T b) { return (T)((int)a | (int)b); }                \
-  inline T operator&(T a, T b) { return (T)((int)a & (int)b); }                \
-  inline T operator^(T a, T b) { return (T)((int)a ^ (int)b); }                \
-  inline T &operator|=(T &a, T b) { return (T &)((int &)a |= (int)b); }        \
-  inline T &operator&=(T &a, T b) { return (T &)((int &)a &= (int)b); }        \
-  inline T &operator^=(T &a, T b) { return (T &)((int &)a ^= (int)b); }
-
-using uint32_t = unsigned int;
-using uint8_t = unsigned char;
-
 namespace shambhala {
 
 struct Material;
@@ -166,21 +153,18 @@ public:
   };
 
   UniformType type;
-  mutable bool dirty;
   int count = 1;
 
   Uniform() {}
 #define UNIFORMS_CONSTRUCTOR(v, T)                                             \
-  Uniform(T _##v) : v(_##v), type(UniformType::v), dirty(true) {}
+  Uniform(T _##v) : v(_##v), type(UniformType::v) {}
   UNIFORMS_LIST(UNIFORMS_CONSTRUCTOR)
 #undef UNIFORMS_CONSTRUCTOR
 #define UNIFORMS_CONSTRUCTOR(v, T)                                             \
-  Uniform(T _##v, int _count)                                                  \
-      : v(_##v), type(UniformType::v), dirty(true), count(_count) {}
+  Uniform(T _##v, int _count) : v(_##v), type(UniformType::v), count(_count) {}
   UNIFORMS_LIST(UNIFORMS_CONSTRUCTOR)
 #undef UNIFORMS_CONSTRUCTOR
 
-  inline void setDirty() { dirty = true; }
   bool bind(GLuint glUniformID) const;
 };
 
@@ -236,10 +220,8 @@ struct Material : public EngineResource {
   inline void set(const std::string &name, T a) {                              \
     Uniform val;                                                               \
     val.v = a;                                                                 \
-    val.dirty = true;                                                          \
     val.type = UniformType::v;                                                 \
     uniforms[name] = val;                                                      \
-    signalDirty();                                                             \
   }
 
   UNIFORMS_LIST(UNIFORMS_FUNC_DECLARATION)
@@ -501,19 +483,23 @@ private:
 
 struct RenderCamera : public Material, public FrameBuffer {
 
-  ITexture *renderOutput(int attachmentIndex);
-  virtual void render() {}
+  RenderCameraOutput *renderOutput(int attachmentIndex);
+  virtual void render();
 
 private:
-  int currentFrame = 0;
+  int currentFrame = -1;
   int boundModelList = 0;
-  simple_vector<RenderCameraOutput> outputs;
   friend RenderCameraOutput;
 };
 
 struct PostProcessCamera : public RenderCamera {
   PostProcessCamera(Program *postprocess);
   PostProcessCamera(const char *shader);
+
+  void render() override;
+
+private:
+  Program *postProcessProgram = nullptr;
 };
 
 using RenderCamera = RenderCamera;

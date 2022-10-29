@@ -13,8 +13,8 @@ add_subdirectory(lib/lightmapper)
 add_subdirectory(lib/xatlas)
 target_include_directories(shambhala PRIVATE include src)
 target_link_libraries(shambhala imgui imguiText stbimage lightmapper xatlas)
-add_executable(main main.cpp)
-target_link_libraries(main shambhala stbimage GL GLEW glfw assimp)
+# add_executable(main main.cpp)
+# target_link_libraries(main shambhala stbimage GL GLEW glfw assimp)
 
 file(GLOB_RECURSE JOC joc_src/*.cpp joc_src/*.hpp)
 

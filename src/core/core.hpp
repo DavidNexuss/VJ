@@ -36,3 +36,16 @@ template <typename T> uint32_t hash(const T &object) {
 template <typename T, typename V> uint32_t binaryHash(const T &a, const V &b) {
   return hash(hash(a) * 3 + hash(b));
 }
+
+#pragma once
+#define ENUM_OPERATORS(T)                                                      \
+  inline T operator~(T a) { return (T) ~(int)a; }                              \
+  inline T operator|(T a, T b) { return (T)((int)a | (int)b); }                \
+  inline T operator&(T a, T b) { return (T)((int)a & (int)b); }                \
+  inline T operator^(T a, T b) { return (T)((int)a ^ (int)b); }                \
+  inline T &operator|=(T &a, T b) { return (T &)((int &)a |= (int)b); }        \
+  inline T &operator&=(T &a, T b) { return (T &)((int &)a &= (int)b); }        \
+  inline T &operator^=(T &a, T b) { return (T &)((int &)a ^= (int)b); }
+
+using uint32_t = unsigned int;
+using uint8_t = unsigned char;

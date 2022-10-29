@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "device/shambhala_audio.hpp"
+#include "ext/util.hpp"
 #include "ext/worldmat.hpp"
 #include <ext.hpp>
 #include <impl/audio_openal.hpp>
@@ -52,9 +53,19 @@ void Joc::enginecreate() {
   shambhala::setActiveWindow(shambhala::createWindow(configuration));
 
   // Initialize engine components
-  mainCamera = shambhala::createRenderCamera();
-  mainShot.scenes.push(shambhala::createModelList());
 
+  RenderCamera *sourceCamera = shambhala::createRenderCamera();
+  sourceCamera->setConfiguration(shambhala::USE_RENDER_BUFFER);
+  sourceCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
+  // sourceCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
+
+  mainCamera = new PostProcessCamera(
+
+      loader::loadProgram("programs/blend2d.fs", "programs/parallax.vs"));
+  mainCamera->set("scene", sourceCamera->renderOutput(0));
+  // mainCamera->set("bloom", sourceCamera->renderOutput(1));
+
+  mainShot.scenes.push(shambhala::createModelList());
   // Adds debug camera
   {
     worldmats::DebugCamera *debugCamera = new worldmats::DebugCamera;
@@ -78,17 +89,21 @@ void Joc::loop() {
 
       getWorkingModelList()->use();
       shambhala::loop_io_sync_step();
+
       shambhala::loop_beginRenderContext(frame);
-      shambhala::loop_componentUpdate();
-      shambhala::device::renderPass();
-      // mainCamera->render(mainShot);
+      {
+
+        shambhala::loop_componentUpdate();
+        mainCamera->render();
+
 #ifdef EDITOR
-      shambhala::loop_beginUIContext();
-      editor::editorBeginContext();
-      editor::editorRender(frame);
-      editor::editorEndContext();
-      shambhala::loop_endUIContext();
+        shambhala::loop_beginUIContext();
+        editor::editorBeginContext();
+        editor::editorRender(frame);
+        editor::editorEndContext();
+        shambhala::loop_endUIContext();
 #endif
+      }
       shambhala::loop_endRenderContext();
     }
     shambhala::loop_end();

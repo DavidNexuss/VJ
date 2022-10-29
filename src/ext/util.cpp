@@ -397,3 +397,14 @@ void util::renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
   planeModel->getNode()->setTransformMatrix(transform);
   planeModel->draw();
 }
+
+void util::renderScreen(Material *material, Program *program) {
+  program->use();
+  material->use();
+  device::useUniform(Standard::uTransformMatrix, Uniform(glm::mat4(1.0)));
+  device::useUniform(Standard::uViewMatrix, Uniform(glm::mat4(1.0)));
+  device::useUniform(Standard::uProjectionMatrix, Uniform(glm::mat4(1.0)));
+
+  createScreen()->use();
+  device::drawCall();
+}

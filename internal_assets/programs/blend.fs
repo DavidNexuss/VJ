@@ -20,7 +20,7 @@ void gammaCorrection() {
     //color = vec4(vec3(shadow),1.0);
 }
 void additiveBlending() { 
-  color = vec4(texture(scene,uv).rgb + texture(bloom, uv).rgb,1.0);
+  color = vec4(texture(scene,uv).rgb;
 }
 void main()
 {             
