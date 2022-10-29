@@ -56,14 +56,15 @@ void Joc::enginecreate() {
 
   RenderCamera *sourceCamera = shambhala::createRenderCamera();
   sourceCamera->setConfiguration(shambhala::USE_RENDER_BUFFER);
-  sourceCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
-  // sourceCamera->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
+  sourceCamera->addOutput({GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE});
+  sourceCamera->addOutput({GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE});
+  sourceCamera->clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
   mainCamera = new PostProcessCamera(
 
       loader::loadProgram("programs/blend2d.fs", "programs/parallax.vs"));
   mainCamera->set("scene", sourceCamera->renderOutput(0));
-  // mainCamera->set("bloom", sourceCamera->renderOutput(1));
+  mainCamera->set("bloom", sourceCamera->renderOutput(1));
 
   mainShot.scenes.push(shambhala::createModelList());
   // Adds debug camera
@@ -94,7 +95,8 @@ void Joc::loop() {
       {
 
         shambhala::loop_componentUpdate();
-        mainCamera->render();
+        // mainCamera->render();
+        device::renderPass();
 
 #ifdef EDITOR
         shambhala::loop_beginUIContext();
