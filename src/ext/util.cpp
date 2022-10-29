@@ -355,6 +355,7 @@ int util::doSelectionPass(ModelList *models) {
                          viewport()->getScreenHeight());
 
   selection->use();
+  selection->bind(selectionMaterial);
 
   const std::vector<int> &order = models->getRenderOrder();
   for (int i = 0; i < order.size(); i++) {
@@ -363,8 +364,7 @@ int util::doSelectionPass(ModelList *models) {
 
       selectionMaterial->set("uModelID", model->hint_modelid);
       model->mesh->use();
-      model->getNode()->use();
-      selectionMaterial->use();
+      selection->bind(model->getNode());
       device::drawCall();
     }
   }
@@ -399,12 +399,12 @@ void util::renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
 }
 
 void util::renderScreen(Material *material, Program *program) {
-  program->use();
-  material->use();
-  device::useUniform(Standard::uTransformMatrix, Uniform(glm::mat4(1.0)));
-  device::useUniform(Standard::uViewMatrix, Uniform(glm::mat4(1.0)));
-  device::useUniform(Standard::uProjectionMatrix, Uniform(glm::mat4(1.0)));
+  program->bind(material);
 
+  program->bind(Standard::uTransformMatrix, Uniform(glm::mat4(1.0)));
+  program->bind(Standard::uViewMatrix, Uniform(glm::mat4(1.0)));
+  program->bind(Standard::uProjectionMatrix, Uniform(glm::mat4(1.0)));
   createScreen()->use();
+  program->use();
   device::drawCall();
 }

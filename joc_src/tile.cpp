@@ -150,11 +150,11 @@ void TileMap::bakeShadows() {
           glm::ortho(0.0f, float(sizex), 0.0f, float(sizey)));
 
       shadowGenerator->use();
+      shadowGenerator->bind(bakedModel->material);
+      shadowGenerator->bind(camera);
+      shadowGenerator->bind("shadowLevel", Uniform(float(i)));
       bakedModel->mesh->use();
-      bakedModel->material->use();
-      camera->use();
 
-      device::useUniform("shadowLevel", Uniform(float(i)));
       device::drawCall();
     }
     fbo->end();
@@ -201,8 +201,8 @@ void TileMap::bake() {
 
       this->model->program->use();
       this->model->mesh->use();
-      this->model->material->use();
-      camera->use();
+      this->model->program->bind(camera);
+      this->model->program->bind(this->model->material);
 
       device::drawCall();
     }

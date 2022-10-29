@@ -125,7 +125,7 @@ void ShotComponent::uniformFlush() {
     positions.type = shambhala::VEC3PTR;
     positions.VEC3PTR = &shot_positions[0];
     positions.count = this->instance_count;
-    device::useUniform("uPositionOffset", positions);
+    program->bind("uPositionOffset", positions);
   }
 
   {
@@ -133,7 +133,7 @@ void ShotComponent::uniformFlush() {
     type.type = shambhala::INTPTR;
     type.INTPTR = (int *)&shots[0];
     type.count = this->instance_count;
-    device::useUniform("type", type);
+    program->bind("type", type);
   }
 
   {
@@ -141,15 +141,15 @@ void ShotComponent::uniformFlush() {
     size.type = shambhala::FLOATPTR;
     size.FLOATPTR = &shot_scale[0];
     size.count = this->instance_count;
-    device::useUniform("uSizeOffset", size);
+    program->bind("uSizeOffset", size);
   }
 }
 void ShotComponent::draw() {
   glDisable(GL_DEPTH_TEST);
   if (this->instance_count != 0) {
     program->use();
+    program->bind(node);
     mesh->use();
-    node->use();
 
     if (needsUniformFlush) {
       uniformFlush();

@@ -129,7 +129,7 @@ const glm::mat4 &Node::getCombinedMatrix() const {
 }
 
 void Node::bind(Program *activeProgram) {
-  device::useUniform(Standard::uTransformMatrix, Uniform(getCombinedMatrix()));
+  activeProgram->bind(Standard::uTransformMatrix, Uniform(getCombinedMatrix()));
 }
 
 bool Node::isEnabled() {
@@ -606,7 +606,7 @@ void Program::use() {
   guseState.currentProgram = this;
 
   for (int i = 0; i < engine.materialsStack.size(); i++) {
-    engine.materialsStack[i]->use();
+    bind(engine.materialsStack[i]);
   }
 }
 
@@ -742,25 +742,25 @@ void ModelConfiguration::use() {
   guseState.hasModelConfiguration = true;
 }
 
-void device::useUniform(const char *name, const Uniform &value) {
-  GLuint uniformId = device::getUniform(guseState.currentProgram->gl(), name);
+void Program::bind(const char *name, Uniform value) {
+  GLuint uniformId = device::getUniform(gl(), name);
 
   if (uniformId != -1)
     value.bind(uniformId);
 }
 
-void Material::use() {
-  if (setupProgram) {
-    shambhala::setupMaterial(this, setupProgram);
+void Program::bind(Material *mat) {
+  if (mat->setupProgram) {
+    shambhala::setupMaterial(mat, mat->setupProgram);
   }
 
-  bind(guseState.currentProgram);
-  for (auto &uniform : uniforms) {
-    device::useUniform(uniform.first.c_str(), uniform.second);
+  mat->bind(this);
+  for (auto &uniform : mat->uniforms) {
+    bind(uniform.first.c_str(), uniform.second);
   }
 
-  for (int i = 0; i < childMaterials.size(); i++) {
-    childMaterials[i]->use();
+  for (int i = 0; i < mat->childMaterials.size(); i++) {
+    bind(mat->childMaterials[i]);
   }
 }
 
@@ -1013,14 +1013,14 @@ void Model::draw() {
   this->use();
   mesh->use();
   program->use();
-  node->use();
+  program->bind(node);
 
   if (hint_modelid == engine.hint_selected_modelid &&
       hint_selection_material != nullptr) {
 
-    hint_selection_material->use();
+    program->bind(hint_selection_material);
   } else if (material != nullptr)
-    material->use();
+    program->bind(material);
 
   device::drawCall(*this);
   if (depthMask)
@@ -1201,6 +1201,7 @@ void PostProcessCamera::render() {
 void RenderCamera::render() { shambhala::device::renderPass(); }
 
 GLuint RenderCameraOutput::gl() {
+
   if (camera->currentFrame != engine.currentFrame) {
     camera->currentFrame = engine.currentFrame;
 

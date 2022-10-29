@@ -89,30 +89,6 @@ enum ShaderType {
   SHADER_TYPE_COUNT
 };
 
-struct Program;
-struct Shader {
-  ResourceHandler file;
-  bool use(GLint type);
-
-private:
-  GLuint gl_shader = -1;
-  friend Program;
-};
-
-struct Program {
-  Shader *shaders[SHADER_TYPE_COUNT] = {0};
-  bool hint_skybox = false;
-
-  void use();
-  inline int getCompilationCount() { return compilationCount; }
-  GLuint gl();
-
-private:
-  int compilationCount = 0;
-  bool errored = false;
-  GLuint gl_shaderProgram = -1;
-};
-
 struct ITexture {
   virtual GLuint gl() = 0;
   virtual GLenum getMode() { return GL_TEXTURE_2D; }
@@ -166,6 +142,35 @@ public:
 #undef UNIFORMS_CONSTRUCTOR
 
   bool bind(GLuint glUniformID) const;
+};
+
+struct Program;
+struct Material;
+
+struct Shader {
+  ResourceHandler file;
+  bool use(GLint type);
+
+private:
+  GLuint gl_shader = -1;
+  friend Program;
+};
+
+struct Program {
+  Shader *shaders[SHADER_TYPE_COUNT] = {0};
+  bool hint_skybox = false;
+
+  void use();
+  void bind(Material *material);
+  void bind(const char *uniformName, Uniform value);
+
+  inline int getCompilationCount() { return compilationCount; }
+  GLuint gl();
+
+private:
+  int compilationCount = 0;
+  bool errored = false;
+  GLuint gl_shaderProgram = -1;
 };
 
 struct VertexAttribute {
@@ -238,8 +243,6 @@ struct Material : public EngineResource {
   Program *setupProgram = nullptr;
   int setupProgramCompilationCount = 0;
 
-  void use();
-
   void addMaterial(Material *);
   void popNextMaterial();
   bool isDefined(const std::string &uniformName);
@@ -251,8 +254,8 @@ struct Material : public EngineResource {
   void deserialize(io_buffer buffer) override;
 
 protected:
+  friend Program;
   virtual void bind(Program *program) {}
-
   simple_vector<Material *> childMaterials;
 };
 
@@ -574,7 +577,6 @@ void bindFrameBuffer(GLuint frameBuffer);
 void cullFrontFace(bool frontFace);
 void ignoreProgramBinding(bool ignore);
 
-void useUniform(const char *name, const Uniform &value);
 void drawCall(DrawCallArgs args = DrawCallArgs{});
 DeviceParameters queryDeviceParameters();
 void renderPass();
