@@ -20,8 +20,9 @@ void main() {
   color = texture(input, st);
   color.a = length(color) - 1.2;
   color.a *= 0.1;
-  color.x *= 0.4;
+  color.x *= 0.8;
   color.y *= (0.2 + sin(uTime * 0.1 + vUV.x) * 0.2);
-  color.z *= 0.3;
+  color.z *= 0.6;
   color.a = -2.0;
 }
+
