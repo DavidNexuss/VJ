@@ -16,9 +16,11 @@ uniform float hdr;
 void main() { 
   vec2 st = vUV - offset + pivot * sin(uTime) + vec2(uViewPos.x * (zspeed),uViewPos.y * (vzspeed));
   st.x *= uAR;
-  st = fract(st);
-  st.y = min(st.y,0.99);
-  st.y = max(st.y,0.01);
+  
   st.y = 1.0 - st.y;
+  st.x = fract(st.x);
+  st.y = min(st.y,0.99);
+  st.y = max(st.y,0.02);
   color = texture(input, st) * (1 + hdr);
 }
+
