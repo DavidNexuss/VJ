@@ -41,6 +41,17 @@ struct SoundModel {
   ~SoundModel();
 };
 
+struct SoundListener {
+  glm::vec3 position = glm::vec3(0, 0, 1);
+  glm::vec3 velocity = glm::vec3(0, 0, 0);
+  struct {
+    glm::vec3 x = glm::vec3(1, 0, 0);
+    glm::vec3 y = glm::vec3(0, 1, 0);
+  } orientation;
+
+  void use();
+};
+
 namespace device {
 bool isPlaying(ALuint source);
 void diposeSource(ALuint source);

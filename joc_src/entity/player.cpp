@@ -103,13 +103,12 @@ void Player::step(shambhala::StepInfo info) {
 
   // Audio
   {
-    audio::useSoundModel(this->soundModel);
-    audio::Listener listener;
+    audio::SoundListener listener;
     listener.orientation.x = glm::vec3(1.0, 0.0, 0.0);
     listener.orientation.y = glm::vec3(0.0, 1.0, 0.0);
-    listener.position = glm::vec3(0.0);
-    listener.velocity = glm::vec3(0.0);
-    aud()->configureListener(listener);
+    listener.position = glm::vec3(*immediateGetPosition(), 0.0);
+    listener.velocity = glm::vec3(getVelocity(), 0.0);
+    listener.use();
   }
 }
 

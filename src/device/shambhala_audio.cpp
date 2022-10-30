@@ -117,4 +117,9 @@ SoundModel::~SoundModel() {
   }
 }
 
+void SoundListener::use() {
+  ALC(alListener3f(AL_POSITION, position.x, position.y, position.z));
+  ALC(alListener3f(AL_VELOCITY, velocity.x, velocity.y, velocity.z));
+  ALC(alListenerfv(AL_ORIENTATION, (ALfloat *)&orientation));
+}
 void audio::loop_stepAudio() { device::step_dispose(); }

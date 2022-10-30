@@ -56,14 +56,6 @@ bool AudioOpenAL::initDevice() {
   return true;
 }
 
-void AudioOpenAL::configureListener(Listener listener) {
-  alListener3f(AL_POSITION, listener.position.x, listener.position.y,
-               listener.position.z);
-  alListener3f(AL_VELOCITY, listener.velocity.x, listener.velocity.y,
-               listener.velocity.z);
-  alListenerfv(AL_ORIENTATION, (ALfloat *)&listener.orientation);
-}
-
 static void list_audio_devices(const ALCchar *devices) {
   const ALCchar *device = devices, *next = devices + 1;
   size_t len = 0;
