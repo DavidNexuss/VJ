@@ -6,6 +6,11 @@
 #include <glm/ext/matrix_clip_space.hpp>
 using namespace shambhala;
 
+struct TileAttribute {
+  glm::vec3 position;
+  glm::vec2 uv;
+};
+
 TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
                  int zindex) {
   tiles.resize(sizex * sizey);
@@ -64,11 +69,34 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
   }
 
   enableBake(true);
-  // setDebug(model);
   setName("tileMap");
   addModel(model);
   addModel(bakedModel);
   addModel(illuminationModel);
+  // Create framebuffers
+  {
+    static auto createBakeFramebuffer = []() {
+      auto *fbo = shambhala::createFramebuffer();
+      FrameBufferAttachmentDescriptor desc;
+      desc.externalFormat = GL_RGBA;
+      desc.internalFormat = GL_RGBA;
+      desc.type = GL_UNSIGNED_BYTE;
+      desc.useNeareast = true;
+      fbo->addOutput(desc);
+      return fbo;
+    };
+
+    fbo_bake = createBakeFramebuffer();
+    fbo_shadows = createBakeFramebuffer();
+
+    fbo_shadows->clearColor.w = 1.0;
+
+    bakedModel->material->set("input", fbo_bake->getOutputTexture(0));
+
+    illuminationModel->material->set("input", fbo_bake->getOutputTexture(0));
+    illuminationModel->material->set("shadow",
+                                     fbo_shadows->getOutputTexture(0));
+  }
 }
 
 void TileMap::updateMesh() {
@@ -124,100 +152,55 @@ void TileMap::bakeShadows() {
   static Program *shadowGenerator = loader::loadProgram(
       "programs/tiled_shadow_generator.fs", "programs/regular.vs");
 
-  if (fbo == nullptr) {
-    fbo = shambhala::createFramebuffer();
-    FrameBufferAttachmentDescriptor desc;
-    desc.externalFormat = GL_RGBA;
-    desc.internalFormat = GL_RGBA;
-    desc.type = GL_UNSIGNED_BYTE;
-    desc.useNeareast = true;
-    fbo->addOutput(desc);
-  }
-
-  TileBake bakeResult;
-  bakeResult.size = glm::vec2(sizex, sizey) * 16.0f;
-  shambhala::engine_clearState();
+  glm::vec2 size = glm::vec2(sizex, sizey) * 16.0f;
   {
-    fbo->clearColor.w = 1.0;
-    fbo->begin(bakeResult.size.x, bakeResult.size.y);
-    glm::mat4 viewMat(1.0f);
+    fbo_shadows->begin(size.x, size.y);
+    shadowGenerator->use();
+    shadowGenerator->bind(bakedModel->material);
+    camera->setProjectionMatrix(
+        glm::ortho(0.0f, float(sizex), 0.0f, float(sizey)));
     camera->set(Standard::uTransformMatrix, util::scale(sizex, sizey, 1.0));
+    bakedModel->mesh->use();
 
+    glm::mat4 viewMat(1.0f);
     for (int i = 0; i < 200; i++) {
       camera->setViewMatrix(viewMat);
       viewMat = util::translate(-0.3 * 0.3, -0.6 * 0.3, 0.0) * viewMat;
-      camera->setProjectionMatrix(
-          glm::ortho(0.0f, float(sizex), 0.0f, float(sizey)));
 
-      shadowGenerator->use();
-      shadowGenerator->bind(bakedModel->material);
       shadowGenerator->bind(camera);
       shadowGenerator->bind("shadowLevel", Uniform(float(i)));
-      bakedModel->mesh->use();
 
       device::drawCall();
     }
-    fbo->end();
+    fbo_shadows->end();
   }
-  shambhala::engine_clearState();
-  bakeResult.bakedTexture = fbo->getOutputAttachment(0);
-  this->bakeInformationShadow = bakeResult;
-
-  UTexture texture;
-  texture.textureID = bakeInformationShadow.bakedTexture;
-  UTexture base;
-  base.textureID = bakeInformation.bakedTexture;
-
-  illuminationModel->material->set("input", base);
-  illuminationModel->material->set("shadow", texture);
   illuminationModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.001));
 }
 void TileMap::bake() {
   static worldmats::SimpleCamera *camera = new worldmats::SimpleCamera;
   camera->set(Standard::uTransformMatrix, glm::mat4(1.0));
 
-  if (bake_fbo == nullptr) {
-    bake_fbo = shambhala::createFramebuffer();
-    FrameBufferAttachmentDescriptor desc;
-    desc.externalFormat = GL_RGBA;
-    desc.internalFormat = GL_RGBA;
-    desc.type = GL_UNSIGNED_BYTE;
-    desc.useNeareast = true;
-    bake_fbo->addOutput(desc);
-  }
-
-  TileBake bakeResult;
-  bakeResult.size = glm::vec2(sizex, sizey) * 16.0f;
-
-  shambhala::engine_clearState();
+  glm::vec2 size = glm::vec2(sizex, sizey) * 16.0f;
 
   glDisable(GL_BLEND);
   {
-    bake_fbo->begin(bakeResult.size.x, bakeResult.size.y);
+    fbo_bake->begin(size.x, size.y);
     {
       camera->setViewMatrix(glm::mat4(1.0f));
       camera->setProjectionMatrix(
           glm::ortho(0.0f, float(sizex), 0.0f, float(sizey)));
 
-      this->model->program->use();
-      this->model->mesh->use();
-      this->model->program->bind(camera);
-      this->model->program->bind(this->model->material);
+      model->program->use();
+      model->mesh->use();
+      model->program->bind(camera);
+      model->program->bind(this->model->material);
 
       device::drawCall();
     }
-    bake_fbo->end();
+    fbo_bake->end();
   }
-  shambhala::engine_clearState();
-
   glEnable(GL_BLEND);
 
-  bakeResult.bakedTexture = bake_fbo->getOutputAttachment(0);
-  this->bakeInformation = bakeResult;
-
-  UTexture texture;
-  texture.textureID = bakeInformation.bakedTexture;
-  bakedModel->material->set("input", texture);
   bakedModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.001));
 }
 void TileMap::enableBake(bool pEnable) {
@@ -265,7 +248,6 @@ void TileMap::step(shambhala::StepInfo info) {
   }
   if (needsUpdate) {
     updateMesh();
-    // updateShadows();
 
     levelResource.cleanFile()->set(io_buffer::create(serialize()));
     levelResource.signalAck();

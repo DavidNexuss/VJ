@@ -50,3 +50,24 @@ private:
 };
 
 using ResourceHandler = ResourceHandlerAbstract<IResource>;
+
+struct EngineResource {
+  void setConfigurationResource(IResource *resource);
+
+  void save();
+  void load();
+
+  io_buffer serialized();
+  inline void signalDirty() { dirty = true; }
+
+  const char *configurationResourcePath();
+
+protected:
+  virtual io_buffer serialize() = 0;
+  virtual void deserialize(io_buffer buffer) = 0;
+
+private:
+  io_buffer serialized_buffer;
+  IResource *configurationResource = nullptr;
+  bool dirty = true;
+};

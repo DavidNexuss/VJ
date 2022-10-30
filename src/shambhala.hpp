@@ -4,6 +4,7 @@
 #include "adapters/log.hpp"
 #include "adapters/serialize.hpp"
 #include "adapters/viewport.hpp"
+#include "core/component.hpp"
 #include "core/core.hpp"
 #include "core/resource.hpp"
 #include "simple_vector.hpp"
@@ -20,65 +21,6 @@ namespace shambhala {
 struct Material;
 using WorldMatID = int;
 using WorldMatCollection = simple_vector<Material *>;
-
-struct UIComponent {
-  bool uiRender = false;
-  bool uiSelected = false;
-};
-
-template <typename T> struct EngineComponent : public UIComponent {
-  inline static int indexCount = 0;
-
-  std::string stringName;
-  int indexName = 0;
-
-  EngineComponent() { indexName = indexCount++; }
-
-  EngineComponent(const EngineComponent &other) {
-    indexName = indexCount++;
-    other.stringName = other.stringName + " " + std::to_string(indexName);
-  }
-  std::string &getName() {
-    if (stringName.empty())
-      stringName = std::to_string(indexName);
-    return stringName;
-  }
-
-  virtual void setName(const char *name) {
-    if (name != nullptr)
-      stringName = name;
-  }
-};
-
-struct Updatable {
-  inline void signalUpdate() { _needsUpdate = true; }
-  inline void ackUpdate() { _needsUpdate = false; }
-  inline bool needsUpdate() { return _needsUpdate; }
-
-private:
-  bool _needsUpdate = true;
-};
-
-struct EngineResource {
-  void setConfigurationResource(IResource *resource);
-
-  void save();
-  void load();
-
-  io_buffer serialized();
-  inline void signalDirty() { dirty = true; }
-
-  const char *configurationResourcePath();
-
-protected:
-  virtual io_buffer serialize() = 0;
-  virtual void deserialize(io_buffer buffer) = 0;
-
-private:
-  io_buffer serialized_buffer;
-  IResource *configurationResource = nullptr;
-  bool dirty = true;
-};
 
 enum ShaderType {
   FRAGMENT_SHADER = 0,
@@ -120,8 +62,7 @@ enum UniformType {
 #undef UNIFORMS_ENUMS_DECLARATION
 };
 
-class Uniform {
-public:
+struct Uniform {
   union {
 #define UNIFORMS_UNION_DECLARATION(v, T) T v;
     UNIFORMS_LIST(UNIFORMS_UNION_DECLARATION)
@@ -164,7 +105,7 @@ struct Program {
   void bind(Material *material);
   void bind(const char *uniformName, Uniform value);
 
-  inline int getCompilationCount() { return compilationCount; }
+  inline int getCompilationCount() const { return compilationCount; }
   GLuint gl();
 
 private:
@@ -222,11 +163,11 @@ struct Mesh {
 struct Material : public EngineResource {
 
 #define UNIFORMS_FUNC_DECLARATION(v, T)                                        \
-  inline void set(const std::string &name, T a) {                              \
+  inline Uniform &set(const std::string &name, T a) {                          \
     Uniform val;                                                               \
     val.v = a;                                                                 \
     val.type = UniformType::v;                                                 \
-    uniforms[name] = val;                                                      \
+    return uniforms[name] = val;                                               \
   }
 
   UNIFORMS_LIST(UNIFORMS_FUNC_DECLARATION)
@@ -234,29 +175,29 @@ struct Material : public EngineResource {
 
   // Uniforms collection
   std::unordered_map<std::string, Uniform> uniforms;
+  bool has(const std::string &uniformName);
+
+  void setSetupProgram(Program *program);
+
+  void addMaterial(Material *);
+  void popNextMaterial();
+
+  io_buffer serialize() override;
+  void deserialize(io_buffer buffer) override;
 
   // Various hints
 
   bool hint_isCamera = false;
 
-  // This is for cretaing a uniform collection template from a shader
-  Program *setupProgram = nullptr;
-  int setupProgramCompilationCount = 0;
-
-  void addMaterial(Material *);
-  void popNextMaterial();
-  bool isDefined(const std::string &uniformName);
-  inline void setCount(const std::string &name, int count) {
-    uniforms[name].count = count;
-  }
-
-  io_buffer serialize() override;
-  void deserialize(io_buffer buffer) override;
-
 protected:
   friend Program;
   virtual void bind(Program *program) {}
   simple_vector<Material *> childMaterials;
+
+private:
+  // This is for cretaing a uniform collection template from a shader
+  Program *setupProgram = nullptr;
+  int setupProgramCompilationCount = 0;
 };
 
 #undef UNIFORMS_LIST
@@ -603,7 +544,6 @@ const simple_vector<Material *> &getWorldMaterials();
 
 Node *getRootNode();
 
-void setupMaterial(Material *material, Program *program);
 void disposeModelList(ModelList *list);
 
 // DeclarativeRenderer

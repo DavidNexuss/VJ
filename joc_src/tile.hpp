@@ -3,16 +3,6 @@
 #include "entity/entity.hpp"
 #include <shambhala.hpp>
 
-struct TileAttribute {
-  glm::vec3 position;
-  glm::vec2 uv;
-};
-
-struct TileBake {
-  GLuint bakedTexture = -1;
-  glm::vec2 size;
-};
-
 struct TileMap : public shambhala::LogicComponent, public Entity {
   TileMap(int sizex, int sizey, TileAtlas *atlas, shambhala::Texture *text,
           int zindex);
@@ -23,8 +13,8 @@ private:
   int zindex = 10;
   // Baking
 
-  shambhala::FrameBuffer *fbo = nullptr;
-  shambhala::FrameBuffer *bake_fbo = nullptr;
+  shambhala::FrameBuffer *fbo_shadows = nullptr;
+  shambhala::FrameBuffer *fbo_bake = nullptr;
 
   // Resources
   ResourceHandler levelResource;
@@ -37,8 +27,6 @@ private:
   shambhala::Model *bakedModel = nullptr;
   shambhala::Model *illuminationModel = nullptr;
 
-  TileBake bakeInformation;
-  TileBake bakeInformationShadow;
   simple_vector<int> tiles;
   int bakeCount = 0;
   int sizex;

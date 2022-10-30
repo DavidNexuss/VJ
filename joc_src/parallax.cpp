@@ -24,8 +24,7 @@ shambhala::Material *ParallaxBackground::addParallaxBackground(
     parallaxBackground->program = customProgram;
   }
   parallaxBackground->material = shambhala::createMaterial();
-  shambhala::setupMaterial(parallaxBackground->material,
-                           parallaxBackground->program);
+  parallaxBackground->material->setSetupProgram(parallaxBackground->program);
 
   parallaxBackground->depthMask = true;
   if (zIndex == 0)

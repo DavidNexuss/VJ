@@ -139,6 +139,9 @@ Mesh *util::createTexturedQuad() {
   return result;
 }
 Mesh *util::createScreen() {
+  return createTexturedQuad();
+
+  // TODO Remove this code
   static Mesh *result = nullptr;
   if (result == nullptr) {
     result = shambhala::createMesh();

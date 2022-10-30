@@ -93,8 +93,8 @@ void Joc::loop() {
       {
 
         shambhala::loop_componentUpdate();
-        mainCamera->render();
-        // device::renderPass();
+        // mainCamera->render();
+        device::renderPass();
 
 #ifdef EDITOR
         shambhala::loop_beginUIContext();

@@ -623,7 +623,7 @@ void IndexBuffer::use() {
   if (indexBuffer.size() && (needsUpdate() || gl_ebo == -1)) {
 
     device::createEBO(indexBuffer, &gl_ebo);
-    ackUpdate();
+    signalAck();
   }
 
   device::bindEbo(gl_ebo);
@@ -655,7 +655,7 @@ void VertexBuffer::use() {
                     vertexBuffer.data());
   }
 
-  ackUpdate();
+  signalAck();
   device::bindVbo(gl_vbo);
 
   // Bind attributes
@@ -750,9 +750,6 @@ void Program::bind(const char *name, Uniform value) {
 }
 
 void Program::bind(Material *mat) {
-  if (mat->setupProgram) {
-    shambhala::setupMaterial(mat, mat->setupProgram);
-  }
 
   mat->bind(this);
   for (auto &uniform : mat->uniforms) {
@@ -1061,51 +1058,11 @@ void LogicComponent::setName(const char *name) {
   EngineComponent<LogicComponent>::setName(name);
 }
 void LogicComponent::add(Model *model) { shambhala::addModel(model); }
-//---------------------[LOGIC COMPONENT END]
 
-//---------------------[BEGIN COMPONENT METHODS]
-
-//---------------------[BEGIN ENGINE RESOURCE]
-
-void EngineResource::save() {
-  if (configurationResource == nullptr || dirty == false)
-    return;
-
-  io_buffer data = serialize();
-  *configurationResource->read() = data;
-  configurationResource->write();
-  dirty = false;
-}
-
-void EngineResource::load() {
-  if (configurationResource == nullptr)
-    return;
-  deserialize(*configurationResource->read());
-}
-
-void EngineResource::setConfigurationResource(IResource *resource) {
-  configurationResource = resource;
-}
-
-io_buffer EngineResource::serialized() {
-  if (serialized_buffer.data != nullptr)
-    delete[] serialized_buffer.data;
-
-  dirty = false;
-  return serialized_buffer = serialize();
-}
-
-const char *EngineResource::configurationResourcePath() {
-  if (configurationResource == nullptr)
-    return nullptr;
-  return configurationResource->resourcename.c_str();
-}
-
-//---------------------[END ENGINE RESOURCE]
 //---------------------[MATERIAL BEGIN]
 
 void Material::addMaterial(Material *mat) { childMaterials.push(mat); }
-bool Material::isDefined(const std::string &uniformName) {
+bool Material::has(const std::string &uniformName) {
   return uniforms.count(uniformName);
 }
 void Material::popNextMaterial() {
@@ -1127,14 +1084,55 @@ io_buffer Material::serialize() {
   return serializer()->end();
 }
 
-void Material::deserialize(io_buffer buffer) {
-  /*
-  serializer()->deserialize(buffer);
-  int n = serializer()->deserializeEntryCount();
-  for (int i = 0; i < n; i++) {
-    ISerializer::DeserializeEntry entry = serializer()->deserializeEntryIt(i);
-    switch (entry.type) {}
-  } */
+void Material::deserialize(io_buffer buffer) {}
+
+void Material::setSetupProgram(Program *program) {
+
+  static auto iscapital = [](char x) {
+    if (x >= 'A' && x <= 'Z')
+      return 1;
+
+    else
+      return 0;
+  };
+
+  GLuint shaderProgram = program->gl();
+  setupProgramCompilationCount = program->getCompilationCount();
+  setupProgram = program;
+  int uniformCount;
+  glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &uniformCount);
+  static int buffer_size = 128;
+  static char buffer[128];
+  for (int i = 0; i < uniformCount; i++) {
+    GLsizei length;
+    GLint size;
+    GLenum type;
+    glGetActiveUniform(shaderProgram, (GLuint)i, buffer_size, &length, &size,
+                       &type, buffer);
+    std::string name(buffer);
+
+    // IGNORE WORLD MATERIALS TODO:
+    if (name[0] == 'u' && iscapital(name[1]))
+      continue;
+
+    if (has(name))
+      continue;
+
+    switch (type) {
+    case GL_FLOAT:
+      set(name, 0.0f);
+      break;
+    case GL_INT:
+      set(name, 0);
+      break;
+    case GL_FLOAT_VEC2:
+      set(name, glm::vec2(0.0f));
+      break;
+    case GL_FLOAT_VEC3:
+      set(name, glm::vec3(0.0f));
+      break;
+    }
+  }
 }
 
 //---------------------[MATERIAL END]
@@ -1225,7 +1223,6 @@ RenderCameraOutput *RenderCamera::renderOutput(int attachmentIndex) {
 
 //---------------------[END RENDERCAMERA]
 
-//---------------------[END RENDERSHOT]
 //---------------------[BEGIN ENGINE]
 
 void shambhala::loop_begin() {}
@@ -1511,51 +1508,4 @@ int loader::shaderCount() { return shaderContainer.linearCache.size(); }
 
 Texture *loader::loadTexture(const char *path, int channelCount) {
   return textureContainer.get(path, channelCount);
-}
-
-static int iscapital(char x) {
-  if (x >= 'A' && x <= 'Z')
-    return 1;
-
-  else
-    return 0;
-}
-void shambhala::setupMaterial(Material *material, Program *program) {
-  GLuint shaderProgram = program->gl();
-  material->setupProgramCompilationCount = program->getCompilationCount();
-  material->setupProgram = program;
-  int uniformCount;
-  glGetProgramiv(shaderProgram, GL_ACTIVE_UNIFORMS, &uniformCount);
-  static int buffer_size = 128;
-  static char buffer[128];
-  for (int i = 0; i < uniformCount; i++) {
-    GLsizei length;
-    GLint size;
-    GLenum type;
-    glGetActiveUniform(shaderProgram, (GLuint)i, buffer_size, &length, &size,
-                       &type, buffer);
-    std::string name(buffer);
-
-    // IGNORE WORLD MATERIALS TODO:
-    if (name[0] == 'u' && iscapital(name[1]))
-      continue;
-
-    if (material->isDefined(name))
-      continue;
-
-    switch (type) {
-    case GL_FLOAT:
-      material->set(name, 0.0f);
-      break;
-    case GL_INT:
-      material->set(name, 0);
-      break;
-    case GL_FLOAT_VEC2:
-      material->set(name, glm::vec2(0.0f));
-      break;
-    case GL_FLOAT_VEC3:
-      material->set(name, glm::vec3(0.0f));
-      break;
-    }
-  }
 }
