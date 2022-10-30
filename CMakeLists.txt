@@ -23,6 +23,10 @@ target_compile_definitions(joc PUBLIC GLFW)
 target_compile_definitions(joc PUBLIC EDITOR)
 target_link_libraries(joc shambhala stbimage GL GLEW glfw assimp openal alut )
 
+add_executable(joc_final ${JOC})
+target_compile_definitions(joc_final PUBLIC GLFW)
+target_link_libraries(joc_final shambhala stbimage GL GLEW glfw assimp openal alut )
+
 add_executable(joc_glut ${JOC})
 target_compile_definitions(joc_glut PUBLIC GLUT)
 target_link_libraries(joc_glut shambhala stbimage GL GLEW glut assimp openal alut )

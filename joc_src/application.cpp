@@ -55,8 +55,10 @@ void Joc::enginecreate() {
   // Initialize engine components
 
   RenderCamera *sourceCamera = shambhala::createRenderCamera();
+  // sourceCamera->setWidth(-2);
+  // sourceCamera->setHeight(-2);
   sourceCamera->setConfiguration(shambhala::USE_RENDER_BUFFER);
-  sourceCamera->addOutput({GL_RGBA16F, GL_RGBA, GL_FLOAT});
+  sourceCamera->addOutput({GL_RGBA16F, GL_RGBA, GL_FLOAT, false});
   sourceCamera->clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
   mainCamera = new PostProcessCamera(
@@ -93,8 +95,8 @@ void Joc::loop() {
       {
 
         shambhala::loop_componentUpdate();
-        // mainCamera->render();
-        device::renderPass();
+        mainCamera->render();
+        // device::renderPass();
 
 #ifdef EDITOR
         shambhala::loop_beginUIContext();
