@@ -27,14 +27,14 @@ void main() {
   vec3 tint_color;
   vec3 inner_tint_color;
   if(t == 1) { 
-    tint_color = vec3(-0.3,0.5,1.2);
+    tint_color = vec3(-0.2,0.5,1.2);
     inner_tint_color = vec3(-0.3,0.8,0.1);
   } else { 
     tint_color = vec3(0.5,1.2,-0.3);
     inner_tint_color = vec3(-0.3,0.8,0.1);
   }
 
-  vec4 a = light(st * 1, tint_color, 3);
+  vec4 a = light(st * 1, tint_color, 4.0);
   vec4 b = light(st * 0.9, inner_tint_color, 3);
   color = a - b;
   color.a = max(color.a,0.0);
@@ -43,7 +43,10 @@ void main() {
   color.xyz = max(color.xyz, vec3(0.0));
   color.a = min(color.a,1.0);
   color.a = max(color.a,0.0);
+  color.a *= -2.0;
 }
+
+
 
 
 
