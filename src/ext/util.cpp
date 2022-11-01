@@ -368,7 +368,7 @@ int util::doSelectionPass(ModelList *models) {
       selectionMaterial->set("uModelID", model->hint_modelid);
       model->mesh->use();
       selection->bind(model->getNode());
-      device::drawCall();
+      drawCall();
     }
   }
 
@@ -409,5 +409,5 @@ void util::renderScreen(Material *material, Program *program) {
   program->bind(Standard::uProjectionMatrix, Uniform(glm::mat4(1.0)));
   createScreen()->use();
   program->use();
-  device::drawCall();
+  drawCall();
 }

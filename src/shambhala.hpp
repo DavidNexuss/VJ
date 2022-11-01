@@ -3,6 +3,7 @@
 #include "adapters/io.hpp"
 #include "adapters/log.hpp"
 #include "adapters/serialize.hpp"
+#include "adapters/video.hpp"
 #include "adapters/viewport.hpp"
 #include "core/component.hpp"
 #include "core/core.hpp"
@@ -82,7 +83,7 @@ struct Uniform {
   UNIFORMS_LIST(UNIFORMS_CONSTRUCTOR)
 #undef UNIFORMS_CONSTRUCTOR
 
-  bool bind(GLuint glUniformID) const;
+  bool bind(GLuint program, GLuint glUniformID) const;
 };
 
 struct Program;
@@ -134,7 +135,6 @@ struct VertexBuffer : public Updatable {
   void use();
 
 private:
-  int vboSize = 0;
   mutable int _vertexsize = -1;
   GLuint gl_vbo = -1;
 };
@@ -245,10 +245,6 @@ struct ModelConfiguration {
   void use();
 };
 
-struct DrawCallArgs {
-  int instance_count = 0;
-};
-
 struct Model : public ModelConfiguration, public DrawCallArgs {
   Program *program = nullptr;
   Mesh *mesh = nullptr;
@@ -347,13 +343,6 @@ enum FrameBufferDescriptorFlags {
 
 ENUM_OPERATORS(FrameBufferDescriptorFlags)
 
-struct FrameBufferAttachmentDescriptor {
-  GLuint internalFormat;
-  GLuint externalFormat;
-  GLenum type;
-  bool useNeareast;
-};
-
 struct FrameBuffer;
 struct FrameBufferOutput : public ITexture {
   GLuint gl() override;
@@ -384,12 +373,12 @@ class FrameBuffer {
   }
 
   simple_vector<GLuint> colorAttachments;
-  simple_vector<FrameBufferAttachmentDescriptor> attachmentsDefinition;
+  simple_vector<video::TextureFormat> attachmentsDefinition;
 
 public:
   FrameBufferOutput *getOutputTexture(int index);
   GLuint getOutputAttachment(int index);
-  void addOutput(const FrameBufferAttachmentDescriptor &configuration);
+  void addOutput(video::TextureFormat format);
 
   void begin(int width, int height);
   void begin();
@@ -462,66 +451,12 @@ struct EngineControllers {
   shambhala::IIO *io = nullptr;
   shambhala::ILogger *logger = nullptr;
   shambhala::audio::IAudio *audio = nullptr;
+  shambhala::video::IVideo *video = nullptr;
 };
 
-struct DeviceParameters {
-  int maxTextureUnits;
-};
-
-struct EngineParameters : public EngineControllers {};
 } // namespace shambhala
 
 namespace shambhala {
-
-namespace device {
-
-GLuint compileShader(const char *data, GLenum type,
-                     const std::string &resourcename);
-GLuint compileProgram(GLuint *shaders, GLint *status);
-GLuint createVAO();
-GLuint createVBO(const simple_vector<uint8_t> &vertexBuffer, GLuint *vbo);
-GLuint createEBO(const simple_vector<Standard::meshIndex> &indexBuffer,
-                 GLuint *ebo);
-GLuint createTexture(bool filter, bool clamp = false);
-GLuint createCubemap();
-GLuint createRenderBuffer();
-GLuint createFramebuffer();
-GLuint createRenderBuffer();
-GLuint getShaderType(int shaderType);
-GLuint getUniform(GLuint program, const char *name);
-
-void uploadTexture(GLenum target, unsigned char *texturebuffer, int width,
-                   int height, int components, bool hdr);
-
-void uploadDepthTexture(GLuint texture, int width, int height);
-void uploadStencilTexture(GLuint texture, int width, int height);
-void uploadDepthStencilTexture(GLuint texture, int width, int height);
-
-void configureRenderBuffer(GLenum mode, int width, int height);
-void disposeShader(GLuint shader);
-void disposeProgram(GLuint program);
-void disposeTexture(GLuint texture);
-void disposeVao(GLuint vao);
-void disposeVbo(GLuint vbo);
-void bindAttribute(GLuint vbo, int index, int size, int stride, int offset,
-                   int divisor);
-void bindProgram(GLuint program);
-void bindVao(GLuint vao);
-void bindVbo(GLuint vbo);
-void bindEbo(GLuint ebo);
-int bindTexture(GLuint textureId, GLenum mode);
-void bindTexture(GLuint textureId, GLenum mode, int textureUnit);
-
-void bindRenderBuffer(GLuint renderBuffer);
-void bindFrameBuffer(GLuint frameBuffer);
-
-void cullFrontFace(bool frontFace);
-void ignoreProgramBinding(bool ignore);
-
-void drawCall(DrawCallArgs args = DrawCallArgs{});
-DeviceParameters queryDeviceParameters();
-void renderPass();
-} // namespace device
 
 Node *createNode();
 Node *createNode(const char *componentName);
@@ -563,8 +498,9 @@ ISerializer *serializer();
 IViewport *viewport();
 IIO *io();
 audio::IAudio *aud();
+video::IVideo *vid();
 
-void createEngine(EngineParameters parameters);
+void createEngine(EngineControllers controllers);
 void *createWindow(const WindowConfiguration &configuration);
 void setActiveWindow(void *window);
 void destroyEngine();
@@ -583,6 +519,9 @@ void loop_beginUIContext();
 void loop_endUIContext();
 bool loop_shouldClose();
 void loop_end();
+
+void drawCall();
+void renderPass();
 
 void engine_clearState();
 void engine_prepareRender();

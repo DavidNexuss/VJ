@@ -157,7 +157,7 @@ Texture *gi::bakeAmbientOcclusion(ModelList *modelList, int size, int bounces) {
         aoProgram->bind(Standard::uLightmap, lightmapResource);
         aoProgram->bind(Standard::uProjectionMatrix, proj);
         aoProgram->bind(Standard::uViewMatrix, view);
-        shambhala::device::drawCall();
+        shambhala::drawCall();
         frame++;
         lmEnd(ctx);
       }

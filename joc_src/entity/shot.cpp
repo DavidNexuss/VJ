@@ -115,7 +115,7 @@ void ShotComponent::step(shambhala::StepInfo info) {
     shot_scale.removeNShift(shot);
     shot_acceleration.removeNShift(shot);
   }
-  this->instance_count = shot_positions.size();
+  this->instanceCount = shot_positions.size();
   needsUniformFlush = true;
 }
 
@@ -124,7 +124,7 @@ void ShotComponent::uniformFlush() {
     Uniform positions;
     positions.type = shambhala::VEC3PTR;
     positions.VEC3PTR = &shot_positions[0];
-    positions.count = this->instance_count;
+    positions.count = this->instanceCount;
     program->bind("uPositionOffset", positions);
   }
 
@@ -132,7 +132,7 @@ void ShotComponent::uniformFlush() {
     Uniform type;
     type.type = shambhala::INTPTR;
     type.INTPTR = (int *)&shots[0];
-    type.count = this->instance_count;
+    type.count = this->instanceCount;
     program->bind("type", type);
   }
 
@@ -140,13 +140,13 @@ void ShotComponent::uniformFlush() {
     Uniform size;
     size.type = shambhala::FLOATPTR;
     size.FLOATPTR = &shot_scale[0];
-    size.count = this->instance_count;
+    size.count = this->instanceCount;
     program->bind("uSizeOffset", size);
   }
 }
 void ShotComponent::draw() {
   glDisable(GL_DEPTH_TEST);
-  if (this->instance_count != 0) {
+  if (this->instanceCount != 0) {
     program->use();
     program->bind(node);
     mesh->use();
@@ -156,7 +156,7 @@ void ShotComponent::draw() {
       needsUniformFlush = false;
     }
 
-    device::drawCall(*this);
+    drawCall();
   }
   glEnable(GL_DEPTH_TEST);
 }

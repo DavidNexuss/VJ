@@ -77,12 +77,7 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
   {
     static auto createBakeFramebuffer = []() {
       auto *fbo = shambhala::createFramebuffer();
-      FrameBufferAttachmentDescriptor desc;
-      desc.externalFormat = GL_RGBA;
-      desc.internalFormat = GL_RGBA;
-      desc.type = GL_UNSIGNED_BYTE;
-      desc.useNeareast = true;
-      fbo->addOutput(desc);
+      fbo->addOutput({GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE});
       return fbo;
     };
 
@@ -170,7 +165,7 @@ void TileMap::bakeShadows() {
       shadowGenerator->bind(camera);
       shadowGenerator->bind("shadowLevel", Uniform(float(i)));
 
-      device::drawCall();
+      drawCall();
     }
     fbo_shadows->end();
   }
@@ -195,7 +190,7 @@ void TileMap::bake() {
       model->program->bind(camera);
       model->program->bind(this->model->material);
 
-      device::drawCall();
+      drawCall();
     }
     fbo_bake->end();
   }

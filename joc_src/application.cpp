@@ -8,6 +8,7 @@
 #include <impl/io_std.hpp>
 #include <impl/logger.hpp>
 #include <impl/serialize.hpp>
+#include <impl/video_gl.hpp>
 #include <shambhala.hpp>
 
 #ifdef GLFW
@@ -23,7 +24,7 @@ using namespace shambhala;
 void Joc::enginecreate() {
 
   // Setup engine and window
-  EngineParameters parameters;
+  EngineControllers parameters;
   parameters.io = new shambhala::LinuxIO;
 #ifdef GLUT
   parameters.viewport = new shambhala::viewportGLUT;
@@ -35,6 +36,7 @@ void Joc::enginecreate() {
   parameters.logger = new shambhala::DefaultLogger;
   parameters.serializer = new shambhala::StreamSerializer;
   parameters.audio = new AudioOpenAL;
+  parameters.video = new video::OpenGLDriver;
 
   parameters.io->translators.push_back("assets/%s");
   parameters.io->translators.push_back("internal_assets/%s");
@@ -58,7 +60,7 @@ void Joc::enginecreate() {
   // sourceCamera->setWidth(-2);
   // sourceCamera->setHeight(-2);
   sourceCamera->setConfiguration(shambhala::USE_RENDER_BUFFER);
-  sourceCamera->addOutput({GL_RGBA16F, GL_RGBA, GL_FLOAT, false});
+  sourceCamera->addOutput({GL_RGBA16F, GL_RGBA, GL_FLOAT});
   sourceCamera->clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
   mainCamera = new PostProcessCamera(
