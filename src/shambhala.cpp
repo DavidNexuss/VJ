@@ -16,11 +16,6 @@
 #include <utility>
 #include <vector>
 
-#define REGISTER_UNIFORM_FLUSH()                                               \
-  do {                                                                         \
-  } while (0)
-
-#define TEXTURE_CACHING 1
 using namespace shambhala;
 
 struct SelectionHint {
@@ -202,7 +197,6 @@ bool Uniform::bind(GLuint program, GLuint glUniformID) const {
     break;
   }
 
-  REGISTER_UNIFORM_FLUSH();
   return true;
 }
 int VertexBuffer::vertexSize() const {
@@ -243,6 +237,14 @@ struct UseState {
   }
 
   bool isFrontCulled() { return meshCullFrontFace ^ modelCullFrontFace; }
+
+  DrawCallArgs getDrawArgs() {
+    DrawCallArgs args;
+    args.vertexCount = currentMesh->vertexCount();
+    args.indexed = currentMesh->ebo != nullptr;
+    args.instanceCount = 0;
+    return args;
+  }
 };
 static UseState guseState;
 
@@ -661,8 +663,6 @@ void Model::draw() {
   if (node == nullptr)
     node = shambhala::createNode();
 
-  if (depthMask)
-    glDepthMask(GL_FALSE);
   this->use();
   mesh->use();
   program->use();
@@ -675,9 +675,9 @@ void Model::draw() {
   } else if (material != nullptr)
     program->bind(material);
 
-  drawCall();
-  if (depthMask)
-    glDepthMask(GL_TRUE);
+  DrawCallArgs args = guseState.getDrawArgs();
+  args.instanceCount = instanceCount;
+  vid()->drawCall(args);
 }
 
 Node *Model::getNode() {
@@ -1001,10 +1001,7 @@ ILogger *shambhala::log() { return engine.controllers.logger; }
 audio::IAudio *shambhala::aud() { return engine.controllers.audio; }
 video::IVideo *shambhala::vid() { return engine.controllers.video; }
 
-void shambhala::drawCall() {
-  DrawCallArgs args;
-  vid()->drawCall(args);
-}
+void shambhala::drawCall() { vid()->drawCall(guseState.getDrawArgs()); }
 
 //---------------------[END ENGINECONFIGURATION]
 

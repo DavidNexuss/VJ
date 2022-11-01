@@ -13,7 +13,7 @@ struct DrawCallArgs {
   };
   bool indexed;
 
-  GLenum drawMode;
+  GLenum drawMode = GL_TRIANGLES;
 };
 
 struct VideoDeviceParameters {
