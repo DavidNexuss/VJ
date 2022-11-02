@@ -916,7 +916,8 @@ void shambhala::engine_prepareRender() {
 
 void shambhala::engine_prepareDeclarativeRender() {
 
-  vid()->set(video::SH_CLEAR_COLOR, engine.renderConfig->clearColor);
+  vid()->set(video::SH_CLEAR_COLOR,
+             glm::vec4(engine.renderConfig->clearColor, 1.0));
 
   viewport()->fakeViewportSize(engine.renderConfig->virtualWidth,
                                engine.renderConfig->virtualHeight);
