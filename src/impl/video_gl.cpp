@@ -6,6 +6,10 @@
 using namespace shambhala;
 using namespace shambhala::video;
 
+// Should take into incount supported opengl version
+#define O45
+#define O41
+
 #define SANITY(x)                                                              \
   { x }
 
@@ -182,6 +186,8 @@ GLuint OpenGLDriver::createVAO() {
   glGenVertexArrays(1, &vao);
   return vao;
 }
+
+// TODO createBuffers 4.5
 GLuint OpenGLDriver::createBuffer(BufferDesc desc) {
   GLuint buff;
 #ifdef EXT_BUFFER_CREATE
@@ -408,7 +414,7 @@ void OpenGLDriver::bindBuffer(GLuint vbo) {
   }
 }
 
-// TODO: Use regular glUniform
+// TODO: Use regular glUniform ?? FT: 4.1
 void OpenGLDriver::bindUniform(GLuint program, GLuint id, GLenum type,
                                void *value, int count) {
   switch (type) {
