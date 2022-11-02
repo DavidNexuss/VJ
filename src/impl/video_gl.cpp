@@ -19,7 +19,13 @@ static struct {
 } driverState;
 
 struct BufferInformation {
-  GLenum type;
+  GLenum type = 0;
+};
+
+struct TextureInformation {
+  GLuint textureUnit = 0;
+  bool needsMipmap = false;
+  bool usesMipmap = false;
 };
 
 static struct {
@@ -36,6 +42,7 @@ static struct {
 
   // Textures
   std::unordered_map<int, GLuint> boundUnits;
+  std::unordered_map<GLuint, TextureInformation> textureInformation;
 
   bool isFrameBufferBound(GLuint buffer) {
     return buffer == currentFramebuffer;
@@ -215,10 +222,14 @@ void OpenGLDriver::bindTexture(GLuint textureId, GLenum target) {
   }
 }
 int OpenGLDriver::bindTexture(GLuint textureId, GLenum target, GLuint unit) {
+  if (bindState.textureInformation[textureId].needsMipmap) {
+    glGenerateTextureMipmap(textureId);
+    bindState.textureInformation[textureId].needsMipmap = false;
+  }
   if (bindState.boundUnits[unit] != textureId) {
     bindState.boundUnits[unit] = textureId;
-    bindTexture(textureId, target);
     glActiveTexture(unit + GL_TEXTURE0);
+    bindTexture(textureId, target);
   }
   return unit;
 }
@@ -262,6 +273,9 @@ GLuint OpenGLDriver::createTexture(TextureDesc desc) {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
   }
+
+  // TOOO: No need to always generate mipmap
+  bindState.textureInformation[textureId].usesMipmap = true;
   return textureId;
 }
 
@@ -325,6 +339,9 @@ void OpenGLDriver::bindFrameBuffer(GLuint frameBuffer) {
 
 void OpenGLDriver::uploadTexture(TextureUploadDesc desc) {
 
+  if (bindState.textureInformation[desc.textureID].usesMipmap) {
+    bindState.textureInformation[desc.textureID].needsMipmap = true;
+  }
   bindTexture(desc.textureID, desc.target);
   if (desc.isDepth) {
     glTexImage2D(desc.target, 0, GL_DEPTH_COMPONENT, desc.width, desc.height, 0,
