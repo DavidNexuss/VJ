@@ -402,7 +402,7 @@ public:
   int getWidth();
   int getHeight();
 
-  glm::vec4 clearColor = glm::vec4(0.0);
+  glm::vec4 clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
   GLuint gl_stencilDepthBuffer;
   GLuint gl_depthBuffer;

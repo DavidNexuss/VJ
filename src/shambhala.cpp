@@ -33,9 +33,6 @@ void glError(GLenum source, GLenum type, GLuint id, GLenum severity,
   }
 }
 
-inline void clearFramebuffer() { glClearColor(0.0, 0.0, 0.0, 0.0); }
-inline void clearDefault() { glClearColor(0.0, 0.0, 0.0, 1.0); }
-
 struct SelectionHint {
   int hint_selected_modelid = -1;
 };
