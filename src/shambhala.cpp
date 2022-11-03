@@ -508,6 +508,7 @@ void shambhala::renderPass() {
 
 // --------------------[BEGIN FRAMEBUFFER]
 
+FrameBuffer::FrameBuffer() { clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0); }
 GLuint FrameBufferOutput::gl() {
   return framebuffer->getOutputAttachment(attachmentIndex);
 }

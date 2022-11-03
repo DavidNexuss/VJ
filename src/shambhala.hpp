@@ -376,6 +376,7 @@ class FrameBuffer {
   simple_vector<video::TextureFormat> attachmentsDefinition;
 
 public:
+  FrameBuffer();
   FrameBufferOutput *getOutputTexture(int index);
   GLuint getOutputAttachment(int index);
   void addOutput(video::TextureFormat format);
@@ -391,7 +392,7 @@ public:
   int getWidth();
   int getHeight();
 
-  glm::vec4 clearColor = glm::vec4(0.0);
+  glm::vec4 clearColor;
 
   GLuint gl_stencilDepthBuffer;
   GLuint gl_depthBuffer;

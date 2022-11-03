@@ -77,14 +77,17 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
   {
     static auto createBakeFramebuffer = []() {
       auto *fbo = shambhala::createFramebuffer();
-      fbo->addOutput({GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE});
+      video::TextureFormat desc;
+      desc.externalFormat = GL_RGBA;
+      desc.internalFormat = GL_RGBA;
+      desc.type = GL_UNSIGNED_BYTE;
+      fbo->addOutput(desc);
+      fbo->clearColor = glm::vec4(0.0);
       return fbo;
     };
 
     fbo_bake = createBakeFramebuffer();
     fbo_shadows = createBakeFramebuffer();
-
-    fbo_shadows->clearColor.w = 1.0;
 
     bakedModel->material->set("input", fbo_bake->getOutputTexture(0));
 

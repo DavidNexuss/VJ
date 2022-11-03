@@ -10,7 +10,7 @@ using namespace shambhala;
 
 static float maxShootingCharge = 5.0;
 static float minshootingDelay = 1.2;
-static float shootspeed = 3.0;
+static float shootspeed = 6.0;
 static float playerspeed = 6.0;
 
 Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {

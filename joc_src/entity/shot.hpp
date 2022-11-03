@@ -23,8 +23,8 @@ private:
     int type;
   };
 
-  float startPitch = 0.7;
-  float endPitch = 1.3;
+  float startPitch = 1.5;
+  float endPitch = 0.7;
   shambhala::audio::SoundMesh *laserStart;
   shambhala::audio::SoundMesh *laserEnd;
   shambhala::Node *soundNode;
