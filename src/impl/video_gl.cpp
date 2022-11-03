@@ -38,6 +38,7 @@ static struct {
   GLuint currentProgram = -1;
   GLuint currentFramebuffer = -1;
   GLuint currentTexture = -1;
+  GLuint currentUnit = -1;
 
   // Buffers
   std::unordered_map<int, GLuint> boundAttributes;
@@ -107,8 +108,8 @@ void OpenGLDriver::enableDebug(bool pEnable) {
     glDisable(GL_DEBUG_OUTPUT);
   }
 }
-void OpenGLDriver::initDevice() {}
-void OpenGLDriver::stepBegin() {}
+void OpenGLDriver::initDevice() { glGenVertexArrays(1, &bindState.currentVao); }
+void OpenGLDriver::stepBegin() { glBindVertexArray(bindState.currentVao); }
 void OpenGLDriver::stepEnd() {}
 
 ProgramStatus &OpenGLDriver::statusProgramCompilation() {
@@ -165,6 +166,10 @@ GLuint OpenGLDriver::compileProgram(ProgramDesc desc) {
   GLint InfoLogLength;
   glGetProgramiv(program, GL_INFO_LOG_LENGTH, &InfoLogLength);
 
+  for (int i = 0; i < desc.shaderCount; i++) {
+    glDetachShader(program, desc.shaders[i]);
+  }
+
   if (InfoLogLength > 0) {
     pStatus.errorMsg.resize(InfoLogLength + 1);
     glGetProgramInfoLog(program, InfoLogLength, NULL, &pStatus.errorMsg[0]);
@@ -175,16 +180,7 @@ GLuint OpenGLDriver::compileProgram(ProgramDesc desc) {
     glDeleteProgram(program);
   }
 
-  for (int i = 0; i < desc.shaderCount; i++) {
-    glDetachShader(program, desc.shaders[i]);
-  }
-
   return program;
-}
-GLuint OpenGLDriver::createVAO() {
-  GLuint vao;
-  glGenVertexArrays(1, &vao);
-  return vao;
 }
 
 // TODO createBuffers 4.5
@@ -225,6 +221,7 @@ void OpenGLDriver::bindTexture(GLuint textureId, GLenum target) {
   if (bindState.currentTexture != textureId) {
     glBindTexture(target, textureId);
     bindState.currentTexture = textureId;
+    bindState.boundUnits[bindState.currentUnit] = textureId;
   }
 }
 int OpenGLDriver::bindTexture(GLuint textureId, GLenum target, GLuint unit) {
@@ -233,7 +230,7 @@ int OpenGLDriver::bindTexture(GLuint textureId, GLenum target, GLuint unit) {
     bindState.textureInformation[textureId].needsMipmap = false;
   }
   if (bindState.boundUnits[unit] != textureId) {
-    bindState.boundUnits[unit] = textureId;
+    bindState.currentUnit = unit;
     glActiveTexture(unit + GL_TEXTURE0);
     bindTexture(textureId, target);
   }
@@ -295,8 +292,10 @@ GLuint OpenGLDriver::createRenderbuffer(RenderBufferDesc desc) {
   return rbo;
 }
 GLuint OpenGLDriver::createFramebuffer(FrameBufferDesc desc) {
-  GLuint frameBuffer;
-  glCreateFramebuffers(1, &frameBuffer);
+  GLuint frameBuffer = desc.oldFramebuffer;
+  if (frameBuffer == -1)
+    glCreateFramebuffers(1, &frameBuffer);
+
   bindFrameBuffer(frameBuffer);
 
   for (int i = 0; i < desc.attachmentCount; i++) {
@@ -362,7 +361,6 @@ void OpenGLDriver::uploadTexture(TextureUploadDesc desc) {
                  GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
   } else {
 
-    // TODO internal format hdr
     glTexImage2D(desc.target, 0, desc.format.internalFormat, desc.width,
                  desc.height, 0, desc.format.externalFormat, desc.format.type,
                  desc.buffer);
@@ -377,7 +375,6 @@ void OpenGLDriver::disposeProgram(GLuint program) { glDeleteProgram(program); }
 void OpenGLDriver::disposeTexture(GLuint texture) {
   glDeleteTextures(1, &texture);
 }
-void OpenGLDriver::disposeVao(GLuint vao) { glDeleteVertexArrays(1, &vao); }
 void OpenGLDriver::disposeBuffer(GLuint vbo) { glDeleteBuffers(1, &vbo); }
 
 void OpenGLDriver::bindAttribute(AttributeDesc desc) {
@@ -460,7 +457,7 @@ void OpenGLDriver::setViewport(int width, int height) {
 }
 void OpenGLDriver::drawCall(DrawCallArgs args) {
 
-  // set(SH_CULL_FACE_MODE_BACK, true);
+  // set(SH_CULL_FACE_MODE_BACK, false);
   int vertexCount = args.vertexCount;
 
   if (args.indexed) {
@@ -486,7 +483,7 @@ void OpenGLDriver::set(GLenum property, ConfigurationValue value) {
   if (property == SH_CULL_FACE_MODE_BACK) {
     glCullFace(value.val ? GL_BACK : GL_FRONT);
   } else if (property == SH_CLEAR_COLOR) {
-    glClearColor(value.vec4.x, value.vec4.y, value.vec4.z, value.vec4.w);
+    glClearColor(value.vec4.x, value.vec4.y, value.vec4.z, 0.0);
   } else if (property == GL_SRC_ALPHA || property == GL_DST_ALPHA) {
     glBlendFunc(property, value.val);
   } else {

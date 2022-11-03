@@ -34,7 +34,6 @@ struct Engine : public SelectionHint {
   Material *wCamera;
   RenderConfiguration *renderConfig;
   Node *rootNode;
-  GLuint vao = -1;
   int currentFrame = 0;
 
   // Misc
@@ -896,6 +895,12 @@ void shambhala::engine_clearState() { guseState.clearState(); }
 
 void shambhala::engine_prepareRender() {
 
+  // Hummmm TODO: refactor this
+  static bool initialized = false;
+  if (!initialized) {
+    engine.controllers.video->initDevice();
+    initialized = true;
+  }
   vid()->set(GL_CULL_FACE, true);
   vid()->set(GL_DEPTH_TEST, true);
   vid()->set(GL_MULTISAMPLE, true);
@@ -904,14 +909,11 @@ void shambhala::engine_prepareRender() {
   vid()->set(GL_SRC_ALPHA, GL_SRC_ALPHA);
   vid()->set(GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA);
 
-  if (engine.vao == -1) {
-    engine.vao = vid()->createVAO();
-
 #ifdef DEBUG
-    vid()->enableDebug(true);
+  vid()->enableDebug(true);
 #endif
-  }
-  vid()->bindVao(engine.vao);
+
+  vid()->stepBegin();
 }
 
 void shambhala::engine_prepareDeclarativeRender() {
@@ -937,6 +939,8 @@ void shambhala::loop_endRenderContext() {
   viewport()->restoreViewport();
   viewport()->notifyFrameEnd();
   viewport()->dispatchRenderEvents();
+
+  vid()->stepEnd();
 }
 
 void shambhala::loop_endUIContext() { viewport()->imguiEndRender(); }
@@ -965,7 +969,6 @@ void shambhala::destroyEngine() {}
 void shambhala::createEngine(EngineControllers controllers) {
   engine.controllers = controllers;
   engine.controllers.audio->initDevice();
-  engine.controllers.video->initDevice();
   engine.init();
 }
 

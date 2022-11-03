@@ -26,7 +26,6 @@ struct OpenGLDriver : public video::IVideo {
   GLuint compileProgram(ProgramDesc) override;
 
   // Buffers
-  GLuint createVAO() override;
   GLuint createBuffer(BufferDesc) override;
   GLuint createTexture(TextureDesc) override;
   GLuint createFramebuffer(FrameBufferDesc) override;
@@ -41,7 +40,6 @@ struct OpenGLDriver : public video::IVideo {
   void disposeShader(GLuint shader) override;
   void disposeProgram(GLuint program) override;
   void disposeTexture(GLuint texture) override;
-  void disposeVao(GLuint vao) override;
   void disposeBuffer(GLuint bo) override;
 
   /** BIND FUNCTIONS **/

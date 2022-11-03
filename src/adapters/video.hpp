@@ -55,6 +55,8 @@ struct FrameBufferDesc {
   GLuint stencilAttachment = -1;
   GLuint depthStencilAttachment = -1;
   GLuint renderBufferAttachment = -1;
+
+  GLuint oldFramebuffer = -1;
 };
 
 struct ShaderDesc {
@@ -156,7 +158,6 @@ struct IVideo {
   virtual GLuint compileProgram(ProgramDesc) = 0;
 
   // Buffers
-  virtual GLuint createVAO() = 0;
   virtual GLuint createBuffer(BufferDesc) = 0;
   virtual GLuint createTexture(TextureDesc) = 0;
   virtual GLuint createFramebuffer(FrameBufferDesc) = 0;
@@ -171,7 +172,6 @@ struct IVideo {
   virtual void disposeShader(GLuint shader) = 0;
   virtual void disposeProgram(GLuint program) = 0;
   virtual void disposeTexture(GLuint texture) = 0;
-  virtual void disposeVao(GLuint vao) = 0;
   virtual void disposeBuffer(GLuint bo) = 0;
 
   /** BIND FUNCTIONS **/
