@@ -83,13 +83,12 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
       desc.type = GL_UNSIGNED_BYTE;
       desc.useNeareast = true;
       fbo->addOutput(desc);
+      fbo->clearColor = glm::vec4(0.0);
       return fbo;
     };
 
     fbo_bake = createBakeFramebuffer();
     fbo_shadows = createBakeFramebuffer();
-
-    fbo_shadows->clearColor.w = 1.0;
 
     bakedModel->material->set("input", fbo_bake->getOutputTexture(0));
 
