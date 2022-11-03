@@ -457,7 +457,7 @@ void OpenGLDriver::setViewport(int width, int height) {
 }
 void OpenGLDriver::drawCall(DrawCallArgs args) {
 
-  // set(SH_CULL_FACE_MODE_BACK, false);
+  set(SH_CULL_FACE_MODE_BACK, args.frontCulled == false);
   int vertexCount = args.vertexCount;
 
   if (args.indexed) {
@@ -483,7 +483,7 @@ void OpenGLDriver::set(GLenum property, ConfigurationValue value) {
   if (property == SH_CULL_FACE_MODE_BACK) {
     glCullFace(value.val ? GL_BACK : GL_FRONT);
   } else if (property == SH_CLEAR_COLOR) {
-    glClearColor(value.vec4.x, value.vec4.y, value.vec4.z, 0.0);
+    glClearColor(value.vec4.x, value.vec4.y, value.vec4.z, value.vec4.w);
   } else if (property == GL_SRC_ALPHA || property == GL_DST_ALPHA) {
     glBlendFunc(property, value.val);
   } else {

@@ -242,6 +242,7 @@ struct UseState {
     args.vertexCount = currentMesh->vertexCount();
     args.indexed = currentMesh->ebo != nullptr;
     args.instanceCount = 0;
+    args.frontCulled = isFrontCulled();
     return args;
   }
 };

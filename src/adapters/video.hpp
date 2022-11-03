@@ -12,6 +12,7 @@ struct DrawCallArgs {
     int indexCount;
   };
   bool indexed;
+  bool frontCulled = false;
 
   GLenum drawMode = GL_TRIANGLES;
 };
