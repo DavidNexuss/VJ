@@ -909,7 +909,7 @@ void shambhala::engine_prepareRender() {
   vid()->set(GL_BLEND, true);
 
   vid()->set(GL_SRC_ALPHA, GL_SRC_ALPHA);
-  vid()->set(GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA);
+  vid()->set(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 #ifdef DEBUG
   vid()->enableDebug(true);

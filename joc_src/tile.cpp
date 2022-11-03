@@ -88,6 +88,7 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
 
     fbo_bake = createBakeFramebuffer();
     fbo_shadows = createBakeFramebuffer();
+    fbo_shadows->clearColor.w = 1.0;
 
     bakedModel->material->set("input", fbo_bake->getOutputTexture(0));
 
