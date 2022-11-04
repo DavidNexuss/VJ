@@ -15,6 +15,8 @@ struct Player : public shambhala::LogicComponent,
   void handleCollision(Collision col) override;
   Collision inside(glm::vec2 position) override;
 
+  inline shambhala::Node *getPlayerPosition() { return playerPosition; }
+
 private:
   void updatePlayerPosition();
 
