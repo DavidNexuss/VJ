@@ -903,9 +903,10 @@ void shambhala::engine_prepareRender() {
     engine.controllers.video->initDevice();
     initialized = true;
   }
-  vid()->set(GL_CULL_FACE, true);
-  vid()->set(GL_DEPTH_TEST, true);
-  vid()->set(GL_MULTISAMPLE, true);
+
+  // vid()->set(GL_CULL_FACE, true);
+  // vid()->set(GL_DEPTH_TEST, true);
+  // vid()->set(GL_MULTISAMPLE, true);
   vid()->set(GL_BLEND, true);
 
   vid()->set(GL_SRC_ALPHA, GL_SRC_ALPHA);

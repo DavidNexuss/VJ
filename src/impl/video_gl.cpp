@@ -482,7 +482,7 @@ void OpenGLDriver::setViewport(int width, int height) {
 void OpenGLDriver::drawCall(DrawCallArgs args) {
 
   // glDepthMask(false);
-  set(SH_CULL_FACE_MODE_BACK, args.frontCulled == false);
+  // set(SH_CULL_FACE_MODE_BACK, args.frontCulled == false);
   int vertexCount = args.vertexCount;
 
   if (args.indexed) {
