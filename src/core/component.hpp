@@ -7,7 +7,7 @@ struct UIComponent {
 };
 
 template <typename T> struct EngineComponent : public UIComponent {
-  inline static int indexCount = 0;
+  int indexCount;
 
   std::string stringName;
   int indexName = 0;

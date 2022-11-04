@@ -6,9 +6,9 @@
 struct ALCdevice;
 namespace shambhala {
 namespace audio {
-inline ALCdevice *debugDevice = nullptr;
 }
 } // namespace shambhala
+/*
 #define ALC(X)                                                                 \
   {                                                                            \
     alGetError();                                                              \
@@ -18,7 +18,9 @@ inline ALCdevice *debugDevice = nullptr;
       LOG("Error %p %s", audio::debugDevice,                                   \
           alcGetString(audio::debugDevice, error));                            \
     }                                                                          \
-  }
+  } */
+#define ALC(X) {X; }
+
 namespace shambhala {
 namespace audio {
 struct IAudio {

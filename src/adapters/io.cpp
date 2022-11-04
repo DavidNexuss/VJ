@@ -27,7 +27,9 @@ MemoryResource *shambhala::IIO::readFile(const std::string &path) {
     resource.resourcename = path;
     if (resource.buffer.length > 0) {
       resource.useCount++;
+#ifdef RELOAD_IO
       resource.time = std::filesystem::last_write_time(path);
+#endif
       insertFile(path, resource);
       auto it = cachedBuffers.find(path);
       return &it->second;
@@ -84,6 +86,7 @@ void shambhala::IIO::internal_writeFile(const std::string &name,
 //------------------[FILE WATCHER]
 #include <filesystem>
 void shambhala::IIO::filewatchMonitor() {
+#ifdef RELOAD_IO
   for (auto &it : cachedBuffers) {
     auto last_write_time = std::filesystem::last_write_time(it.first);
     if (last_write_time > it.second.time) {
@@ -94,6 +97,7 @@ void shambhala::IIO::filewatchMonitor() {
       resource->time = last_write_time;
     }
   }
+#endif
 }
 
 //------------------[MEMORY RESOURCE]

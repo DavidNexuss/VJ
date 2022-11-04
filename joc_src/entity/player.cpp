@@ -13,6 +13,7 @@ static float minshootingDelay = 1.2;
 static float shootspeed = 6.0;
 static float playerspeed = 6.0;
 
+#define M_PI 3.1415f
 Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {
   this->shot = shot;
   shot->addEntity(this);
