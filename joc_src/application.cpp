@@ -16,7 +16,6 @@
 #include <impl/viewport_glut.hpp>
 #endif
 
-#define WIN32
 #ifdef WIN32
 #include <impl/io_std.hpp>
 #else
