@@ -491,6 +491,7 @@ void device::bindProgram(GLuint program) {
   gBindState.currentProgram = program;
 }
 GLuint device::getUniform(GLuint program, const char *name) {
+  // TODO: We should cache this...
   return glGetUniformLocation(program, name);
 }
 

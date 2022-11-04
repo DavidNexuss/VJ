@@ -1,8 +1,8 @@
 #include "application.hpp"
-#include "entity/enemies/grenade_guy.hpp"
+#include "entity/enemies/base.hpp"
+#include "entity/enemies/turret.hpp"
 #include "entity/player.hpp"
 #include "entity/shot.hpp"
-#include "entity/turret.hpp"
 #include "ext/util.hpp"
 #include "imgui.h"
 #include "parallax.hpp"
@@ -54,7 +54,7 @@ struct ComponentSystem {
 
   void initEnemies() {
 
-    GrenadeGuy *guy = new GrenadeGuy(shotComponent);
+    BaseEnemy *guy = new BaseEnemy(shotComponent);
     guy->setName("Guy");
     addComponent(guy);
     components.push(guy);
