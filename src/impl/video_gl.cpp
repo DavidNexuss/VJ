@@ -434,8 +434,6 @@ void OpenGLDriver::bindUniform(GLuint program, GLuint id, GLenum type,
                                void *value, int count) {
 
   if (program != bindState.currentProgram) {
-    /*dprintf(2, "[GL] Warning, program %d not bound (current bound %d) \n",
-            program, bindState.currentProgram); */
     bindProgram(program);
   }
   switch (type) {
@@ -481,8 +479,6 @@ void OpenGLDriver::setViewport(int width, int height) {
 }
 void OpenGLDriver::drawCall(DrawCallArgs args) {
 
-  // glDepthMask(false);
-  // set(SH_CULL_FACE_MODE_BACK, args.frontCulled == false);
   int vertexCount = args.vertexCount;
 
   if (args.indexed) {

@@ -239,10 +239,6 @@ struct ModelConfiguration {
   int lineWidth = 5;
 
   uint32_t skipRenderMask = 0;
-
-  int zIndex = 0;
-
-  void use();
 };
 
 struct Model : public ModelConfiguration, public DrawCallArgs {
@@ -250,6 +246,7 @@ struct Model : public ModelConfiguration, public DrawCallArgs {
   Mesh *mesh = nullptr;
   Material *material = nullptr;
   Node *node = nullptr;
+  int zIndex = 0;
 
   int hint_class = 0;
   bool hint_raycast = false;

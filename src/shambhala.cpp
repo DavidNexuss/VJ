@@ -45,7 +45,6 @@ struct Engine : public SelectionHint {
   Program *defaultProgram = nullptr;
   Material *defaultMaterial = nullptr;
 
-  bool prepared = false;
   void init() {
 
     gpu_params = vid()->queryDeviceParameters();
@@ -217,9 +216,7 @@ struct UseState {
   ModelList *currentModelList = nullptr;
   VertexBuffer *currentVertexBuffer = nullptr;
   IndexBuffer *currentIndexBuffer = nullptr;
-  ModelConfiguration currentModelConfiguration;
 
-  bool hasModelConfiguration = false;
   bool ignoreProgramUse = false;
 
   // Culling information
@@ -233,7 +230,6 @@ struct UseState {
     currentMesh = nullptr;
     currentVertexBuffer = nullptr;
     currentIndexBuffer = nullptr;
-    hasModelConfiguration = false;
   }
 
   bool isFrontCulled() { return meshCullFrontFace ^ modelCullFrontFace; }
@@ -467,31 +463,6 @@ GLuint Texture::gl() {
   return gl_textureID;
 }
 
-// TODO:Improve quality, also check if caching is any useful
-void ModelConfiguration::use() {
-
-  ModelConfiguration *configuration = this;
-  guseState.modelCullFrontFace = configuration->cullFrontFace;
-
-  if (!guseState.hasModelConfiguration ||
-      (configuration->pointSize !=
-       guseState.currentModelConfiguration.pointSize)) {
-    glPointSize(configuration->pointSize);
-  }
-
-  if (!guseState.hasModelConfiguration ||
-      (configuration->polygonMode !=
-       guseState.currentModelConfiguration.polygonMode)) {
-    glPolygonMode(GL_FRONT_AND_BACK, configuration->polygonMode);
-  }
-  if (guseState.lineWidth != configuration->lineWidth) {
-    glLineWidth(configuration->lineWidth);
-    guseState.lineWidth = configuration->lineWidth;
-  }
-  guseState.currentModelConfiguration = *configuration;
-  guseState.hasModelConfiguration = true;
-}
-
 void shambhala::renderPass() {
   const std::vector<int> &renderOrder =
       guseState.currentModelList->getRenderOrder();
@@ -664,7 +635,6 @@ void Model::draw() {
   if (node == nullptr)
     node = shambhala::createNode();
 
-  this->use();
   mesh->use();
   program->use();
   program->bind(node);
