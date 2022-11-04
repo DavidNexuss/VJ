@@ -181,7 +181,7 @@ void TileMap::bake() {
 
   glm::vec2 size = glm::vec2(sizex, sizey) * 16.0f;
 
-  glDisable(GL_BLEND);
+  vid()->set(GL_BLEND, false);
   {
     fbo_bake->begin(size.x, size.y);
     {
@@ -198,7 +198,7 @@ void TileMap::bake() {
     }
     fbo_bake->end();
   }
-  glEnable(GL_BLEND);
+  vid()->set(GL_BLEND, true);
 
   bakedModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.001));
 }

@@ -58,7 +58,6 @@ void TileMap::editorStep(shambhala::StepInfo info) {
   this->editorMaterial = this->editorMaterial % (32 * 32);
 }
 void TileMap::editorRender() {
-  bake();
   {
     glm::mat4 transform = model->node->getCombinedMatrix();
 
