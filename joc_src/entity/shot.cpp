@@ -156,7 +156,9 @@ void ShotComponent::draw() {
       needsUniformFlush = false;
     }
 
-    drawCall();
+    auto args = getDefaultArgs();
+    args.instanceCount = instanceCount;
+    vid()->drawCall(args);
   }
   glEnable(GL_DEPTH_TEST);
 }

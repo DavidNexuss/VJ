@@ -32,6 +32,10 @@ struct TextureInformation {
   bool usesMipmap = false;
 };
 
+struct ProgramInformation {
+  std::unordered_map<std::string, GLuint> uniformLocations;
+};
+
 static struct {
 
   GLuint currentVao = -1;
@@ -48,6 +52,9 @@ static struct {
   // Textures
   std::unordered_map<int, GLuint> boundUnits;
   std::unordered_map<GLuint, TextureInformation> textureInformation;
+
+  // Programs
+  std::unordered_map<GLuint, ProgramInformation> programsInformation;
 
   bool isFrameBufferBound(GLuint buffer) {
     return buffer == currentFramebuffer;
@@ -179,7 +186,6 @@ GLuint OpenGLDriver::compileProgram(ProgramDesc desc) {
   if (status == GL_FALSE) {
     glDeleteProgram(program);
   }
-
   return program;
 }
 
@@ -367,11 +373,23 @@ void OpenGLDriver::uploadTexture(TextureUploadDesc desc) {
   }
 }
 GLuint OpenGLDriver::getUniform(GLuint program, const char *name) {
-  return glGetUniformLocation(program, name);
+
+  auto it = bindState.programsInformation[program].uniformLocations.find(
+      std::string(name));
+  if (it != bindState.programsInformation[program].uniformLocations.end()) {
+    return it->second;
+  }
+
+  return bindState.programsInformation[program]
+             .uniformLocations[std::string(name)] =
+             glGetUniformLocation(program, name);
 }
 
 void OpenGLDriver::disposeShader(GLuint shader) { glDeleteShader(shader); }
-void OpenGLDriver::disposeProgram(GLuint program) { glDeleteProgram(program); }
+void OpenGLDriver::disposeProgram(GLuint program) {
+  bindState.programsInformation.erase(program);
+  glDeleteProgram(program);
+}
 void OpenGLDriver::disposeTexture(GLuint texture) {
   glDeleteTextures(1, &texture);
 }
@@ -414,30 +432,36 @@ void OpenGLDriver::bindBuffer(GLuint vbo) {
 // TODO: Use regular glUniform ?? FT: 4.1
 void OpenGLDriver::bindUniform(GLuint program, GLuint id, GLenum type,
                                void *value, int count) {
+
+  if (program != bindState.currentProgram) {
+    /*dprintf(2, "[GL] Warning, program %d not bound (current bound %d) \n",
+            program, bindState.currentProgram); */
+    bindProgram(program);
+  }
   switch (type) {
   case SH_UNIFORM_FLOAT:
-    glProgramUniform1fv(program, id, count, (float *)value);
+    glUniform1fv(id, count, (float *)value);
     break;
   case SH_UNIFORM_VEC2:
-    glProgramUniform2fv(program, id, count, (float *)value);
+    glUniform2fv(id, count, (float *)value);
     break;
   case SH_UNIFORM_VEC3:
-    glProgramUniform3fv(program, id, count, (float *)value);
+    glUniform3fv(id, count, (float *)value);
     break;
   case SH_UNIFORM_VEC4:
-    glProgramUniform4fv(program, id, count, (float *)value);
+    glUniform4fv(id, count, (float *)value);
     break;
   case SH_UNIFORM_INT:
-    glProgramUniform1iv(program, id, count, (int *)value);
+    glUniform1iv(id, count, (int *)value);
     break;
   case SH_UNIFORM_MAT2:
-    glProgramUniformMatrix2fv(program, id, count, false, (float *)value);
+    glUniformMatrix2fv(id, count, false, (float *)value);
     break;
   case SH_UNIFORM_MAT3:
-    glProgramUniformMatrix3fv(program, id, count, false, (float *)value);
+    glUniformMatrix3fv(id, count, false, (float *)value);
     break;
   case SH_UNIFORM_MAT4:
-    glProgramUniformMatrix4fv(program, id, count, false, (float *)value);
+    glUniformMatrix4fv(id, count, false, (float *)value);
     break;
   case SH_UNIFORM_SAMPLER:
     static std::vector<int> textureUnits;
@@ -445,7 +469,7 @@ void OpenGLDriver::bindUniform(GLuint program, GLuint id, GLenum type,
     for (int i = 0; i < count; i++) {
       textureUnits[i] = bindTextureUnit(((GLuint *)value)[i], GL_TEXTURE_2D);
     }
-    glProgramUniform1iv(program, id, count, &textureUnits[0]);
+    glUniform1iv(id, count, &textureUnits[0]);
     break;
   }
 }
@@ -457,7 +481,7 @@ void OpenGLDriver::setViewport(int width, int height) {
 }
 void OpenGLDriver::drawCall(DrawCallArgs args) {
 
-  glDepthMask(false);
+  // glDepthMask(false);
   set(SH_CULL_FACE_MODE_BACK, args.frontCulled == false);
   int vertexCount = args.vertexCount;
 

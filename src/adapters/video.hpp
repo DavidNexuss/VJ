@@ -68,7 +68,6 @@ struct ShaderDesc {
 
 struct ProgramDesc {
   GLuint *shaders;
-  GLint *status;
   int shaderCount;
 };
 

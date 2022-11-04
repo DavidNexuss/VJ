@@ -355,7 +355,6 @@ private:
 
 class FrameBuffer {
   FrameBufferDescriptorFlags configuration = FRAME_BUFFER_NULL;
-  GLuint gl_framebuffer = -1;
   int bufferWidth = -1, bufferHeight = -1;
 
   int desiredWidth = -1;
@@ -371,9 +370,13 @@ class FrameBuffer {
     return configuration & USE_DEPTH && configuration & USE_STENCIL &&
            !(configuration & SEPARATE_DEPTH_STENCIL);
   }
-
   simple_vector<GLuint> colorAttachments;
   simple_vector<video::TextureFormat> attachmentsDefinition;
+
+  GLuint gl_framebuffer = -1;
+  GLuint gl_stencilDepthBuffer = -1;
+  GLuint gl_depthBuffer = -1;
+  GLuint gl_stencilBuffer = -1;
 
 public:
   FrameBuffer();
@@ -393,10 +396,6 @@ public:
   int getHeight();
 
   glm::vec4 clearColor;
-
-  GLuint gl_stencilDepthBuffer;
-  GLuint gl_depthBuffer;
-  GLuint gl_stencilBuffer;
 };
 
 struct RenderShot {
@@ -521,6 +520,7 @@ void loop_endUIContext();
 bool loop_shouldClose();
 void loop_end();
 
+DrawCallArgs getDefaultArgs();
 void drawCall();
 void renderPass();
 

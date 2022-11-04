@@ -183,7 +183,8 @@ bool Uniform::bind(GLuint program, GLuint glUniformID) const {
                        (void *)&INT);
     break;
   case UniformType::INTPTR:
-    vid()->bindUniform(program, glUniformID, video::SH_UNIFORM_INT, INTPTR);
+    vid()->bindUniform(program, glUniformID, video::SH_UNIFORM_INT, INTPTR,
+                       count);
     break;
   case UniformType::UTEXTURE:
     vid()->bindUniform(program, glUniformID, video::SH_UNIFORM_SAMPLER,
@@ -292,7 +293,6 @@ GLuint Program::gl() {
         shaders[currentShader++] = this->shaders[i]->gl_shader;
       }
     }
-    GLint status;
 
     if (gl_shaderProgram != -1) {
       vid()->disposeProgram(gl_shaderProgram);
@@ -301,14 +301,15 @@ GLuint Program::gl() {
     video::ProgramDesc desc;
     desc.shaderCount = SHADER_TYPE_COUNT;
     desc.shaders = shaders;
-    desc.status = &status;
     gl_shaderProgram = vid()->compileProgram(desc);
-    errored = !status;
+    errored = vid()->statusProgramCompilation().errored;
   }
 
   return gl_shaderProgram;
 }
 void Program::use() {
+
+  vid()->bindProgram(gl());
 
   if (errored)
     return engine.defaultProgram->use();
@@ -316,11 +317,30 @@ void Program::use() {
   if (guseState.currentProgram == this || guseState.ignoreProgramUse)
     return;
 
-  vid()->bindProgram(gl());
   guseState.currentProgram = this;
 
   for (int i = 0; i < engine.materialsStack.size(); i++) {
     bind(engine.materialsStack[i]);
+  }
+}
+
+void Program::bind(const char *name, Uniform value) {
+  gl();
+  GLuint uniformId = vid()->getUniform(gl_shaderProgram, name);
+
+  if (uniformId != -1)
+    value.bind(gl_shaderProgram, uniformId);
+}
+
+void Program::bind(Material *mat) {
+
+  mat->bind(this);
+  for (auto &uniform : mat->uniforms) {
+    bind(uniform.first.c_str(), uniform.second);
+  }
+
+  for (int i = 0; i < mat->childMaterials.size(); i++) {
+    bind(mat->childMaterials[i]);
   }
 }
 
@@ -470,26 +490,6 @@ void ModelConfiguration::use() {
   }
   guseState.currentModelConfiguration = *configuration;
   guseState.hasModelConfiguration = true;
-}
-
-void Program::bind(const char *name, Uniform value) {
-  GLuint programId = gl();
-  GLuint uniformId = vid()->getUniform(programId, name);
-
-  if (uniformId != -1)
-    value.bind(programId, uniformId);
-}
-
-void Program::bind(Material *mat) {
-
-  mat->bind(this);
-  for (auto &uniform : mat->uniforms) {
-    bind(uniform.first.c_str(), uniform.second);
-  }
-
-  for (int i = 0; i < mat->childMaterials.size(); i++) {
-    bind(mat->childMaterials[i]);
-  }
 }
 
 void shambhala::renderPass() {
@@ -1007,7 +1007,8 @@ ILogger *shambhala::log() { return engine.controllers.logger; }
 audio::IAudio *shambhala::aud() { return engine.controllers.audio; }
 video::IVideo *shambhala::vid() { return engine.controllers.video; }
 
-void shambhala::drawCall() { vid()->drawCall(guseState.getDrawArgs()); }
+DrawCallArgs shambhala::getDefaultArgs() { return guseState.getDrawArgs(); }
+void shambhala::drawCall() { vid()->drawCall(getDefaultArgs()); }
 
 //---------------------[END ENGINECONFIGURATION]
 
