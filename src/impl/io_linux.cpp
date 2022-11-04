@@ -1,4 +1,3 @@
-#ifdef NIX
 #include "io_linux.hpp"
 #include <adapters/log.hpp>
 #include <fcntl.h>
@@ -31,4 +30,3 @@ io_buffer shambhala::LinuxIO::internal_readFile(const std::string &path_s) {
 }
 
 void shambhala::LinuxIO::internal_freeFile(uint8_t *buffer) { delete[] buffer; }
-#endif

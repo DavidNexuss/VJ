@@ -4,8 +4,6 @@
 #include "ext/worldmat.hpp"
 #include <ext.hpp>
 #include <impl/audio_openal.hpp>
-#include <impl/io_linux.hpp>
-#include <impl/io_std.hpp>
 #include <impl/logger.hpp>
 #include <impl/serialize.hpp>
 #include <shambhala.hpp>
@@ -18,13 +16,25 @@
 #include <impl/viewport_glut.hpp>
 #endif
 
+#define WIN32
+#ifdef WIN32
+#include <impl/io_std.hpp>
+#else
+#include <impl/io_linux.hpp>
+#endif
+
 using namespace shambhala;
 
 void Joc::enginecreate() {
 
   // Setup engine and window
   EngineParameters parameters;
+#ifdef WIN32
+  parameters.io = new shambhala::STDIO;
+#else
   parameters.io = new shambhala::LinuxIO;
+#endif
+
 #ifdef GLUT
   parameters.viewport = new shambhala::viewportGLUT;
 #endif

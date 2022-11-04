@@ -1,6 +1,7 @@
 #include "player.hpp"
 #include "adapters/audio.hpp"
 #include "device/shambhala_audio.hpp"
+#include "ext/math.hpp"
 #include "ext/util.hpp"
 #include "imgui.h"
 #include "shambhala.hpp"
@@ -13,7 +14,6 @@ static float minshootingDelay = 1.2;
 static float shootspeed = 6.0;
 static float playerspeed = 6.0;
 
-#define M_PI 3.1415f
 Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {
   this->shot = shot;
   shot->addEntity(this);

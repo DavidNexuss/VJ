@@ -163,7 +163,6 @@ void ShotComponent::draw() {
 
 void ShotComponent::editorStep(shambhala::StepInfo info) {
 
-	const static float M_PI = 3.145;
   if (viewport()->isRightMousePressed()) {
     glm::vec3 intersection =
         ext::rayIntersection(info.mouseRay, ext::zplane(0.0));

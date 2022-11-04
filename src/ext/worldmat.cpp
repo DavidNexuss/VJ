@@ -12,8 +12,6 @@ using namespace shambhala::worldmats;
 
 SimpleCamera::SimpleCamera() { hint_isCamera = true; }
 
-#define M_PI 3.14159265359
-
 void SimpleCamera::setViewMatrix(const glm::mat4 &viewMatrix) {
   this->viewMatrix = viewMatrix;
   updateMatrices();
