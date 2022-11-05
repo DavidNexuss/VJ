@@ -24,13 +24,15 @@ struct EnemyInstance : public PhsyicalObject {
 struct EnemyClass {
   DynamicPartAtlas *atlas;
   glm::vec2 shotCenter = glm::vec2(0.0);
-  glm::vec2 gravity = glm::vec2(0.0, -5.0);
+  glm::vec2 gravity = glm::vec2(0.0, -0.5);
   glm::vec2 shotGravity = glm::vec2(0.0, -0.3);
   glm::vec2 shotDirection = glm::vec2(-0.5, 0.5) * 4.0f;
   glm::mat4 scaleTransform = glm::mat4(1.0);
 
   float mass = 2.0;
   float maxHealth = 8.0;
+
+  float attackDistance = 20.0;
 
   // Shot sequence
   bool shot = false;
@@ -48,6 +50,7 @@ struct EnemyClass {
   bool jump = false;
   float jumpThreshold = 10.0;
   float jumpMaxVelocity = 20.0;
+  float jumpExpectedTime = 8.0;
 
   // Animations
   int regularPart = 0;
@@ -93,4 +96,5 @@ private:
   void sequenceShoot(EnemyInstance &, EnemyClass &);
   void sequenceIdle(EnemyInstance &, EnemyClass &);
   void sequenceJump(EnemyInstance &, EnemyClass &);
+  glm::vec2 targetDifference(EnemyInstance &instance);
 };

@@ -36,7 +36,7 @@ int BaseEnemy::spawnEnemy(int id, float x, float y) {
   instance.model->getNode()->transform(cl.scaleTransform);
   instance.setImmediateNode(instance.model->getNode());
   instance.setPositionNode(instance.center);
-  instance.setDamping(0.8);
+  instance.setDamping(1.0);
   instance.setEntityComponent(this);
   *instance.immediateGetPosition() = glm::vec2(x, y);
   instance.updateNodePosition(*instance.immediateGetPosition());
@@ -125,14 +125,13 @@ void BaseEnemy::sequenceJump(EnemyInstance &instance, EnemyClass &cl) {
   if (instance.jumpDelay > cl.jumpThreshold) {
     instance.jumpDelay = 0.0f;
 
-    glm::vec2 enemy = *instance.immediateGetPosition();
-    glm::vec2 player = instance.target->getCombinedMatrix()[3];
+    glm::vec2 diff = targetDifference(instance);
+    float t = cl.jumpExpectedTime;
 
-    glm::vec2 diff = enemy - player;
-    float l = glm::min(cl.jumpMaxVelocity, glm::length(diff));
-    diff = glm::normalize(diff);
-    instance.setVelocity(instance.getVelocity() -
-                         diff * l * glm::vec2(0.7, 1.3));
+    float vx = diff.x / t;
+    float vy = glm::sqrt(2 * diff.y * -cl.gravity.y);
+
+    instance.setVelocity(glm::vec2(vx, vy));
   }
 }
 
@@ -150,6 +149,14 @@ void BaseEnemy::sequenceIdle(EnemyInstance &instance, EnemyClass &cl) {
   }
 }
 
+glm::vec2 BaseEnemy::targetDifference(EnemyInstance &instance) {
+
+  glm::vec2 enemy = *instance.immediateGetPosition();
+  glm::vec2 player = instance.target->getCombinedMatrix()[3];
+
+  glm::vec2 diff = player - enemy;
+  return diff;
+}
 void BaseEnemy::step(shambhala::StepInfo info) {
 
   for (int i = 0; i < enemies.size(); i++) {
@@ -176,7 +183,8 @@ void BaseEnemy::step(shambhala::StepInfo info) {
     {
       instance.animationDelay += viewport()->deltaTime;
 
-      if (instance.isAttacking) {
+      if (instance.isAttacking &&
+          glm::length(targetDifference(instance)) < cl.attackDistance) {
 
         if (cl.shot)
           sequenceShoot(instance, cl);
