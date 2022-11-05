@@ -12,6 +12,7 @@ struct PlayerCameraWaypoint {
   float y;
   float z;
   float zoom;
+  float cameraspeed;
   InterpolationMode interp;
 };
 
@@ -23,6 +24,7 @@ struct PlayerCamera : public shambhala::worldmats::SimpleCamera,
   void editorRender() override;
 
 private:
+  glm::vec3 offsetPosition;
   shambhala::Node *target;
   std::vector<PlayerCameraWaypoint> waypoints;
   PlayerCameraWaypoint currentWaypoint;

@@ -94,7 +94,7 @@ struct ComponentSystem {
         guyClass.attackAnimationCount = 3;
         guyClass.shotCenter = glm::vec2(0.2, 0.9);
         guyClass.shot = true;
-        guyClass.fly = true;
+        guyClass.fly = false;
 
         guy->createEnemyClass(0, guyClass);
       }
