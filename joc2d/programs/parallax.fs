@@ -19,8 +19,11 @@ void main() {
   
   st.y = 1.0 - st.y;
   st.x = fract(st.x);
-  st.y = min(st.y,0.99);
-  st.y = max(st.y,0.02);
+  st.y = max(st.y,0.01);
+  if(st.y > 0.9) { 
+  	st.y = 0.83 + fract(st.y / 0.02) * 0.02;
+  }
   color = texture(input, st) * (1 + hdr);
 }
+
 
