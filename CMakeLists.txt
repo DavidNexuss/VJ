@@ -21,6 +21,7 @@ file(GLOB_RECURSE JOC joc_src/*.cpp joc_src/*.hpp)
 add_executable(joc ${JOC})
 target_compile_definitions(joc PUBLIC GLFW)
 target_compile_definitions(joc PUBLIC EDITOR)
+target_compile_definitions(joc PUBLIC DEBUGCAMERA)
 target_link_libraries(joc shambhala stbimage GL GLEW glfw assimp openal alut )
 
 add_executable(joc_final ${JOC})

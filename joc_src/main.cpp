@@ -27,7 +27,9 @@ struct ComponentSystem {
     initShotComponent();
     initPlayer();
     initEnemies();
+#ifndef DEBUGCAMERA
     initCamera();
+#endif
   }
 
   void initCamera() {
@@ -237,6 +239,11 @@ void setupLevel() {
 
   map = createLayer("levels/level01_2.txt", sizex, sizey, 11, baseColor, 5.0);
   map->setName("Level Front");
+
+  map = createLayer("levels/Level1-3.txt", sizex, sizey, 1, baseColor, 0.0);
+  map->setName("Level 2 Main");
+  map->rootNode->setOffset(glm::vec3(200, 0, 0));
+  comp->registerEntity(map);
 
   // Setup floor
   {
