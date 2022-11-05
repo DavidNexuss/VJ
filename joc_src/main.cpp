@@ -11,6 +11,7 @@
 #include "ship.hpp"
 #include "tile.hpp"
 #include <ext.hpp>
+#include <fstream>
 
 using namespace shambhala;
 
@@ -58,6 +59,16 @@ struct ComponentSystem {
     addComponent(playerComponent);
   }
 
+  void spawnEnemies(const char *source, BaseEnemy *b) {
+    std::ifstream file(source);
+
+    int clas;
+    float x;
+    float y;
+    while (file >> clas >> x >> y) {
+      b->spawnEnemy(clas, x, y);
+    }
+  }
   void initEnemies() {
 
     BaseEnemy *guy = new BaseEnemy(shotComponent);
@@ -104,6 +115,8 @@ struct ComponentSystem {
       guy->spawnEnemy(0, 80, 11);
       guy->spawnEnemy(0, 70, 11);
       guy->spawnEnemy(0, 73, 15);
+
+      spawnEnemies("joc2d/data/enemies.txt", guy);
     }
   }
 
