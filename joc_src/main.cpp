@@ -6,6 +6,7 @@
 #include "ext/util.hpp"
 #include "imgui.h"
 #include "parallax.hpp"
+#include "playerCamera.hpp"
 #include "shambhala.hpp"
 #include "ship.hpp"
 #include "tile.hpp"
@@ -16,6 +17,7 @@ using namespace shambhala;
 static int playerCoords[] = {20, 14, 43, 34};
 
 struct ComponentSystem {
+  PlayerCamera *camera = nullptr;
   ShotComponent *shotComponent = nullptr;
   Player *playerComponent = nullptr;
   simple_vector<EntityComponent *> components;
@@ -24,6 +26,15 @@ struct ComponentSystem {
     initShotComponent();
     initPlayer();
     initEnemies();
+    initCamera();
+  }
+
+  void initCamera() {
+
+    PlayerCamera *cam = new PlayerCamera("joc2d/data/cam.txt",
+                                         playerComponent->getPlayerPosition());
+    shambhala::pushMaterial(cam);
+    shambhala::addComponent(cam);
   }
 
   void initShotComponent() {
@@ -72,7 +83,7 @@ struct ComponentSystem {
         guyClass.attackAnimationCount = 3;
         guyClass.shotCenter = glm::vec2(0.2, 0.9);
         guyClass.shot = true;
-        guyClass.jump = true;
+        guyClass.fly = true;
 
         guy->createEnemyClass(0, guyClass);
       }

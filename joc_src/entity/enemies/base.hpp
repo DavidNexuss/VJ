@@ -54,6 +54,8 @@ struct EnemyClass {
 
   // Fly and jump
   float fly = false;
+  float flyThreshold = 0.5;
+  float flySpeed = 0.5;
 
   // Animations
   int regularPart = 0;
@@ -100,5 +102,5 @@ private:
   void sequenceShoot(EnemyInstance &, EnemyClass &);
   void sequenceIdle(EnemyInstance &, EnemyClass &);
   void sequenceJump(EnemyInstance &, EnemyClass &);
-  glm::vec2 targetDifference(EnemyInstance &instance);
+  glm::vec2 targetDifference(EnemyInstance &instance, EnemyClass &cl);
 };

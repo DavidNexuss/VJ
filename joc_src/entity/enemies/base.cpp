@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "shambhala.hpp"
 #include <ext.hpp>
+#include <glm/common.hpp>
 #include <glm/ext.hpp>
 #include <glm/ext/quaternion_geometric.hpp>
 #include <glm/geometric.hpp>
@@ -125,7 +126,7 @@ void BaseEnemy::sequenceJump(EnemyInstance &instance, EnemyClass &cl) {
   if (instance.jumpDelay > cl.jumpThreshold) {
     instance.jumpDelay = 0.0f;
 
-    glm::vec2 diff = targetDifference(instance);
+    glm::vec2 diff = targetDifference(instance, cl);
     float t = cl.jumpExpectedTime;
 
     float vx = diff.x / t;
@@ -135,7 +136,13 @@ void BaseEnemy::sequenceJump(EnemyInstance &instance, EnemyClass &cl) {
   }
 }
 
-void BaseEnemy::sequenceFly(EnemyInstance &instance, EnemyClass &cl) {}
+void BaseEnemy::sequenceFly(EnemyInstance &instance, EnemyClass &cl) {
+
+  glm::vec2 diff = targetDifference(instance, cl);
+  if (glm::abs(diff.y) > cl.flyThreshold) {
+    instance.setVelocity(glm::sign(diff.y) * glm::vec2(0.0, cl.flySpeed));
+  }
+}
 
 void BaseEnemy::sequenceIdle(EnemyInstance &instance, EnemyClass &cl) {
 
@@ -151,9 +158,9 @@ void BaseEnemy::sequenceIdle(EnemyInstance &instance, EnemyClass &cl) {
   }
 }
 
-glm::vec2 BaseEnemy::targetDifference(EnemyInstance &instance) {
+glm::vec2 BaseEnemy::targetDifference(EnemyInstance &instance, EnemyClass &cl) {
 
-  glm::vec2 enemy = *instance.immediateGetPosition();
+  glm::vec2 enemy = cl.getAbsoluteShotCenter(instance);
   glm::vec2 player = instance.target->getCombinedMatrix()[3];
 
   glm::vec2 diff = player - enemy;
@@ -186,12 +193,14 @@ void BaseEnemy::step(shambhala::StepInfo info) {
       instance.animationDelay += viewport()->deltaTime;
 
       if (instance.isAttacking &&
-          glm::length(targetDifference(instance)) < cl.attackDistance) {
+          glm::length(targetDifference(instance, cl)) < cl.attackDistance) {
 
         if (cl.shot)
           sequenceShoot(instance, cl);
         if (cl.jump)
           sequenceJump(instance, cl);
+        if (cl.fly)
+          sequenceFly(instance, cl);
 
         // Update anim
         if (instance.animationDelay > cl.shootingAnimationThreshold) {

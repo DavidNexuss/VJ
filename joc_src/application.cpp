@@ -77,11 +77,13 @@ void Joc::enginecreate() {
 
   mainShot.scenes.push(shambhala::createModelList());
   // Adds debug camera
+#ifdef DEBUGCAMERA
   {
     worldmats::DebugCamera *debugCamera = new worldmats::DebugCamera;
     shambhala::pushMaterial(debugCamera);
     addComponent(debugCamera);
   }
+#endif
   shambhala::setWorkingModelList(mainShot.scenes[0]);
 }
 
