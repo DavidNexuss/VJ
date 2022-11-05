@@ -280,6 +280,7 @@ void TileMap::loadLevel(IResource *leveldata) {
 
 Collision TileMap::inside(glm::vec2 position) {
 
+  position -= glm::vec2(rootNode->getCombinedMatrix()[3]);
   if (get(position.x, position.y) != 0) {
     Collision col;
     col.typeClass = COLLISION_WORLD;

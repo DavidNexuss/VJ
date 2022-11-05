@@ -138,7 +138,6 @@ void Player::editorRender() {
 
 void Player::render() {
 
-  /*
   glm::vec2 v = *immediateGetPosition();
-  joc::font->render("abcdefghijklmnopqrstuvwxyz", v, 20.0); */
+  joc::font->render("abcdefghijklmnopqrstuvwxyz", v, 2.0);
 }
