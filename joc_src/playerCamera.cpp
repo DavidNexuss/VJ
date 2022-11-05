@@ -86,7 +86,7 @@ void PlayerCamera::step(shambhala::StepInfo info) {
       currentWaypoint.cameraspeed = waypoints[waypointIndex].cameraspeed;
 
       currentWaypoint.x += waypoints[waypointIndex].x;
-      // currentWaypoint.y += waypoints[waypointIndex].y;
+      currentWaypoint.y += waypoints[waypointIndex].y;
       interptime = 0.0;
     }
   }
