@@ -39,7 +39,7 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
 
     model->program = renderProgram;
     model->material = shambhala::createMaterial();
-    model->material->set("input", text);
+    model->material->set("input1", text);
     model->node = shambhala::createNode("tileMap");
     model->node->setParentNode(rootNode);
   }
@@ -91,9 +91,9 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
     fbo_shadows = createBakeFramebuffer();
     fbo_shadows->clearColor.w = 1.0;
 
-    bakedModel->material->set("input", fbo_bake->getOutputTexture(0));
+    bakedModel->material->set("input1", fbo_bake->getOutputTexture(0));
 
-    illuminationModel->material->set("input", fbo_bake->getOutputTexture(0));
+    illuminationModel->material->set("input1", fbo_bake->getOutputTexture(0));
     illuminationModel->material->set("shadow",
                                      fbo_shadows->getOutputTexture(0));
   }

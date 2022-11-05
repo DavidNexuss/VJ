@@ -1,7 +1,7 @@
 #version 330 core
 in vec2 vUV;
 out vec4 color;
-uniform sampler2D input;
+uniform sampler2D input1;
 uniform sampler2D shadow;
 
 void main() { 
@@ -15,7 +15,7 @@ void main() {
     }
   }
   shadow_val = shadow_val / 16.0;
-  color = texture(input, st) - shadow_val * 0.25;
+  color = texture(input1, st) - shadow_val * 0.25;
   color.a += shadow_val * 2.0;
   color.a = clamp(color.a,0.0,1.0);
 }

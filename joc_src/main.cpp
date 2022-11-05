@@ -270,7 +270,7 @@ void setupLevel() {
       floorTexture->addTextureResource(
           resource::stbiTextureFile("textures/floor.png", 3));
 
-      model->material->set("input", floorTexture);
+      model->material->set("input1", floorTexture);
     }
     {
       Texture *floorTexture = shambhala::createTexture();
