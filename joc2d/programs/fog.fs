@@ -1,5 +1,5 @@
 #version 330 core
-uniform sampler2D input;
+uniform sampler2D input1;
 out vec4 color;
 in vec2 vUV;
 uniform vec2 offset;
@@ -17,7 +17,7 @@ void main() {
   st.y = min(st.y,0.99);
   st.y = max(st.y,0.01);
   st.y = 1.0 - st.y;
-  color = texture(input, st);
+  color = texture(input1, st);
   color.a = length(color) - 1.2;
   color.a *= 0.1;
   color.x *= 0.8;
