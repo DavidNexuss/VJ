@@ -427,22 +427,15 @@ void Mesh::use() {
 
 GLuint Texture::gl() {
 
-  video::TextureDesc desc;
-  desc.cubemap = textureMode == GL_TEXTURE_CUBE_MAP;
-  desc.clamp = clamp;
-  desc.useNeareast = useNeareast;
-
   if (gl_textureID == -1) {
-    gl_textureID = vid()->createTexture(desc);
+    gl_textureID = vid()->createTexture((video::TextureDesc) * this);
   }
 
   if (needsUpdate()) {
-    GLenum target = textureMode;
-
     for (int i = 0; i < textureData.size(); i++) {
       TextureResource *textureResource = textureData[i].file();
       if (textureResource) {
-        GLenum target = textureMode == GL_TEXTURE_CUBE_MAP
+        GLenum target = video::TextureDesc::mode == GL_TEXTURE_CUBE_MAP
                             ? (GL_TEXTURE_CUBE_MAP_POSITIVE_X + i)
                             : GL_TEXTURE_2D;
 
@@ -508,15 +501,15 @@ void FrameBuffer::initialize() {
   text.textureID = 0;
   text.target = GL_TEXTURE_2D;
 
-  video::TextureDesc textureDesc;
-
   if (gl_framebuffer == -1) {
 
     colorAttachments.resize(attachmentsDefinition.size());
     for (int i = 0; i < attachmentsDefinition.size(); i++) {
+
+      video::TextureDesc textureDesc = attachmentsDefinition[i].desc;
       colorAttachments[i] = vid()->createTexture(textureDesc);
       text.textureID = colorAttachments[i];
-      text.format = attachmentsDefinition[i];
+      text.format = attachmentsDefinition[i].format;
       vid()->uploadTexture(text);
     }
 
@@ -555,7 +548,7 @@ void FrameBuffer::initialize() {
   } else {
     for (int i = 0; i < attachmentsDefinition.size(); i++) {
       text.textureID = colorAttachments[i];
-      text.format = attachmentsDefinition[i];
+      text.format = attachmentsDefinition[i].format;
       vid()->uploadTexture(text);
     }
   }
@@ -600,7 +593,12 @@ void FrameBuffer::end() {
 }
 
 void FrameBuffer::addOutput(video::TextureFormat format) {
-  attachmentsDefinition.push(format);
+  FrameBufferAttachmentDefinition def;
+  def.format = format;
+  attachmentsDefinition.push(def);
+}
+void FrameBuffer::addOutputAttachment(FrameBufferAttachmentDefinition def) {
+  attachmentsDefinition.push(def);
 }
 
 void FrameBuffer::setConfiguration(FrameBufferDescriptorFlags flags) {
@@ -872,6 +870,9 @@ void shambhala::engine_prepareRender() {
   if (!initialized) {
     engine.controllers.video->initDevice();
     initialized = true;
+#ifdef DEBUG
+    vid()->enableDebug(true);
+#endif
   }
 
   // vid()->set(GL_CULL_FACE, true);
@@ -882,10 +883,6 @@ void shambhala::engine_prepareRender() {
   vid()->set(GL_SRC_ALPHA, GL_SRC_ALPHA);
   vid()->set(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-#ifdef DEBUG
-  vid()->enableDebug(true);
-#endif
-
   vid()->stepBegin();
 }
 
@@ -893,9 +890,6 @@ void shambhala::engine_prepareDeclarativeRender() {
 
   vid()->set(video::SH_CLEAR_COLOR,
              glm::vec4(engine.renderConfig->clearColor, 1.0));
-
-  viewport()->fakeViewportSize(engine.renderConfig->virtualWidth,
-                               engine.renderConfig->virtualHeight);
 
   updateViewport();
   vid()->clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

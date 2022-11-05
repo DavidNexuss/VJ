@@ -42,7 +42,6 @@ struct ComponentSystem {
 
     DynamicPartAtlas *dyn = new DynamicPartAtlas;
     dyn->textureAtlas = loader::loadTexture("textures/player.png", 4);
-    dyn->textureAtlas->useNeareast = true;
     dyn->coords = playerCoords;
     dyn->renderingProgram =
         loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
@@ -85,7 +84,6 @@ private:
   DynamicPartAtlas *createEnemyAtlas(const char *texturePath, int *cords) {
 
     Texture *text = loader::loadTexture(texturePath, 4);
-    text->useNeareast = true;
     shambhala::Program *program =
         loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
     DynamicPartAtlas *atlas = DynamicPartAtlas::create(program, text, cords);
@@ -100,7 +98,6 @@ void setupComponentSystem() { comp = new ComponentSystem; }
 void setupShip() {
   Texture *baseColorShip = shambhala::createTexture();
   {
-    baseColorShip->useNeareast = true;
     baseColorShip->clamp = true;
     baseColorShip->addTextureResource(
         resource::stbiTextureFile("textures/ship.png", 4));
@@ -171,7 +168,6 @@ TileMap *createLayer(const char *filename, int sizex, int sizey, int zindex,
 void setupLevel() {
 
   Texture *baseColor = shambhala::createTexture();
-  baseColor->useNeareast = true;
   baseColor->clamp = true;
   baseColor->addTextureResource(
       resource::stbiTextureFile("textures/green_tile.png", 4));
@@ -214,7 +210,6 @@ void setupLevel() {
         loader::loadProgram("programs/floor.fs", "programs/regular.vs");
     {
       Texture *floorTexture = shambhala::createTexture();
-      floorTexture->useNeareast = true;
       floorTexture->clamp = false;
       floorTexture->addTextureResource(
           resource::stbiTextureFile("textures/floor.png", 3));
@@ -223,7 +218,6 @@ void setupLevel() {
     }
     {
       Texture *floorTexture = shambhala::createTexture();
-      floorTexture->useNeareast = true;
       floorTexture->clamp = false;
       floorTexture->addTextureResource(
           resource::stbiTextureFile("textures/floor2.png", 3));

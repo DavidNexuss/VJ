@@ -310,17 +310,13 @@ struct TextureResource : public IResource {
   virtual io_buffer *read() override;
 };
 
-struct Texture : public ITexture {
-
-  GLenum textureMode = GL_TEXTURE_2D;
-  bool useNeareast = false;
-  bool clamp = false;
+struct Texture : public ITexture, video::TextureDesc {
 
   bool needsUpdate();
   void addTextureResource(TextureResource *textureData);
 
   GLuint gl() override;
-  GLenum getMode() override { return textureMode; }
+  GLenum getMode() override { return video::TextureDesc::mode; }
 
   simple_vector<ResourceHandlerAbstract<TextureResource>> textureData;
 
@@ -336,6 +332,11 @@ enum FrameBufferDescriptorFlags {
   SEPARATE_DEPTH_STENCIL = 1 << 3,
   ONLY_WRITE_DEPTH = 1 << 4,
   ONLY_READ_DEPTH = 1 << 5,
+};
+
+struct FrameBufferAttachmentDefinition {
+  video::TextureDesc desc;
+  video::TextureFormat format;
 };
 
 ENUM_OPERATORS(FrameBufferDescriptorFlags)
@@ -368,7 +369,7 @@ class FrameBuffer {
            !(configuration & SEPARATE_DEPTH_STENCIL);
   }
   simple_vector<GLuint> colorAttachments;
-  simple_vector<video::TextureFormat> attachmentsDefinition;
+  simple_vector<FrameBufferAttachmentDefinition> attachmentsDefinition;
 
   GLuint gl_framebuffer = -1;
   GLuint gl_stencilDepthBuffer = -1;
@@ -379,6 +380,7 @@ public:
   FrameBuffer();
   FrameBufferOutput *getOutputTexture(int index);
   GLuint getOutputAttachment(int index);
+  void addOutputAttachment(FrameBufferAttachmentDefinition def);
   void addOutput(video::TextureFormat format);
 
   void begin(int width, int height);

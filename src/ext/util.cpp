@@ -236,7 +236,7 @@ Model *util::modelCreateSkyBox(
   for (int i = 0; i < textures.size(); i++) {
     skyCubemap->addTextureResource(textures[i]);
   }
-  skyCubemap->textureMode = GL_TEXTURE_CUBE_MAP;
+  skyCubemap->mode = GL_TEXTURE_CUBE_MAP;
 
   result->material->set(Standard::uSkyBox, skyCubemap);
 

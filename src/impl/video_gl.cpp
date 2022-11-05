@@ -247,44 +247,31 @@ int OpenGLDriver::bindTextureUnit(GLuint textureId, GLenum target) {
   return bindTexture(textureId, target, textureId % 1000);
 }
 
+static bool needsMipmap(GLenum val) {
+  return val == GL_NEAREST_MIPMAP_NEAREST || val == GL_NEAREST_MIPMAP_LINEAR ||
+         val == GL_LINEAR_MIPMAP_NEAREST || val == GL_LINEAR_MIPMAP_LINEAR;
+}
+
 GLuint OpenGLDriver::createTexture(TextureDesc desc) {
 
   GLuint textureId;
   glGenTextures(1, &textureId);
-  if (desc.cubemap) {
+  bindTexture(textureId, desc.mode);
 
-    bindTexture(textureId, GL_TEXTURE_CUBE_MAP);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
+  if (desc.clamp) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   } else {
-
-    bindTexture(textureId, GL_TEXTURE_2D);
-    if (desc.clamp) {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    } else {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    }
-
-    if (!desc.useNeareast) {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                      GL_LINEAR_MIPMAP_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                      GL_LINEAR_MIPMAP_LINEAR);
-    } else {
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                      GL_NEAREST_MIPMAP_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   }
 
-  // TOOO: No need to always generate mipmap
-  bindState.textureInformation[textureId].usesMipmap = true;
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, desc.minFilter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, desc.magFilter);
+
+  bindState.textureInformation[textureId].usesMipmap =
+      needsMipmap(desc.minFilter) || needsMipmap(desc.magFilter);
+
   return textureId;
 }
 

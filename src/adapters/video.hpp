@@ -11,7 +11,7 @@ struct DrawCallArgs {
     int vertexCount = 0;
     int indexCount;
   };
-  bool indexed;
+  bool indexed = false;
   bool frontCulled = false;
 
   GLenum drawMode = GL_TRIANGLES;
@@ -24,9 +24,10 @@ struct VideoDeviceParameters {
 namespace video {
 
 struct TextureDesc {
-  bool useNeareast = false;
   bool clamp = false;
-  bool cubemap = false;
+  GLenum mode = GL_TEXTURE_2D;
+  GLenum minFilter = GL_NEAREST;
+  GLenum magFilter = GL_NEAREST;
 };
 
 struct TextureFormat {
@@ -41,8 +42,8 @@ struct TextureUploadDesc {
   GLenum target = GL_TEXTURE_2D;
 
   uint8_t *buffer = nullptr;
-  int width;
-  int height;
+  int width = -1;
+  int height = -1;
 
   bool isDepth = false;
   bool isStencil = false;
@@ -51,7 +52,7 @@ struct TextureUploadDesc {
 
 struct FrameBufferDesc {
   GLuint *attachments = nullptr;
-  int attachmentCount;
+  int attachmentCount = -1;
   GLuint depthAttachment = -1;
   GLuint stencilAttachment = -1;
   GLuint depthStencilAttachment = -1;
@@ -63,32 +64,32 @@ struct FrameBufferDesc {
 struct ShaderDesc {
   const char *data = nullptr;
   const char *name = nullptr;
-  GLenum type;
+  GLenum type = -1;
 };
 
 struct ProgramDesc {
-  GLuint *shaders;
-  int shaderCount;
+  GLuint *shaders = nullptr;
+  int shaderCount = -1;
 };
 
 struct BufferDesc {
-  GLenum type;
+  GLenum type = -1;
 };
 
 struct BufferUploadDesc {
   uint8_t *buffer = nullptr;
-  int size;
-  int start;
+  int size = -1;
+  int start = -1;
   GLuint id = -1;
 };
 
 struct AttributeDesc {
   GLuint buffer = -1;
-  int index;
-  int size;
-  int stride;
-  int offset;
-  int divisor;
+  int index = -1;
+  int size = -1;
+  int stride = -1;
+  int offset = -1;
+  int divisor = -1;
 };
 
 struct ProgramStatus {

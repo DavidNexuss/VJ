@@ -13,15 +13,11 @@ video::BufferUploadDesc shambhala::descUpload(simple_vector_span span,
 video::TextureDesc shambhala::descDepthTexture() {
   video::TextureDesc desc;
   desc.clamp = false;
-  desc.cubemap = false;
-  desc.useNeareast = false;
   return desc;
 }
 video::TextureDesc shambhala::descStencilTexture() {
   video::TextureDesc desc;
   desc.clamp = false;
-  desc.cubemap = false;
-  desc.useNeareast = false;
   return desc;
 }
 video::TextureUploadDesc shambhala::descDepthUpload(int width, int height,
