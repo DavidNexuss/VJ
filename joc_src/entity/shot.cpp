@@ -145,7 +145,6 @@ void ShotComponent::uniformFlush() {
   }
 }
 void ShotComponent::draw() {
-  glDisable(GL_DEPTH_TEST);
   if (this->instanceCount != 0) {
     program->use();
     program->bind(node);
@@ -160,7 +159,6 @@ void ShotComponent::draw() {
     args.instanceCount = instanceCount;
     vid()->drawCall(args);
   }
-  glEnable(GL_DEPTH_TEST);
 }
 
 void ShotComponent::editorStep(shambhala::StepInfo info) {
