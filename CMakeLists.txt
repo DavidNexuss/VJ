@@ -31,6 +31,6 @@ add_executable(joc_glut ${JOC})
 target_compile_definitions(joc_glut PUBLIC GLUT)
 target_link_libraries(joc_glut shambhala stbimage GL GLEW glut assimp openal alut )
 
-set(CMAKE_CXX_FLAGS "-O0 -g -DDEBUG")
+set(CMAKE_CXX_FLAGS "-O2 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3" )
 set(CMAKE_CXX_STANDARD 17)

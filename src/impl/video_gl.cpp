@@ -472,7 +472,9 @@ void OpenGLDriver::bindUniform(GLuint program, GLuint id, GLenum type,
   }
 }
 
-VideoDeviceParameters OpenGLDriver::queryDeviceParameters() {}
+VideoDeviceParameters OpenGLDriver::queryDeviceParameters() {
+  return VideoDeviceParameters{};
+}
 
 void OpenGLDriver::setViewport(int width, int height) {
   glViewport(0, 0, width, height);
