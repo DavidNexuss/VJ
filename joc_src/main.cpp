@@ -15,12 +15,6 @@ using namespace shambhala;
 
 static int playerCoords[] = {20, 14, 43, 34};
 
-static int guyCoords[] = {0,   32, 36, 32, 72,  32, 36, 32, 108, 32, 36, 32,
-                          144, 32, 36, 32, 180, 32, 36, 32, 216, 32, 36, 32,
-
-                          0,   64, 36, 32, 72,  64, 36, 32, 108, 64, 36, 32,
-                          144, 64, 36, 32, 180, 64, 36, 32};
-
 struct ComponentSystem {
   ShotComponent *shotComponent = nullptr;
   Player *playerComponent = nullptr;
@@ -48,6 +42,7 @@ struct ComponentSystem {
         loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
 
     playerComponent = new Player(shotComponent, dyn);
+    playerComponent->setPosition({8, 11});
     playerComponent->setName("Player");
     addComponent(playerComponent);
   }
@@ -60,15 +55,40 @@ struct ComponentSystem {
     addComponent(guy);
     components.push(guy);
     {
-      EnemyClass guyClass;
-      guyClass.atlas = createEnemyAtlas("textures/grenade_guy.png", guyCoords);
-      guyClass.scaleTransform = util::scale(2.0);
-      guyClass.regularAnimationCount = 6;
-      guyClass.attackAnimationCount = 3;
-      guyClass.shotCenter = glm::vec2(0.2, 0.9);
-      guyClass.shot = true;
-      guyClass.jump = true;
-      guy->createEnemyClass(0, guyClass);
+
+      // Create guy class
+      {
+        static int guyCoords[] = {0,   32, 36,  32, 72, 32, 36,  32, 108, 32,
+                                  36,  32, 144, 32, 36, 32, 180, 32, 36,  32,
+                                  216, 32, 36,  32,
+
+                                  0,   64, 36,  32, 72, 64, 36,  32, 108, 64,
+                                  36,  32, 144, 64, 36, 32, 180, 64, 36,  32};
+        EnemyClass guyClass;
+        guyClass.atlas =
+            createEnemyAtlas("textures/grenade_guy.png", guyCoords);
+        guyClass.scaleTransform = util::scale(2.0);
+        guyClass.regularAnimationCount = 6;
+        guyClass.attackAnimationCount = 3;
+        guyClass.shotCenter = glm::vec2(0.2, 0.9);
+        guyClass.shot = true;
+        guyClass.jump = true;
+
+        guy->createEnemyClass(0, guyClass);
+      }
+
+      // Create turret class
+      {
+
+      }
+
+      // Create jumper class
+      {
+
+      }
+
+      // Create shooter
+      {}
 
       guy->spawnEnemy(0, 80, 11);
       guy->spawnEnemy(0, 70, 11);
@@ -176,7 +196,7 @@ void setupLevel() {
   baseColor->addTextureResource(
       resource::stbiTextureFile("textures/green_tile.png", 4));
 
-  int sizex = 400;
+  int sizex = 200;
   int sizey = 20;
 
   TileMap *map =

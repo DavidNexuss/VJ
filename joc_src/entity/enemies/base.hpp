@@ -52,6 +52,9 @@ struct EnemyClass {
   float jumpMaxVelocity = 20.0;
   float jumpExpectedTime = 8.0;
 
+  // Fly and jump
+  float fly = false;
+
   // Animations
   int regularPart = 0;
   int attackPart = 0;
@@ -93,6 +96,7 @@ private:
   std::unordered_map<int, EnemyClass> enemyClasses;
   simple_vector<EnemyInstance> enemies;
 
+  void sequenceFly(EnemyInstance &, EnemyClass &);
   void sequenceShoot(EnemyInstance &, EnemyClass &);
   void sequenceIdle(EnemyInstance &, EnemyClass &);
   void sequenceJump(EnemyInstance &, EnemyClass &);

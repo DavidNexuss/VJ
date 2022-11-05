@@ -104,6 +104,7 @@ struct PhsyicalObject {
 
   inline glm::vec2 getVelocity() { return velocity; }
   inline void setVelocity(glm::vec2 v) { velocity = v; }
+  inline void setPosition(glm::vec2 v) { position = v; }
 
   inline glm::vec2 *immediateGetPosition() { return &position; }
 

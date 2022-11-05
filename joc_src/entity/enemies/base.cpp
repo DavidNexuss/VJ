@@ -135,6 +135,8 @@ void BaseEnemy::sequenceJump(EnemyInstance &instance, EnemyClass &cl) {
   }
 }
 
+void BaseEnemy::sequenceFly(EnemyInstance &instance, EnemyClass &cl) {}
+
 void BaseEnemy::sequenceIdle(EnemyInstance &instance, EnemyClass &cl) {
 
   // Update animatin
