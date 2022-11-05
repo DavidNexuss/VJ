@@ -4,6 +4,7 @@
 #include "entity/player.hpp"
 #include "entity/shot.hpp"
 #include "ext/util.hpp"
+#include "globals.hpp"
 #include "imgui.h"
 #include "parallax.hpp"
 #include "playerCamera.hpp"
@@ -292,6 +293,8 @@ struct ResWorldMat : public Material, LogicComponent {
     set("uAR", float(viewport()->aspectRatio()));
   }
 };
+
+BitMapFont *joc::font;
 void setupBasic() {
 
   worldmats::Clock *clock = new worldmats::Clock;
@@ -302,6 +305,8 @@ void setupBasic() {
   ResWorldMat *worldMat = new ResWorldMat;
   shambhala::pushMaterial(worldMat);
   shambhala::addComponent(worldMat);
+
+  joc::font = new BitMapFont("textures/font.png");
 }
 void loadTestScene() {
 

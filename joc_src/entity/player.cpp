@@ -1,4 +1,5 @@
 #include "player.hpp"
+#include "../globals.hpp"
 #include "adapters/audio.hpp"
 #include "device/shambhala_audio.hpp"
 #include "ext/math.hpp"
@@ -119,4 +120,11 @@ void Player::editorRender() {
     ImGui::End();
     updateNodePosition(*immediateGetPosition());
   }
+}
+
+void Player::render() {
+
+  /*
+  glm::vec2 v = *immediateGetPosition();
+  joc::font->render("abcdefghijklmnopqrstuvwxyz", v, 20.0); */
 }

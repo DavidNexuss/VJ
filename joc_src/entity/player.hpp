@@ -12,6 +12,7 @@ struct Player : public shambhala::LogicComponent,
   glm::vec2 getShootingCenter();
   void editorRender() override;
 
+  void render() override;
   void handleCollision(Collision col) override;
   Collision inside(glm::vec2 position) override;
 
