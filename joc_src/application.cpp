@@ -4,8 +4,6 @@
 #include "ext/worldmat.hpp"
 #include <ext.hpp>
 #include <impl/audio_openal.hpp>
-#include <impl/io_linux.hpp>
-#include <impl/io_std.hpp>
 #include <impl/logger.hpp>
 #include <impl/serialize.hpp>
 #include <impl/video_gl.hpp>
@@ -19,13 +17,24 @@
 #include <impl/viewport_glut.hpp>
 #endif
 
+#ifdef WIN32
+#include <impl/io_std.hpp>
+#else
+#include <impl/io_linux.hpp>
+#endif
+
 using namespace shambhala;
 
 void Joc::enginecreate() {
 
   // Setup engine and window
   EngineControllers parameters;
+#ifdef WIN32
+  parameters.io = new shambhala::STDIO;
+#else
   parameters.io = new shambhala::LinuxIO;
+#endif
+
 #ifdef GLUT
   parameters.viewport = new shambhala::viewportGLUT;
 #endif
@@ -70,11 +79,13 @@ void Joc::enginecreate() {
 
   mainShot.scenes.push(shambhala::createModelList());
   // Adds debug camera
+#ifdef DEBUGCAMERA
   {
     worldmats::DebugCamera *debugCamera = new worldmats::DebugCamera;
     shambhala::pushMaterial(debugCamera);
     addComponent(debugCamera);
   }
+#endif
   shambhala::setWorkingModelList(mainShot.scenes[0]);
 }
 

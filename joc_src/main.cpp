@@ -1,27 +1,24 @@
 #include "application.hpp"
-#include "entity/enemies/grenade_guy.hpp"
+#include "entity/enemies/base.hpp"
+#include "entity/enemies/turret.hpp"
 #include "entity/player.hpp"
 #include "entity/shot.hpp"
-#include "entity/turret.hpp"
 #include "ext/util.hpp"
 #include "imgui.h"
 #include "parallax.hpp"
+#include "playerCamera.hpp"
 #include "shambhala.hpp"
 #include "ship.hpp"
 #include "tile.hpp"
 #include <ext.hpp>
+#include <fstream>
 
 using namespace shambhala;
 
 static int playerCoords[] = {20, 14, 43, 34};
 
-static int guyCoords[] = {0,   32, 36, 32, 72,  32, 36, 32, 108, 32, 36, 32,
-                          144, 32, 36, 32, 180, 32, 36, 32, 216, 32, 36, 32,
-
-                          0,   64, 36, 32, 72,  64, 36, 32, 108, 64, 36, 32,
-                          144, 64, 36, 32, 180, 64, 36, 32};
-
 struct ComponentSystem {
+  PlayerCamera *camera = nullptr;
   ShotComponent *shotComponent = nullptr;
   Player *playerComponent = nullptr;
   simple_vector<EntityComponent *> components;
@@ -30,6 +27,15 @@ struct ComponentSystem {
     initShotComponent();
     initPlayer();
     initEnemies();
+    initCamera();
+  }
+
+  void initCamera() {
+
+    PlayerCamera *cam = new PlayerCamera("joc2d/data/cam.txt",
+                                         playerComponent->getPlayerPosition());
+    shambhala::pushMaterial(cam);
+    shambhala::addComponent(cam);
   }
 
   void initShotComponent() {
@@ -47,28 +53,69 @@ struct ComponentSystem {
         loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
 
     playerComponent = new Player(shotComponent, dyn);
+    playerComponent->setPosition({8, 11});
     playerComponent->setName("Player");
     addComponent(playerComponent);
   }
 
+  void spawnEnemies(const char *source, BaseEnemy *b) {
+    std::ifstream file(source);
+
+    int clas;
+    float x;
+    float y;
+    while (file >> clas >> x >> y) {
+      b->spawnEnemy(clas, x, y);
+    }
+  }
   void initEnemies() {
 
-    GrenadeGuy *guy = new GrenadeGuy(shotComponent);
+    BaseEnemy *guy = new BaseEnemy(shotComponent);
+    guy->target = playerComponent->getPlayerPosition();
     guy->setName("Guy");
     addComponent(guy);
     components.push(guy);
     {
-      EnemyClass guyClass;
-      guyClass.atlas = createEnemyAtlas("textures/grenade_guy.png", guyCoords);
-      guyClass.scaleTransform = util::scale(2.0);
-      guyClass.regularAnimationCount = 6;
-      guyClass.shootAnimationCount = 3;
-      guyClass.shotCenter = glm::vec2(0.2, 0.9);
-      guy->createEnemyClass(0, guyClass);
+
+      // Create guy class
+      {
+        static int guyCoords[] = {0,   32, 36,  32, 72, 32, 36,  32, 108, 32,
+                                  36,  32, 144, 32, 36, 32, 180, 32, 36,  32,
+                                  216, 32, 36,  32,
+
+                                  0,   64, 36,  32, 72, 64, 36,  32, 108, 64,
+                                  36,  32, 144, 64, 36, 32, 180, 64, 36,  32};
+        EnemyClass guyClass;
+        guyClass.atlas =
+            createEnemyAtlas("textures/grenade_guy.png", guyCoords);
+        guyClass.scaleTransform = util::scale(2.0);
+        guyClass.regularAnimationCount = 6;
+        guyClass.attackAnimationCount = 3;
+        guyClass.shotCenter = glm::vec2(0.2, 0.9);
+        guyClass.shot = true;
+        guyClass.fly = false;
+
+        guy->createEnemyClass(0, guyClass);
+      }
+
+      // Create turret class
+      {
+
+      }
+
+      // Create jumper class
+      {
+
+      }
+
+      // Create shooter
+      {}
 
       guy->spawnEnemy(0, 80, 11);
       guy->spawnEnemy(0, 70, 11);
       guy->spawnEnemy(0, 73, 15);
+
+      spawnEnemies("joc2d/data/enemies.txt", guy);
     }
   }
 
@@ -114,10 +161,7 @@ void setupShip() {
   shambhala::Node *rootNode = shambhala::createNode();
   rootNode->setTransformMatrix(util::translate(0.0, 0.0, -0.1));
 
-  Turret *turret = new Turret(dyn);
-  turret->target(shambhala::createNode());
   shambhala::addComponent(dyn);
-  shambhala::addComponent(turret);
 }
 
 void setupBackground() {
@@ -172,7 +216,7 @@ void setupLevel() {
   baseColor->addTextureResource(
       resource::stbiTextureFile("textures/green_tile.png", 4));
 
-  int sizex = 400;
+  int sizex = 200;
   int sizey = 20;
 
   TileMap *map =

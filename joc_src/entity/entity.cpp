@@ -2,6 +2,7 @@
 #include "ext/util.hpp"
 #include "shambhala.hpp"
 #include <ext.hpp>
+#include <glm/geometric.hpp>
 using namespace shambhala;
 
 static int max_colision_checks = 10;
@@ -113,6 +114,12 @@ void PhsyicalObject::updateNodePosition(glm::vec2 nodePosition) {
 bool PhsyicalObject::updatePositionStep(glm::vec2 acceleration, float delta) {
   velocity += acceleration * viewport()->deltaTime;
   velocity = velocity * damping;
+  float l = glm::length(velocity);
+
+  if (l > 1.0) {
+    velocity = glm::normalize(velocity) * glm::min(l, 2.0f);
+  }
+
   glm::vec2 oldPlayerPosition = position;
   position += velocity * viewport()->deltaTime;
   updateNodePosition(position);

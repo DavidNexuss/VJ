@@ -126,12 +126,12 @@ Texture *gi::bakeAmbientOcclusion(ModelList *modelList, int size, int bounces) {
       int nOffset = sizeof(float) * bindings[j].normalOffset;
       int uvOffset = sizeof(float) * bindings[j].uvOffset;
 
-      dprintf(2, "Position attr %d, Normal attr %d, uv attr %d\n",
-              bindings[j].positionAttribute, bindings[j].normalAttribute,
-              bindings[j].uvAttribute);
-      dprintf(2, "Position offset %d, Normal offset %d, uv Offset %d\n",
-              pOffset, nOffset, uvOffset);
-      dprintf(2, "Vertexbuffer size %d\n", int(vbo->vertexBuffer.size()));
+      LOGS(2, "Position attr %d, Normal attr %d, uv attr %d\n",
+           bindings[j].positionAttribute, bindings[j].normalAttribute,
+           bindings[j].uvAttribute);
+      LOGS(2, "Position offset %d, Normal offset %d, uv Offset %d\n", pOffset,
+           nOffset, uvOffset);
+      LOGS(2, "Vertexbuffer size %d\n", int(vbo->vertexBuffer.size()));
 
       uint8_t *position = vbo->vertexBuffer.bindata() + pOffset;
       uint8_t *normal = vbo->vertexBuffer.bindata() + nOffset;

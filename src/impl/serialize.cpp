@@ -92,4 +92,4 @@ float StreamSerializer::deserializeFloat(const char *name, int index) {
   int i = this->deserializeState.keysToData[std::string(name)];
   return std::stof(this->deserializeState.data[i].data);
 }
-glm::vec2 StreamSerializer::deserializeVec2(const char *name, int index) {}
+glm::vec2 StreamSerializer::deserializeVec2(const char *name, int index) { return glm::vec2(0.0);  }

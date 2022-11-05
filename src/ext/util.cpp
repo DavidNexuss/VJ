@@ -4,7 +4,6 @@
 #include "simple_vector.hpp"
 #include "standard.hpp"
 #include <glm/ext/matrix_transform.hpp>
-#include <unistd.h>
 
 static const GLfloat cube_mesh[] = {
 

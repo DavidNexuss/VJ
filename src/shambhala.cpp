@@ -207,6 +207,7 @@ int VertexBuffer::vertexSize() const {
   }
   return _vertexsize = vs * sizeof(float);
 }
+//--------------------------[END COMPILE]
 
 struct UseState {
 

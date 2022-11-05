@@ -8,6 +8,10 @@ os.Resources/
 
 # Compiled Object files
 *.make
+<<<<<<< HEAD
+=======
+*.cmake
+>>>>>>> joc2d
 *.slo
 *.lo
 *.o

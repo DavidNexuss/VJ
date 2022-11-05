@@ -8,6 +8,7 @@ struct ILogger {
 };
 
 ILogger *log();
+extern char *logbuffer;
 } // namespace shambhala
 
 #include <string.h>
@@ -16,7 +17,7 @@ ILogger *log();
 #ifdef DEBUG
 #define LOGS(severity, fmt, ...)                                               \
   do {                                                                         \
-    char buffer[4096];                                                         \
+    char *buffer = shambhala::logbuffer;                                       \
     sprintf(buffer, "[%s : %d] " fmt, __FILENAME__, __LINE__, __VA_ARGS__);    \
     shambhala::log()->log(buffer, severity);                                   \
   } while (0)

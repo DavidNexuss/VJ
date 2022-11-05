@@ -1,9 +1,9 @@
 #include "audio_openal.hpp"
-
 #include "simple_vector.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <AL/alut.h>
+#include <adapters/log.hpp>
 #include <core/core.hpp>
 #include <cstdio>
 #include <cstring>
@@ -30,9 +30,8 @@ static PhysicalDevice createDevice(const ALCchar *device) {
   dev.context = alcCreateContext(dev.device, NULL);
   HardCheck(alcMakeContextCurrent(dev.context));
 
-  dprintf(2, "[AL] al device created\n");
+  LOGS(2, "[AL] al device created\n", 0);
 
-  audio::debugDevice = dev.device;
   return dev;
 }
 
@@ -52,7 +51,7 @@ bool AudioOpenAL::initDevice() {
   device.devices.push(createDevice(NULL));
   alutInitWithoutContext(NULL, NULL);
 
-  dprintf(2, "[AL] al device initialized\n");
+  LOGS(2, "[AL] al device initialized\n", 0);
   return true;
 }
 
@@ -60,15 +59,11 @@ static void list_audio_devices(const ALCchar *devices) {
   const ALCchar *device = devices, *next = devices + 1;
   size_t len = 0;
 
-  fprintf(stdout, "Devices list:\n");
-  fprintf(stdout, "----------\n");
   while (device && *device != '\0' && next && *next != '\0') {
-    fprintf(stdout, "%s\n", device);
     len = strlen((const char *)device);
     device += (len + 1);
     next += (len + 2);
   }
-  fprintf(stdout, "----------\n");
 }
 
 void AudioOpenAL::loadwave(const char *name, ALenum *format, ALvoid **data,
@@ -76,10 +71,10 @@ void AudioOpenAL::loadwave(const char *name, ALenum *format, ALvoid **data,
   alutGetError();
   *data = alutLoadMemoryFromFile(name, format, size, freq);
   ALenum error = alutGetError();
-  printf("[ALUT] Loading from memory %s to %p for %d, errorState %d \n", name,
-         *data, *size, error);
+  LOGS(2, "[ALUT] Loading from memory %s to %p for %d, errorState %d \n", name,
+       *data, *size, error);
 
   if (error) {
-    printf("[ALUT] %s\n", alutGetErrorString(error));
+    LOGS(2, "[ALUT] %s\n", alutGetErrorString(error));
   }
 }
