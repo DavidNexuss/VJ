@@ -11,7 +11,7 @@ void shambhala::IIO::freeFile(MemoryResource *resource) {
 }
 
 // TODO: Fix something
-std::string shambhala::IIO::findFile(const std::string &path) {}
+//std::string shambhala::IIO::findFile(const std::string &path) {}
 
 MemoryResource *shambhala::IIO::readFile(const std::string &path) {
   LOG("Reading %s:", path.c_str());

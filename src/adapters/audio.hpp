@@ -3,7 +3,7 @@
 #include <AL/al.h>
 #include <glm/glm.hpp>
 
-struct ALCdevice;
+struct ALCdevice_struct;
 namespace shambhala {
 namespace audio {
 }
