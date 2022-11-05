@@ -78,6 +78,25 @@ struct ComponentSystem {
     guy->setName("Guy");
     addComponent(guy);
     components.push(guy);
+    
+    BaseEnemy *turret = new BaseEnemy(shotComponent);
+    turret->target = playerComponent->getPlayerPosition();
+    turret->setName("turret");
+    addComponent(turret);
+    components.push(turret);
+    
+    BaseEnemy *jumper = new BaseEnemy(shotComponent);
+    jumper->target = playerComponent->getPlayerPosition();
+    jumper->setName("jumper");
+    addComponent(jumper);
+    components.push(jumper);
+    
+    BaseEnemy *shooter = new BaseEnemy(shotComponent);
+    shooter->target = playerComponent->getPlayerPosition();
+    shooter->setName("shooter");
+    addComponent(shooter);
+    components.push(shooter);
+    
     {
 
       // Create guy class
@@ -89,8 +108,7 @@ struct ComponentSystem {
                                   0,   64, 36,  32, 72, 64, 36,  32, 108, 64,
                                   36,  32, 144, 64, 36, 32, 180, 64, 36,  32};
         EnemyClass guyClass;
-        guyClass.atlas =
-            createEnemyAtlas("textures/grenade_guy.png", guyCoords);
+        guyClass.atlas = createEnemyAtlas("textures/grenade_guy.png", guyCoords);
         guyClass.scaleTransform = util::scale(2.0);
         guyClass.regularAnimationCount = 6;
         guyClass.attackAnimationCount = 3;
@@ -100,25 +118,75 @@ struct ComponentSystem {
 
         guy->createEnemyClass(0, guyClass);
       }
-
+		
       // Create turret class
       {
+      	static int turretCoords[] = {0,   32, 36,  32, 72, 32, 36,  32, 108, 32,
+                                  36,  32, 144, 32, 36, 32, 180, 32, 36,  32,
+                                  216, 32, 36,  32,
+
+                                  0,   64, 36,  32, 72, 64, 36,  32, 108, 64,
+                                  36,  32, 144, 64, 36, 32, 180, 64, 36,  32};
+        EnemyClass turretClass;
+        turretClass.atlas =	createEnemyAtlas("textures/grenade_guy.png", turretCoords);
+        turretClass.scaleTransform = util::scale(2.0);
+        turretClass.regularAnimationCount = 6;
+        turretClass.attackAnimationCount = 3;
+        turretClass.shotCenter = glm::vec2(0.2, 0.9);
+        turretClass.shot = true;
+        turretClass.fly = false;
+
+        turret->createEnemyClass(0, turretClass);
 
       }
 
       // Create jumper class
       {
+	   static int jumperCoords[] = {0,   32, 36,  32, 72, 32, 36,  32, 108, 32,
+                                  36,  32, 144, 32, 36, 32, 180, 32, 36,  32,
+                                  216, 32, 36,  32,
 
+                                  0,   64, 36,  32, 72, 64, 36,  32, 108, 64,
+                                  36,  32, 144, 64, 36, 32, 180, 64, 36,  32};
+        EnemyClass jumperClass;
+        jumperClass.atlas = createEnemyAtlas("textures/grenade_guy.png", jumperCoords);
+        jumperClass.scaleTransform = util::scale(2.0);
+        jumperClass.regularAnimationCount = 6;
+        jumperClass.attackAnimationCount = 3;
+        jumperClass.shotCenter = glm::vec2(0.2, 0.9);
+        jumperClass.shot = false;
+        jumperClass.fly = false;
+        jumperClass.jump = true;
+
+        jumper->createEnemyClass(0, jumperClass);
       }
 
       // Create shooter
-      {}
+      {
+        static int shooterCoords[] = {0,   32, 36,  32, 72, 32, 36,  32, 108, 32,
+                                      36,  32, 144, 32, 36, 32, 180, 32, 36,  32,
+                                      216, 32, 36,  32,0,   64, 36,  32, 72, 64, 36,  
+                                      32, 108, 64, 36,  32, 144, 64, 36, 32, 180, 64, 36,  32};
+        EnemyClass shooterClass;
+        shooterClass.atlas = createEnemyAtlas("textures/grenade_guy.png", shooterCoords);
+        shooterClass.scaleTransform = util::scale(2.0);
+        shooterClass.regularAnimationCount = 6;
+        shooterClass.attackAnimationCount = 3;	
+        shooterClass.shotCenter = glm::vec2(0.2, 0.9);
+        shooterClass.shot = true;
+        shooterClass.fly = true;
+        shooterClass.jump = true;
 
-      guy->spawnEnemy(0, 80, 11);
-      guy->spawnEnemy(0, 70, 11);
-      guy->spawnEnemy(0, 73, 15);
-
-      spawnEnemies("joc2d/data/enemies.txt", guy);
+        shooter->createEnemyClass(0, shooterClass);
+      
+      }
+	  
+      spawnEnemies("joc2d/data/guy.txt", guy);
+      spawnEnemies("joc2d/data/turret.txt", turret);
+      spawnEnemies("joc2d/data/jumper.txt", jumper);
+      spawnEnemies("joc2d/data/shooter.txt", shooter);
+      
+      
     }
   }
 
