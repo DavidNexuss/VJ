@@ -322,13 +322,12 @@ GLuint device::createVAO() {
   return vao;
 }
 GLuint device::createVBO(const simple_vector<uint8_t> &vertexBuffer,
-                         GLuint *vbo) {
+                         GLuint *vbo, GLenum mode) {
   if (*vbo == -1) {
     glGenBuffers(1, vbo);
   }
   device::bindVbo(*vbo);
-  glBufferData(GL_ARRAY_BUFFER, vertexBuffer.size(), vertexBuffer.data(),
-               GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, vertexBuffer.size(), vertexBuffer.data(), mode);
   return *vbo;
 }
 
@@ -469,11 +468,11 @@ void device::bindAttribute(GLuint vbo, int index, int size, int stride,
                            int offset, int divisor) {
 
   if (gBindState.boundAttributes[index] != vbo) {
-    if (gBindState.boundAttributes[index] == 0)
-      glEnableVertexAttribArray(index);
     gBindState.boundAttributes[index] = vbo;
     glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, stride,
                           (void *)(size_t(offset)));
+
+    glEnableVertexAttribArray(index);
 
     if (divisor != 0) {
       glVertexAttribDivisor(index, divisor);
@@ -643,7 +642,7 @@ void VertexBuffer::use() {
   // Create vertexBuffer
   if (gl_vbo == -1 || (vertexBuffer.size() && needsUpdate())) {
 
-    device::createVBO(vertexBuffer, &gl_vbo);
+    device::createVBO(vertexBuffer, &gl_vbo, mode);
     vboSize = vertexBuffer.size();
 
     // Reallocate buffer memory
@@ -741,6 +740,7 @@ void ModelConfiguration::use() {
 }
 
 void Program::bind(const char *name, Uniform value) {
+  use();
   GLuint uniformId = device::getUniform(gl(), name);
 
   if (uniformId != -1)
@@ -768,6 +768,10 @@ void device::renderPass() {
     if (model->isEnabled()) {
       model->draw();
     }
+  }
+
+  for (int i = 0; i < componentCount(); i++) {
+    getComponent(i)->render();
   }
 }
 
@@ -1198,6 +1202,7 @@ void RenderCamera::render() { shambhala::device::renderPass(); }
 
 GLuint RenderCameraOutput::gl() {
 
+  Program *lastBoundProgram = guseState.currentProgram;
   if (camera->currentFrame != engine.currentFrame) {
     camera->currentFrame = engine.currentFrame;
 
@@ -1208,6 +1213,7 @@ GLuint RenderCameraOutput::gl() {
     engine_clearState();
   }
 
+  lastBoundProgram->use();
   return camera->getOutputTexture(attachmentIndex)->gl();
 }
 
@@ -1241,9 +1247,6 @@ void shambhala::engine_clearState() {
 
 void shambhala::engine_prepareRender() {
 
-  glEnable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_MULTISAMPLE);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
   glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

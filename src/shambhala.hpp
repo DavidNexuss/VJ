@@ -133,6 +133,8 @@ struct VertexBuffer : public Updatable {
   GLuint gl();
   void use();
 
+  GLenum mode = GL_STATIC_DRAW;
+
 private:
   int vboSize = 0;
   mutable int _vertexsize = -1;
@@ -281,6 +283,7 @@ struct LogicComponent : EngineComponent<LogicComponent> {
 
   Material *hint_is_material = nullptr;
 
+  virtual void render() {}
   virtual void step(StepInfo info) {}
   virtual void editorStep(StepInfo info) {}
   virtual void editorRender() {}
@@ -479,7 +482,8 @@ GLuint compileShader(const char *data, GLenum type,
                      const std::string &resourcename);
 GLuint compileProgram(GLuint *shaders, GLint *status);
 GLuint createVAO();
-GLuint createVBO(const simple_vector<uint8_t> &vertexBuffer, GLuint *vbo);
+GLuint createVBO(const simple_vector<uint8_t> &vertexBuffer, GLuint *vbo,
+                 GLenum mode = GL_STATIC_DRAW);
 GLuint createEBO(const simple_vector<Standard::meshIndex> &indexBuffer,
                  GLuint *ebo);
 GLuint createTexture(bool filter, bool clamp = false);

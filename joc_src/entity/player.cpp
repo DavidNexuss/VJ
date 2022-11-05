@@ -81,7 +81,20 @@ void Player::step(shambhala::StepInfo info) {
     this->shootingDelay += viewport()->deltaTime;
     if (shambhala::viewport()->isKeyPressed(KEY_E)) {
       this->shootingCharge += viewport()->deltaTime;
+      this->shootingCharge = glm::min(this->shootingCharge, 5.0f);
+      float t = glm::cos((this->shootingCharge / 5.0f) * M_PI / 2);
+
+      ship_model->material->set("tint", glm::vec3(1.0 * t + 1.2 * (t - 1),
+                                                  1.0 * t + 0.4 * (t - 1),
+                                                  1.0 * t + 0.4 * (t - 1)));
     } else {
+
+      if (this->shootingCharge >= 5.0f) {
+        shot->addShot(getShootingCenter(),
+                      glm::vec2(shootspeed, 0.0) + getVelocity() * 0.5f, 0,
+                      8.0);
+      }
+      ship_model->material->set("tint", glm::vec3(1.0));
       this->shootingCharge = 0.0;
     }
 
@@ -117,6 +130,7 @@ void Player::step(shambhala::StepInfo info) {
 void Player::editorRender() {
   if (ImGui::Begin("Player")) {
     ImGui::InputFloat2("Player Position", (float *)immediateGetPosition());
+    ImGui::InputFloat("Shoot Charge", &this->shootingCharge);
     ImGui::End();
     updateNodePosition(*immediateGetPosition());
   }
