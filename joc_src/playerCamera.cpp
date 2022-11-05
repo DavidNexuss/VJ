@@ -57,7 +57,7 @@ void PlayerCamera::step(shambhala::StepInfo info) {
                              glm::vec4(0.0, 0.0, 0.0, 1.0);
 
   if (targetPosition.x >= 2.0) {
-    currentWaypoint.x += shambhala::viewport()->deltaTime;
+    currentWaypoint.x += shambhala::viewport()->deltaTime * 1.5;
   }
 
   currentWaypoint.x +=
@@ -86,7 +86,8 @@ void PlayerCamera::step(shambhala::StepInfo info) {
       currentWaypoint.cameraspeed = waypoints[waypointIndex].cameraspeed;
 
       currentWaypoint.x += waypoints[waypointIndex].x;
-      currentWaypoint.y += waypoints[waypointIndex].y;
+      // currentWaypoint.y += waypoints[waypointIndex].y;
+      interptime = 0.0;
     }
   }
 
