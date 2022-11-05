@@ -55,6 +55,7 @@ struct ComponentSystem {
   void initEnemies() {
 
     BaseEnemy *guy = new BaseEnemy(shotComponent);
+    guy->target = playerComponent->getPlayerPosition();
     guy->setName("Guy");
     addComponent(guy);
     components.push(guy);
@@ -63,8 +64,10 @@ struct ComponentSystem {
       guyClass.atlas = createEnemyAtlas("textures/grenade_guy.png", guyCoords);
       guyClass.scaleTransform = util::scale(2.0);
       guyClass.regularAnimationCount = 6;
-      guyClass.shootAnimationCount = 3;
+      guyClass.attackAnimationCount = 3;
       guyClass.shotCenter = glm::vec2(0.2, 0.9);
+      guyClass.shot = true;
+      guyClass.jump = true;
       guy->createEnemyClass(0, guyClass);
 
       guy->spawnEnemy(0, 80, 11);
@@ -117,10 +120,7 @@ void setupShip() {
   shambhala::Node *rootNode = shambhala::createNode();
   rootNode->setTransformMatrix(util::translate(0.0, 0.0, -0.1));
 
-  Turret *turret = new Turret(dyn);
-  turret->target(shambhala::createNode());
   shambhala::addComponent(dyn);
-  shambhala::addComponent(turret);
 }
 
 void setupBackground() {

@@ -7,36 +7,58 @@
 struct EnemyInstance : public PhsyicalObject {
   int enemyClass;
   float hit = 0.0f;
-  bool isShooting = true;
+  bool isAttacking = true;
   float animationDelay = 0.0;
   float shootDelay = 0.0;
+  float jumpDelay = 0.0;
   int animationIndex;
   float health;
+
   shambhala::Model *model;
   shambhala::Node *center;
+
+  float aimAngle;
+  shambhala::Node *target;
 };
 
 struct EnemyClass {
   DynamicPartAtlas *atlas;
   glm::vec2 shotCenter = glm::vec2(0.0);
-  glm::vec2 gravity = glm::vec2(0.0, -5.0);
+  glm::vec2 gravity = glm::vec2(0.0, -0.5);
   glm::vec2 shotGravity = glm::vec2(0.0, -0.3);
   glm::vec2 shotDirection = glm::vec2(-0.5, 0.5) * 4.0f;
-  float shotSize = 3.0;
+  glm::mat4 scaleTransform = glm::mat4(1.0);
+
+  float mass = 2.0;
   float maxHealth = 8.0;
+
+  float attackDistance = 20.0;
+
+  // Shot sequence
+  bool shot = false;
+  float shotSize = 3.0;
   int shootCount = 4;
   float shootSpread = 0.8;
-
-  glm::mat4 scaleTransform = glm::mat4(1.0);
-  int regularPart = 0;
-  int attackPart = 0;
-  float mass = 2.0;
-
-  int regularAnimationCount = 6;
-  int shootAnimationCount = 4;
-  float regularAnimationThreshold = 0.3;
   float shootingAnimationThreshold = 0.8;
   float shootThreshold = 15.0f;
+
+  // Aim and shoot sequence
+  bool aim = false;
+  float aimVelocity = 1.0;
+
+  // Jump sequence
+  bool jump = false;
+  float jumpThreshold = 10.0;
+  float jumpMaxVelocity = 20.0;
+  float jumpExpectedTime = 8.0;
+
+  // Animations
+  int regularPart = 0;
+  int attackPart = 0;
+
+  int regularAnimationCount = 6;
+  int attackAnimationCount = 4;
+  float regularAnimationThreshold = 0.3;
 
   inline glm::vec2 getAbsoluteShotCenter(EnemyInstance &instance) {
     return instance.model->getNode()->getCombinedMatrix() *
@@ -63,9 +85,16 @@ struct BaseEnemy : public shambhala::LogicComponent,
   Collision inside(glm::vec2 position) override;
   void signalHit(Collision col) override;
 
+  shambhala::Node *target;
+
 private:
   int castPoint(glm::vec2 position);
   ShotComponent *shot;
   std::unordered_map<int, EnemyClass> enemyClasses;
   simple_vector<EnemyInstance> enemies;
+
+  void sequenceShoot(EnemyInstance &, EnemyClass &);
+  void sequenceIdle(EnemyInstance &, EnemyClass &);
+  void sequenceJump(EnemyInstance &, EnemyClass &);
+  glm::vec2 targetDifference(EnemyInstance &instance);
 };
