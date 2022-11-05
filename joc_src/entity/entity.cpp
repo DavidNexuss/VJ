@@ -25,7 +25,7 @@ void DynamicPartAtlas::configureMaterial(int part, Material *material) {
   offset /= textureSize;
   scale /= textureSize;
 
-  material->set("input", textureAtlas);
+  material->set("base", textureAtlas);
   material->set("uv_scale", scale);
   material->set("uv_offset", offset);
   material->set("textureSize", textureSize);

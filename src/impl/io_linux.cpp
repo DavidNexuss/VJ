@@ -4,8 +4,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-//#include <unistd.h>
-#include <io.h>
+#include <unistd.h>
 
 static int getFileSize(const char *path) {
   struct stat st;
