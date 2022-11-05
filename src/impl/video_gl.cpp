@@ -416,7 +416,6 @@ void OpenGLDriver::bindBuffer(GLuint vbo) {
   }
 }
 
-// TODO: Use regular glUniform ?? FT: 4.1
 void OpenGLDriver::bindUniform(GLuint program, GLuint id, GLenum type,
                                void *value, int count) {
 

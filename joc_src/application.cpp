@@ -91,7 +91,9 @@ void Joc::loop() {
     {
 
       getWorkingModelList()->use();
+#ifdef EDITOR
       shambhala::loop_io_sync_step();
+#endif
 
       shambhala::loop_beginRenderContext(frame);
       {
