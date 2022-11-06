@@ -1,5 +1,6 @@
 #include "application.hpp"
 #include "entity/enemies/base.hpp"
+#include "entity/enemies/finalboss.hpp"
 #include "entity/enemies/turret.hpp"
 #include "entity/forceShot.hpp"
 #include "entity/player.hpp"
@@ -22,6 +23,7 @@ static int playerCoords[] = {20, 14, 43, 34};
 
 struct ComponentSystem {
   PlayerCamera *camera = nullptr;
+  FinalBoss *boss = nullptr;
   ShotComponent *shotComponent = nullptr;
   ForceShotComponent *forceShot = nullptr;
   Player *playerComponent = nullptr;
@@ -195,6 +197,10 @@ struct ComponentSystem {
       spawnEnemies("joc2d/data/jumper.txt", jumper);
       spawnEnemies("joc2d/data/shooter.txt", shooter);
     }
+
+    boss = new FinalBoss;
+    addModel(boss);
+    addComponent(boss);
   }
 
   void registerEntity(Entity *ent) {

@@ -53,6 +53,8 @@ Player::Player(ShotComponent *shot, ForceShotComponent *force,
                                 util::translate(-0.5f, -0.55f, 0.0));
     ship_force->material->set("add", glm::vec4(0.0));
     ship_force->material->set("mul", glm::vec4(1.2));
+    ship_force->material->set("stScale", glm::vec2(1.0));
+    ship_force->material->set("stOffset", glm::vec2(0.0));
     ship_force->zIndex = 3;
     addModel(ship_force);
   }
