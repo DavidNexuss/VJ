@@ -1,5 +1,5 @@
 #version 330 core
-uniform sampler2D input1;
+uniform sampler2D base;
 out vec4 color;
 in vec2 vUV;
 uniform vec2 offset;
@@ -23,7 +23,7 @@ void main() {
   if(st.y > 0.9) { 
   	st.y = 0.83 + fract(st.y / 0.02) * 0.02;
   }
-  color = texture(input1, st) * (1 + hdr);
+  color = texture(base, st) * (1 + hdr);
 }
 
 

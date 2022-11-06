@@ -13,6 +13,7 @@
 #include "tile.hpp"
 #include <ext.hpp>
 #include <fstream>
+#include <iterator>
 
 using namespace shambhala;
 
@@ -271,7 +272,7 @@ void setupLevel() {
       floorTexture->addTextureResource(
           resource::stbiTextureFile("textures/floor.png", 3));
 
-      model->material->set("input1", floorTexture);
+      model->material->set("base", floorTexture);
     }
     {
       Texture *floorTexture = shambhala::createTexture();
@@ -308,17 +309,252 @@ void setupBasic() {
 
   joc::font = new BitMapFont("textures/font.png");
 }
-void loadTestScene() {
 
+static void loadTestScene() {
   setupComponentSystem();
   setupLevel();
   setupBackground();
   setupShip();
-  setupBasic();
 }
+
+static float getMenuScale() {
+  float ra = viewport()->aspectRatio() * 0.6;
+  return ra;
+}
+
+struct QuadArgs {
+
+  glm::vec2 position;
+  glm::vec2 size;
+  glm::vec4 mul = glm::vec4(2.5, 2.5, 2.5, 1.0);
+  glm::vec4 add = glm::vec4(0.0);
+  glm::vec2 stOffset = glm::vec2(0.0);
+  glm::vec2 stScale = glm::vec2(1.0);
+  bool fit = true;
+
+  void st(glm::vec2 offset, glm::vec2 scale) {
+    stScale = scale;
+    stOffset = offset;
+  }
+  void pos(glm::vec2 p, glm::vec2 size) {
+    this->position = p;
+    this->size = size;
+  }
+
+  bool inside(glm::vec2 p) {
+    float ra = getMenuScale();
+    AABB abb{position, position + size / glm::vec2(ra, 1.0)};
+    return abb.inside(p);
+  }
+};
+static void drawQuad(shambhala::Texture *texture, QuadArgs args) {
+
+  static shambhala::Program *tiled =
+      loader::loadProgram("programs/tiled.fs", "programs/tiled.vs");
+  static shambhala::Mesh *mesh = util::createTexturedQuad();
+
+  float ra = getMenuScale();
+  if (!args.fit)
+    ra = 1.0f;
+  tiled->use();
+  tiled->bind("base", texture);
+  tiled->bind(Standard::uProjectionMatrix, glm::mat4(1.0));
+  tiled->bind(Standard::uViewMatrix, glm::mat4(1.0));
+
+  glm::mat4 transform = util::translate(args.position.x, args.position.y, 0.0) *
+                        util::scale(args.size.x / ra, args.size.y, 1.0) *
+                        util::scale(2.0, 2.0, 1.0) *
+                        util::translate(-0.5, -0.5, 0.0);
+
+  tiled->bind(Standard::uTransformMatrix, transform);
+  tiled->bind("mul", args.mul);
+  tiled->bind("add", args.add);
+  tiled->bind("stOffset", args.stOffset);
+  tiled->bind("stScale", args.stScale);
+  mesh->use();
+
+  shambhala::device::drawCall();
+
+  tiled->bind("stOffset", glm::vec2(0.0));
+  tiled->bind("stScale", glm::vec2(1.0));
+}
+
+struct Button : public QuadArgs {
+  bool pressed = false;
+  bool hover;
+
+  std::string text;
+
+  void render(shambhala::Texture *back) {
+    if (pressed) {
+      st(glm::vec2(0.5, 0.0), glm::vec2(0.5, 1.0));
+    } else {
+      st(glm::vec2(0.0, 0.0), glm::vec2(0.5, 1.0));
+    }
+
+    if (hover) {
+      add = glm::vec4(0.2, 0.3, 0.4, 0.0);
+    } else {
+      add = glm::vec4(0.0);
+    }
+
+    drawQuad(back, *this);
+
+    joc::font->render(text, this->position + glm::vec2(0.0, 0.02),
+                      glm::vec2(1.0 / getMenuScale(), 1.0));
+  }
+
+  void step(glm::vec2 mousep, bool press) {
+    if (inside(mousep)) {
+      hover = true;
+      pressed = press;
+    } else {
+      hover = false;
+      pressed = false;
+    }
+  }
+};
+
+struct Panel : public QuadArgs {
+  std::string text;
+
+  void render(shambhala::Texture *texture) {
+
+    st(glm::vec2(0.0, 0.0), glm::vec2(0.5, 0.85));
+    drawQuad(texture, *this);
+    joc::font->render(text, this->position + glm::vec2(0.0, 0.02),
+                      glm::vec2(1.0 / getMenuScale(), 1.0));
+  }
+};
+
+static float creditsThreshold = 8.0;
+static float gameThreshold = 5.0;
+struct MenuComponent : public LogicComponent {
+
+  shambhala::Texture *background = loader::loadTexture("textures/menu.png", 4);
+  shambhala::Texture *back = loader::loadTexture("textures/back.png", 4);
+
+  Button play, credits, end;
+  Panel creditPanel;
+
+  bool menu = true;
+  bool game = false;
+  bool credit = false;
+
+  float creditsStep = 0.0;
+  float gameStep = 0.0;
+
+  bool enabled = true;
+  bool stop = false;
+
+  MenuComponent() {
+    background->useNeareast = true;
+    back->useNeareast = true;
+    back->clamp = true;
+    play.text = "JUGAR";
+    credits.text = "CREDITS";
+    end.text = "END";
+    creditPanel.text = "Programacio\n\nDavid garcia\nAlex\n\nGrafics\nGent "
+                       "random\n\n3rd party\n\nWhatever";
+  }
+
+  void reset() {
+    enabled = false;
+    game = false;
+    menu = true;
+    credit = false;
+    creditsStep = 0.0;
+    gameStep = 0.0;
+  }
+  void render() override {
+
+    if (enabled || stop) {
+      QuadArgs args;
+
+      float ty = glm::sin(0.5f * M_PI * gameStep / gameThreshold);
+      float tx = glm::sin(0.5f * M_PI * creditsStep / creditsThreshold);
+
+      float d = glm::max(3.0f - ty * 3.0f, stop ? 0.3f : 0.0f);
+      args.fit = false;
+      args.mul = glm::vec4(1.0, 1.0, 1.0, 0.0);
+      args.add = glm::vec4(0.0, 0.0, 0.0, 0.8);
+
+      args.pos(glm::vec2(0.0), glm::vec2(1.0));
+
+      drawQuad(background, args);
+
+      float creditDelta = 2.5f;
+      float gameDelta = 3.0f;
+
+      credits.pos(glm::vec2(-tx * creditDelta, -0.15 - ty * gameDelta),
+                  glm::vec2(0.35, 0.15));
+      end.pos(glm::vec2(-tx * creditDelta, -0.55 - ty * gameDelta),
+              glm::vec2(0.35, 0.15));
+      play.pos(glm::vec2(-tx * creditDelta, 0.25 - ty * gameDelta),
+               glm::vec2(0.35, 0.15));
+
+      creditPanel.pos(glm::vec2((1 - tx) * creditDelta, 0.0) + glm::vec2(0.0),
+                      glm::vec2(0.8, 0.9));
+
+      play.render(back);
+      credits.render(back);
+      end.render(back);
+      creditPanel.render(back);
+
+      if (credit) {
+        creditsStep += viewport()->deltaTime;
+        if (creditsStep >= creditsThreshold) {
+          creditsStep = creditsThreshold;
+        }
+      }
+
+      if (game && enabled) {
+        gameStep += viewport()->deltaTime;
+        if (gameStep >= gameThreshold) {
+          gameStep = gameThreshold;
+          reset();
+          loadTestScene();
+        }
+      }
+
+      glm::vec2 mousep = viewport()->getMouseViewportCoords() * 2.0f - 1.0f;
+      mousep.y = -mousep.y;
+      bool press = viewport()->isMousePressed();
+
+      play.step(mousep, press);
+      end.step(mousep, press);
+      credits.step(mousep, press);
+
+      if (credits.pressed) {
+        credit = true;
+      }
+      if (play.pressed) {
+        game = true;
+      }
+    }
+
+    if (!enabled) {
+      if (viewport()->isKeyJustPressed(KEY_ESCAPE)) {
+        stop = !stop;
+        reset();
+      }
+    }
+  }
+
+  void editorRender() override {
+    if (ImGui::Begin("Menu Game")) {
+      ImGui::Checkbox("Credit", &credit);
+      ImGui::End();
+    }
+  }
+};
+
+void loadmenu() { addComponent(new MenuComponent); }
 int main() {
   Joc joc;
   joc.enginecreate();
-  loadTestScene();
+  setupBasic();
+  loadmenu();
+  // loadTestScene();
   joc.loop();
 }

@@ -4,6 +4,7 @@ uniform sampler2D scene;
 in vec2 vUV;
 out vec3 color;
 uniform float uTime;
+uniform float delta = 0.002;
 
 vec3 getBloom(float size) {
 int n = 3;
@@ -33,7 +34,7 @@ float w(float x) {
 void main() {
 	
   vec3 baseColor = texture2D(scene, vUV).xyz * 0.5;
-  vec3 bloomColor = getBloom(0.006) * 0.7;
+  vec3 bloomColor = getBloom(delta) * 0.7;
   
   float h = w(uTime * 2.0 + vUV.x * 10.0)*0.2;
   bloomColor *= 1.4 - h;

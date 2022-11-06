@@ -762,7 +762,6 @@ void Program::bind(Material *mat) {
 void device::renderPass() {
   const std::vector<int> &renderOrder =
       guseState.currentModelList->getRenderOrder();
-  SoftCheck(renderOrder.size() > 0, LOG("[Warning] Empty render pass ! ", 0););
   for (int i = 0; i < renderOrder.size(); i++) {
     Model *model = guseState.currentModelList->models[renderOrder[i]];
     if (model->isEnabled()) {
@@ -776,7 +775,7 @@ void device::renderPass() {
 }
 
 void device::drawCall(DrawCallArgs args) {
-  device::cullFrontFace(guseState.isFrontCulled());
+  // device::cullFrontFace(guseState.isFrontCulled());
   int vertexCount = guseState.currentMesh->vertexCount();
   SoftCheck(vertexCount > 0, {
     LOG("[Warning] vertexcount of mesh %p is 0", guseState.currentMesh);
