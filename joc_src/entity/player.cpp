@@ -114,6 +114,8 @@ void Player::step(shambhala::StepInfo info) {
     hit -= viewport()->deltaTime;
     hit = glm::max(hit, 0.0f);
     ship_model->material->set("hit", hit);
+    ship_model->material->set("add", glm::vec4(0.0));
+    ship_model->material->set("mul", glm::vec4(1.0));
   }
 
   // Audio

@@ -411,8 +411,9 @@ struct QuadArgs {
 
   bool inside(glm::vec2 p) {
     float ra = getMenuScale();
-    AABB abb{position, position + size / glm::vec2(ra, 1.0)};
-    return abb.inside(p);
+    glm::vec2 diff = size / glm::vec2(ra, 1.0);
+    AABB abbb{position - diff, position + diff};
+    return abbb.inside(p);
   }
 };
 static void drawQuad(shambhala::Texture *texture, QuadArgs args) {
@@ -461,14 +462,16 @@ struct Button : public QuadArgs {
     }
 
     if (hover) {
-      add = glm::vec4(0.2, 0.3, 0.4, 0.0);
+      add = glm::vec4(0.2, 0.4, 0.7, 0.2);
     } else {
       add = glm::vec4(0.0);
     }
 
     drawQuad(back, *this);
 
-    joc::font->render(text, this->position + glm::vec2(0.0, 0.02),
+    joc::font->render(text,
+                      this->position + glm::vec2(0.0, 0.02) -
+                          (pressed ? glm::vec2(0.0, 0.05) : glm::vec2(0.0)),
                       glm::vec2(1.0 / getMenuScale(), 1.0));
   }
 
@@ -514,6 +517,7 @@ struct MenuComponent : public LogicComponent {
 
   bool enabled = true;
   bool stop = false;
+  float delta = 0.1;
 
   MenuComponent() {
     background->useNeareast = true;
@@ -570,14 +574,14 @@ struct MenuComponent : public LogicComponent {
       creditPanel.render(back);
 
       if (credit) {
-        creditsStep += viewport()->deltaTime;
+        creditsStep += delta;
         if (creditsStep >= creditsThreshold) {
           creditsStep = creditsThreshold;
         }
       }
 
       if (game && enabled) {
-        gameStep += viewport()->deltaTime;
+        gameStep += delta;
         if (gameStep >= gameThreshold) {
           gameStep = gameThreshold;
           reset();
@@ -605,6 +609,12 @@ struct MenuComponent : public LogicComponent {
       if (viewport()->isKeyJustPressed(KEY_ESCAPE)) {
         stop = !stop;
         reset();
+
+        if (stop) {
+          viewport()->deltaTime = 0.0;
+        } else {
+          viewport()->deltaTime = delta;
+        }
       }
     }
   }
