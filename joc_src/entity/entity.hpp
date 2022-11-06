@@ -38,6 +38,7 @@ struct Collision {
   int typeInstance = 0;
   glm::vec2 velocity;
   glm::vec2 shortestPosition;
+  glm::vec2 normal;
   int damage = 0;
 
   inline bool isEmpty() { return typeClass == 0; }

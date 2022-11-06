@@ -15,7 +15,8 @@ static float minshootingDelay = 1.2;
 static float shootspeed = 6.0;
 static float playerspeed = 6.0;
 
-Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {
+Player::Player(ShotComponent *shot, ForceShotComponent *force,
+               DynamicPartAtlas *atlas) {
   this->shot = shot;
   shot->addEntity(this);
   ship_model = atlas->createDynamicPart(0);
@@ -23,15 +24,38 @@ Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {
   shambhala::addModel(ship_model);
 
   playerPosition = shambhala::createNode();
+
   ship_model->getNode()->setParentNode(playerPosition);
-  ship_model->getNode()->transform(util::scale(1.5) *
-                                   util::rotate(0.0, 0.0, 1.0, -M_PI * 0.5));
+
+  glm::mat4 tr = util::scale(1.5f) * util::rotate(0.0, 0.0, 1.0, -M_PI * 0.5f) *
+                 util::translate(-0.5f, -0.5f, 0.0);
+
+  ship_model->getNode()->transform(tr);
+  this->force = force;
 
   setImmediateNode(ship_model->getNode());
   setPositionNode(playerPosition);
   setDamping(0.8);
   setEntityComponent(this);
 
+  // Force
+  {
+    ship_force = shambhala::createModel();
+    ship_force->mesh = util::createTexturedQuad();
+    ship_force->program =
+        loader::loadProgram("programs/tiled.fs", "programs/tiled.vs");
+    ship_force->material = shambhala::createMaterial();
+    ship_force->material->set("base",
+                              loader::loadTexture("textures/force.png", 4));
+    ship_force->node = shambhala::createNode();
+    ship_force->node->setParentNode(playerPosition);
+    ship_force->node->transform(util::scale(3.5f) *
+                                util::translate(-0.5f, -0.55f, 0.0));
+    ship_force->material->set("add", glm::vec4(0.0));
+    ship_force->material->set("mul", glm::vec4(1.2));
+    ship_force->zIndex = 3;
+    addModel(ship_force);
+  }
   this->soundModel = shambhala::audio::createSoundModel();
   this->soundModel->node = ship_model->getNode();
   this->soundModel->mesh = shambhala::audio::createSoundMesh();
@@ -42,9 +66,9 @@ Player::Player(ShotComponent *shot, DynamicPartAtlas *atlas) {
 }
 
 glm::vec2 Player::getShootingCenter() {
-  return glm::vec2(playerPosition->getCombinedMatrix() *
-                   glm::vec4(0.0, 0.0, 0.0, 1.0)) -
-         glm::vec2(-0.4, 1.0);
+
+  return glm::vec2(ship_model->getNode()->getCombinedMatrix() *
+                   glm::vec4(0.5, 0.5, 0.0, 1.0));
 }
 
 void Player::handleCollision(Collision col) {
@@ -104,6 +128,15 @@ void Player::step(shambhala::StepInfo info) {
         shot->addShot(getShootingCenter(),
                       glm::vec2(shootspeed, 0.0) + getVelocity() * 0.5f, 0,
                       2.0);
+
+        force->addShot(getShootingCenter(),
+                       glm::vec2(shootspeed * 2.0, 10.0) + getVelocity() * 0.5f,
+                       glm::vec3(20.0), 10.0);
+
+        force->addShot(getShootingCenter(),
+                       glm::vec2(shootspeed * 2.0, -10.0) +
+                           getVelocity() * 0.5f,
+                       glm::vec3(20.0), 10.0);
         this->shootingDelay = 0.0;
       }
     }

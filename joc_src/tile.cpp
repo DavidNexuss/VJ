@@ -304,8 +304,8 @@ Collision TileMap::inside(AABB box) {
   int jj = highCorner.y;
 
   // TODO get real corners x and y
-  for (int x = i; x < ii; x++) {
-    for (int y = j; y < jj; y++) {
+  for (int x = i; x <= ii; x++) {
+    for (int y = j; y <= jj; y++) {
       if (x >= 0 && y >= 0 && x < sizex && y < sizey) {
         if (inside(glm::vec2(x, y))) {
           Collision col;

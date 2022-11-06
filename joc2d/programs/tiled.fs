@@ -6,4 +6,6 @@ uniform vec4 add;
 uniform vec4 mul;
 void main() { 
   color = texture2D(base, vUV) * mul + add;
+  color.xyz *= color.a;
 }
+

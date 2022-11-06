@@ -1,6 +1,7 @@
 #include "application.hpp"
 #include "entity/enemies/base.hpp"
 #include "entity/enemies/turret.hpp"
+#include "entity/forceShot.hpp"
 #include "entity/player.hpp"
 #include "entity/shot.hpp"
 #include "ext/util.hpp"
@@ -22,6 +23,7 @@ static int playerCoords[] = {20, 14, 43, 34};
 struct ComponentSystem {
   PlayerCamera *camera = nullptr;
   ShotComponent *shotComponent = nullptr;
+  ForceShotComponent *forceShot = nullptr;
   Player *playerComponent = nullptr;
   simple_vector<EntityComponent *> components;
 
@@ -47,6 +49,9 @@ struct ComponentSystem {
     shotComponent = new ShotComponent;
     addModel(shotComponent);
     addComponent(shotComponent);
+
+    forceShot = new ForceShotComponent;
+    addComponent(forceShot);
   }
   void initPlayer() {
 
@@ -57,7 +62,7 @@ struct ComponentSystem {
     dyn->renderingProgram =
         loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
 
-    playerComponent = new Player(shotComponent, dyn);
+    playerComponent = new Player(shotComponent, forceShot, dyn);
     playerComponent->setPosition({8, 11});
     playerComponent->setName("Player");
     addComponent(playerComponent);
@@ -194,6 +199,7 @@ struct ComponentSystem {
 
   void registerEntity(Entity *ent) {
     shotComponent->addEntity(ent);
+    forceShot->addEntity(ent);
     playerComponent->addEntity(ent);
     for (int i = 0; i < components.size(); i++) {
       components[i]->addEntity(ent);
@@ -364,12 +370,13 @@ struct ResWorldMat : public Material, LogicComponent {
 };
 
 BitMapFont *joc::font;
+worldmats::Clock *joc::clock;
 void setupBasic() {
 
-  worldmats::Clock *clock = new worldmats::Clock;
-  clock->setName("Clock");
-  shambhala::pushMaterial(clock);
-  shambhala::addComponent(clock);
+  joc::clock = new worldmats::Clock;
+  joc::clock->setName("Clock");
+  shambhala::pushMaterial(joc::clock);
+  shambhala::addComponent(joc::clock);
 
   ResWorldMat *worldMat = new ResWorldMat;
   shambhala::pushMaterial(worldMat);
