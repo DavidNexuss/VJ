@@ -4,7 +4,7 @@ uniform sampler2D scene;
 in vec2 vUV;
 out vec3 color;
 uniform float uTime;
-uniform float delta = 0.002;
+uniform float delta = 0.005;
 
 vec3 getBloom(float size) {
 int n = 3;

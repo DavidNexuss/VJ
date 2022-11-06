@@ -136,8 +136,4 @@ void Player::editorRender() {
   }
 }
 
-void Player::render() {
-
-  glm::vec2 v = *immediateGetPosition();
-  joc::font->render("abcdefghijklmnopqrstuvwxyz", v, 2.0);
-}
+void Player::render() {}
