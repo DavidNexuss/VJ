@@ -69,6 +69,11 @@ void ForceShotComponent::step(shambhala::StepInfo info) {
       buff->color = 1;
     };
 
+    // Una forma mes optima d'aconseguir la trasa del force
+    // seria generar nomes els vertexos a les interseccions
+    // enlloc de tota la estona, e interpolant al vertex shader
+    // Pero aquesta implementacio no dona molts problemes de rendiment :-D
+
     emitVertex(buff, lp - glm::vec2(0.0, 0.1));
     emitVertex(buff + 1, lp + glm::vec2(0.0, 0.1));
     emitVertex(buff + 2, np + glm::vec2(0.0, 0.1));
