@@ -51,56 +51,72 @@ void ForceShotComponent::step(shambhala::StepInfo info) {
       continue;
     }
 
-    glm::vec2 lp = shots[i].position;
-    shots[i].position += shambhala::viewport()->deltaTime * shots[i].velocity;
-    glm::vec2 np = shots[i].position;
+    Collision col =
+        collide(shots[i].position +
+                shambhala::viewport()->deltaTime * shots[i].velocity);
 
-    Collision col = collide(shots[i].position);
+    float steps = 1;
     if (!col.isEmpty()) {
-      lp = shots[i].position;
-      shots[i].velocity *= glm::vec2(1.0, -1.0);
-      shots[i].position += shambhala::viewport()->deltaTime * shots[i].velocity;
-      col = collide(shots[i].position);
-
-      if (!col.isEmpty()) {
-        shots[i].position = lp;
-        shots[i].velocity *= glm::vec2(-1.0, -1.0);
-        shots[i].position +=
-            shambhala::viewport()->deltaTime * shots[i].velocity;
-      }
+      steps = 10.0;
     }
 
-    // Do rebota
+    float step = 1.0 / steps;
+    while (steps > 0.0) {
 
-    shots[i].lastingDuration -= shambhala::viewport()->deltaTime;
+      float delta = shambhala::viewport()->deltaTime / steps;
 
-    int vboindex =
-        shots[i].buffer->vertexBuffer.size() / sizeof(ForceShotVertex);
-    shots[i].buffer->vertexBuffer.resize(shots[i].buffer->vertexBuffer.size() +
-                                         sizeof(ForceShotVertex) * 6);
+      Collision col = collide(shots[i].position + delta * shots[i].velocity);
+      glm::vec2 lp = shots[i].position;
+      shots[i].position += delta * shots[i].velocity;
+      glm::vec2 np = shots[i].position;
 
-    ForceShotVertex *buff =
-        (ForceShotVertex *)&shots[i].buffer->vertexBuffer[0] + vboindex;
+      if (!col.isEmpty()) {
+        lp = shots[i].position;
+        shots[i].velocity *= glm::vec2(1.0, -1.0);
+        shots[i].position += delta * shots[i].velocity;
+        col = collide(shots[i].position);
 
-    auto emitVertex = [](ForceShotVertex *buff, glm::vec2 position) {
-      buff->position = position;
-      buff->emmitTime = joc::clock->getTime();
-      buff->color = 1;
-    };
+        if (!col.isEmpty()) {
+          shots[i].position = lp;
+          shots[i].velocity *= glm::vec2(-1.0, -1.0);
+          shots[i].position += delta * shots[i].velocity;
+        }
+      }
 
-    // Una forma mes optima d'aconseguir la trasa del force
-    // seria generar nomes els vertexos a les interseccions
-    // enlloc de tota la estona, e interpolant al vertex shader
-    // Pero aquesta implementacio no dona molts problemes de rendiment :-D
+      // Do rebota
 
-    emitVertex(buff, lp - glm::vec2(0.0, 0.1));
-    emitVertex(buff + 1, lp + glm::vec2(0.0, 0.1));
-    emitVertex(buff + 2, np + glm::vec2(0.0, 0.1));
-    emitVertex(buff + 3, np + glm::vec2(0.0, 0.1));
-    emitVertex(buff + 4, lp - glm::vec2(0.0, 0.1));
-    emitVertex(buff + 5, np - glm::vec2(0.0, 0.1));
+      shots[i].lastingDuration -= delta;
 
-    shots[i].buffer->signalUpdate();
+      int vboindex =
+          shots[i].buffer->vertexBuffer.size() / sizeof(ForceShotVertex);
+      shots[i].buffer->vertexBuffer.resize(
+          shots[i].buffer->vertexBuffer.size() + sizeof(ForceShotVertex) * 6);
+
+      ForceShotVertex *buff =
+          (ForceShotVertex *)&shots[i].buffer->vertexBuffer[0] + vboindex;
+
+      auto emitVertex = [](ForceShotVertex *buff, glm::vec2 position) {
+        buff->position = position;
+        buff->emmitTime = joc::clock->getTime();
+        buff->color = 1;
+      };
+
+      // Una forma mes optima d'aconseguir la trasa del force
+      // seria generar nomes els vertexos a les interseccions
+      // enlloc de tota la estona, e interpolant al vertex shader
+      // Pero aquesta implementacio no dona molts problemes de rendiment :-D
+
+      emitVertex(buff, lp - glm::vec2(0.0, 0.1));
+      emitVertex(buff + 1, lp + glm::vec2(0.0, 0.1));
+      emitVertex(buff + 2, np + glm::vec2(0.0, 0.1));
+      emitVertex(buff + 3, np + glm::vec2(0.0, 0.1));
+      emitVertex(buff + 4, lp - glm::vec2(0.0, 0.1));
+      emitVertex(buff + 5, np - glm::vec2(0.0, 0.1));
+
+      shots[i].buffer->signalUpdate();
+
+      steps -= step;
+    }
   }
 }
 
