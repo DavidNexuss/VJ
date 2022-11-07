@@ -112,6 +112,7 @@ glm::vec2 Player::getShootingCenter() {
 void Player::handleCollision(Collision col) {
   if (col.typeClass == COLLISION_ENEMY_SHOT) {
     hit = 2.0;
+    health -= col.damage;
   }
 
   PhsyicalObject::handleCollision(col);
@@ -212,9 +213,10 @@ void Player::editorRender() {
   }
 }
 
-void Player::renderHealthBar(glm::vec2 position, float size, float health) {
+void Player::renderHealthBar(glm::vec2 position, float size, float health,
+                             glm::vec4 color) {
 
-  float ra = 8.0;
+  float ra = 8.0 / viewport()->aspectRatio();
   glm::mat4 tr = util::translate(position.x, position.y, 0.0) *
                  util::scale(size * ra, size, 1.0) *
                  util::translate(-0.5, -0.5, 0.0);
@@ -233,9 +235,11 @@ void Player::renderHealthBar(glm::vec2 position, float size, float health) {
                   util::scale(x, size, 1.0);
 
   hudProgram->bind(Standard::uTransformMatrix, tr2);
+  hudProgram->bind("mul", color);
   hudProgram->bind("base", life_hud);
 
   shambhala::device::drawCall();
+  hudProgram->bind("mul", glm::vec4(1.0));
 
   hudProgram->bind(Standard::uProjectionMatrix, glm::mat4(1.0));
   hudProgram->bind(Standard::uViewMatrix, glm::mat4(1.0));
@@ -248,10 +252,6 @@ void Player::render() {
   hudProgram->use();
   hudProgram->bind(hudMaterial);
   hudMesh->use();
-
-  static float debugTime = 0.0;
-  debugTime += viewport()->deltaTime;
-  float health = glm::cos(debugTime) * 0.5f + 0.5f;
-
-  renderHealthBar(glm::vec2(0.0, 0.8), 0.1, health);
+  renderHealthBar(glm::vec2(0.0, 0.8), 0.1, health / maxHealth,
+                  glm::vec4(0.4, 2.0, 0.4, 1.0));
 }

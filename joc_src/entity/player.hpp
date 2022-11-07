@@ -26,6 +26,8 @@ struct Player : public shambhala::LogicComponent,
 private:
   void updatePlayerPosition();
 
+  int health = 50;
+  float maxHealth = 50.0;
   float hit = 0.0;
   float shootingDelay = 0.0;
   float shootingCharge = 0.0;
@@ -47,5 +49,6 @@ private:
   shambhala::Material *hudMaterial;
   shambhala::Mesh *hudMesh;
 
-  void renderHealthBar(glm::vec2 position, float size, float health);
+  void renderHealthBar(glm::vec2 position, float size, float health,
+                       glm::vec4 color);
 };
