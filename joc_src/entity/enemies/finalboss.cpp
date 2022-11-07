@@ -23,26 +23,28 @@ FinalBoss::FinalBoss() {
 }
 
 void FinalBoss::draw() {
-  program->use();
-  mesh->use();
+  if (active) {
+    program->use();
+    mesh->use();
 
-  program->bind("base", texture);
-  for (int i = 0; i < parts.size(); i++) {
-    Path path = getPath(parts[i].step + globalStep);
-    parts[i].lastMat = path.getCollisionTransform();
-    parts[i].lastRotMat = path.getTransform();
-    ST st = getST(path);
+    program->bind("base", texture);
+    for (int i = 0; i < parts.size(); i++) {
+      Path path = getPath(parts[i].step + globalStep);
+      parts[i].lastMat = path.getCollisionTransform();
+      parts[i].lastRotMat = path.getTransform();
+      ST st = getST(path);
 
-    program->bind(Standard::uTransformMatrix,
-                  rootNode->getTransformMatrix() * path.getTransform());
+      program->bind(Standard::uTransformMatrix,
+                    rootNode->getTransformMatrix() * path.getTransform());
 
-    float t = parts[i].damage / 2.0;
-    program->bind("add", glm::vec4(0.0));
-    program->bind("mul", glm::vec4(1.0, 1.0 - t, 1.0 - t, 1.0));
-    program->bind("stOffset", st.offset);
-    program->bind("stScale", st.scale);
+      float t = parts[i].damage / 2.0;
+      program->bind("add", glm::vec4(0.0));
+      program->bind("mul", glm::vec4(1.0, 1.0 - t, 1.0 - t, 1.0));
+      program->bind("stOffset", st.offset);
+      program->bind("stScale", st.scale);
 
-    shambhala::device::drawCall();
+      shambhala::device::drawCall();
+    }
   }
 }
 
@@ -149,30 +151,32 @@ FinalBoss::ST FinalBoss::getST(Path p) {
 }
 
 void FinalBoss::step(shambhala::StepInfo info) {
-  globalStep += viewport()->deltaTime * speed;
+  if (active) {
+    globalStep += viewport()->deltaTime * speed;
 
-  if (globalStep > 80.0)
-    globalStep = 0.0;
+    if (globalStep > 80.0)
+      globalStep = 0.0;
 
-  for (int i = 0; i < parts.size(); i++) {
-    parts[i].damage = glm::max(0.0f, parts[i].damage - viewport()->deltaTime);
-  }
-
-  for (int i = 0; i < parts.size(); i++) {
-    if (parts[i].shoot) {
-      if (parts[i].shotdelay < 0.0) {
-        shot->addShot(parts[i].lastRotMat[3], parts[i].lastRotMat[1], 1, 3);
-        parts[i].shoot = false;
-      }
-
-      parts[i].shotdelay -= viewport()->deltaTime;
+    for (int i = 0; i < parts.size(); i++) {
+      parts[i].damage = glm::max(0.0f, parts[i].damage - viewport()->deltaTime);
     }
-  }
 
-  shootDelta -= viewport()->deltaTime;
+    for (int i = 0; i < parts.size(); i++) {
+      if (parts[i].shoot) {
+        if (parts[i].shotdelay < 0.0) {
+          shot->addShot(parts[i].lastRotMat[3], parts[i].lastRotMat[1], 1, 3);
+          parts[i].shoot = false;
+        }
 
-  if (shootDelta < 0.0) {
-    attackSequence1(globalStep);
-    shootDelta = std::max(10.0, health / 10.0);
+        parts[i].shotdelay -= viewport()->deltaTime;
+      }
+    }
+
+    shootDelta -= viewport()->deltaTime;
+
+    if (shootDelta < 0.0) {
+      attackSequence1(globalStep);
+      shootDelta = std::max(10.0, health / 10.0);
+    }
   }
 }

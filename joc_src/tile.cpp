@@ -307,7 +307,7 @@ Collision TileMap::inside(AABB box) {
   for (int x = i; x <= ii; x++) {
     for (int y = j; y <= jj; y++) {
       if (x >= 0 && y >= 0 && x < sizex && y < sizey) {
-        if (inside(glm::vec2(x, y))) {
+        if (get(x, y)) {
           Collision col;
           col.typeClass = COLLISION_WORLD;
           col.shortestPosition = glm::vec2(x, y);

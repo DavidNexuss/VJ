@@ -25,7 +25,7 @@ static int playerCoords[] = {20, 14, 43, 34};
 Player *joc::player;
 worldmats::SimpleCamera *joc::camera;
 
-static bool skipintro = true;
+static bool skipintro = false;
 struct ComponentSystem {
   PlayerCamera *camera = nullptr;
   FinalBoss *boss = nullptr;
@@ -75,7 +75,7 @@ struct ComponentSystem {
         loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
 
     playerComponent = new Player(shotComponent, forceShot, dyn);
-    playerComponent->setPosition({-8, 11});
+    playerComponent->setPosition({8, 11});
     playerComponent->setName("Player");
     addComponent(playerComponent);
 
@@ -240,6 +240,7 @@ struct ComponentSystem {
     boss->getNode()->setName("BOss");
     boss->shot = shotComponent;
     boss->force = forceShot;
+    boss->active = false;
     addModel(boss);
     addComponent(boss);
     shotComponent->addEntity(boss);
@@ -353,7 +354,6 @@ void setupLevel() {
   TileMap *map =
       createLayer("levels/level01.txt", sizex, sizey, 1, baseColor, 0.0);
 
-  map->rootNode->setOffset(glm::vec3(200.0, 0.0, 0.0));
   comp->registerEntity(map);
   map->setName("MainLevel");
 
