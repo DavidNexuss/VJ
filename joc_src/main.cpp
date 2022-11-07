@@ -103,24 +103,28 @@ struct ComponentSystem {
     guy->setName("Guy");
     addComponent(guy);
     components.push(guy);
+    playerComponent->addEntity(guy);
 
     BaseEnemy *turret = new BaseEnemy(shotComponent);
     turret->target = playerComponent->getPlayerPosition();
     turret->setName("turret");
     addComponent(turret);
     components.push(turret);
+    playerComponent->addEntity(turret);
 
     BaseEnemy *jumper = new BaseEnemy(shotComponent);
     jumper->target = playerComponent->getPlayerPosition();
     jumper->setName("jumper");
     addComponent(jumper);
     components.push(jumper);
+    playerComponent->addEntity(jumper);
 
     BaseEnemy *shooter = new BaseEnemy(shotComponent);
     shooter->target = playerComponent->getPlayerPosition();
     shooter->setName("shooter");
     addComponent(shooter);
     components.push(shooter);
+    playerComponent->addEntity(shooter);
 
     {
 
@@ -198,6 +202,13 @@ struct ComponentSystem {
         shooterClass.regularAnimationCount = 1;
         shooterClass.attackAnimationCount = 4;
         shooterClass.shotCenter = glm::vec2(0.2, 0.9);
+        shooterClass.shotDirection = glm::vec2(-5.0, 0.0);
+        shooterClass.shotGravity = glm::vec2(0.0);
+        shooterClass.attackFreq = 2;
+        shooterClass.attackDivisor = 6;
+        shooterClass.shootThreshold = 0.5;
+        shooterClass.shootSpread = 0.0;
+        shooterClass.shootCount = 1;
         shooterClass.shot = true;
         shooterClass.fly = true;
         shooterClass.jump = true;

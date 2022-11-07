@@ -62,6 +62,7 @@ Collision BaseEnemy::inside(glm::vec2 position) {
   Collision col;
   if ((col.typeInstance = castPoint(position)) != -1) {
     col.typeClass = COLLISION_ENEMY;
+    col.velocity = enemies[col.typeInstance].getVelocity();
     return col;
   }
   return Collision{};
@@ -110,7 +111,11 @@ void BaseEnemy::sequenceShoot(EnemyInstance &instance, EnemyClass &cl) {
   // Shoot
   if (instance.shootDelay > cl.shootThreshold) {
 
+    instance.attackStage++;
     instance.shootDelay = 0.0f;
+    if (!((instance.attackStage / cl.attackDivisor) % cl.attackDivisor == 0)) {
+      return;
+    }
     for (int i = 0; i < cl.shootCount; i++) {
       glm::vec2 shotPosition = cl.getAbsoluteShotCenter(instance);
       glm::vec2 shotDir = cl.shotDirection;

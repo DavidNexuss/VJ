@@ -115,6 +115,12 @@ void Player::handleCollision(Collision col) {
     health -= col.damage;
   }
 
+  if (col.typeClass == COLLISION_ENEMY) {
+    hit = 3.0;
+    health -= col.damage;
+    setVelocity(getVelocity() * -2.0f + col.velocity);
+  }
+
   PhsyicalObject::handleCollision(col);
 }
 Collision Player::inside(glm::vec2 position) {
@@ -201,6 +207,10 @@ void Player::step(shambhala::StepInfo info) {
     listener.position = glm::vec3(*immediateGetPosition(), 0.0);
     listener.velocity = glm::vec3(getVelocity(), 0.0);
     listener.use();
+  }
+
+  if (viewport()->isKeyPressed(KEY_F)) {
+    activateForce(true);
   }
 }
 
