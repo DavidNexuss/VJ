@@ -22,15 +22,15 @@ add_executable(joc ${JOC})
 target_compile_definitions(joc PUBLIC GLFW)
 target_compile_definitions(joc PUBLIC EDITOR)
 target_compile_definitions(joc PUBLIC DEBUGCAMERA)
-target_link_libraries(joc shambhala stbimage GL GLEW glfw assimp openal alut )
+target_link_libraries(joc shambhala stbimage GL GLEW glfw openal alut )
 
 add_executable(joc_final ${JOC})
 target_compile_definitions(joc_final PUBLIC GLFW)
-target_link_libraries(joc_final shambhala stbimage GL GLEW glfw assimp openal alut )
+target_link_libraries(joc_final shambhala stbimage GL GLEW glfw openal alut )
 
 add_executable(joc_glut ${JOC})
 target_compile_definitions(joc_glut PUBLIC GLUT)
-target_link_libraries(joc_glut shambhala stbimage GL GLEW glut assimp openal alut )
+target_link_libraries(joc_glut shambhala stbimage GL GLEW glut openal alut )
 
 set(CMAKE_CXX_FLAGS "-O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3" )
