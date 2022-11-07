@@ -50,6 +50,9 @@ struct AABB {
   glm::vec2 higher = glm::vec2(1.0);
 
   glm::vec2 corner(int index);
+
+  AABB() { }
+  AABB(glm::vec2 _lower, glm::vec2 _higher) : lower(_lower), higher(_higher) { }
   inline bool inside(glm::vec2 point) {
     return point.x <= higher.x && point.x >= lower.x && point.y <= higher.y &&
            point.y >= lower.y;

@@ -120,6 +120,9 @@ struct VertexAttribute {
   int attributeDivisor = 0;
   float *sourceData;
   int stride;
+
+  VertexAttribute() { }
+  VertexAttribute(int _index, int _size) : index(_index), size(_size) { }
 };
 
 struct VertexBuffer : public Updatable {

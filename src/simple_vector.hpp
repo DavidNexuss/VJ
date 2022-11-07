@@ -14,6 +14,12 @@ struct simple_vector_view {
   size_t size;
   size_t capacity;
   bool free = false;
+
+  simple_vector_view() { }
+  simple_vector_view(uint8_t* _data, size_t _size, size_t _capacity) : 
+	  data(_data),
+	  size(_size),
+	  capacity(_capacity) {}
 };
 
 struct simple_vector_span {
