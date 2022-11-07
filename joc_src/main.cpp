@@ -75,7 +75,7 @@ struct ComponentSystem {
         loader::loadProgram("programs/dynamic_tiled.fs", "programs/regular.vs");
 
     playerComponent = new Player(shotComponent, forceShot, dyn);
-    playerComponent->setPosition({8, 11});
+    playerComponent->setPosition({-8, 11});
     playerComponent->setName("Player");
     addComponent(playerComponent);
 
@@ -236,8 +236,14 @@ struct ComponentSystem {
     }
 
     boss = new FinalBoss;
+    playerComponent->boss = boss;
+    boss->getNode()->setName("BOss");
+    boss->shot = shotComponent;
+    boss->force = forceShot;
     addModel(boss);
     addComponent(boss);
+    shotComponent->addEntity(boss);
+    forceShot->addEntity(boss);
   }
 
   void registerEntity(Entity *ent) {
@@ -346,6 +352,8 @@ void setupLevel() {
 
   TileMap *map =
       createLayer("levels/level01.txt", sizex, sizey, 1, baseColor, 0.0);
+
+  map->rootNode->setOffset(glm::vec3(200.0, 0.0, 0.0));
   comp->registerEntity(map);
   map->setName("MainLevel");
 
@@ -606,9 +614,11 @@ struct MenuComponent : public LogicComponent {
   }
   void render() override {
 
+#ifndef EDITOR
     if (!enabled && comp) {
       mort = comp->camera->outside || comp->playerComponent->health < 0;
     }
+#endif
 
     if (mort) {
       QuadArgs args;

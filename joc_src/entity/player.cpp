@@ -276,4 +276,10 @@ void Player::render() {
   hudMesh->use();
   renderHealthBar(glm::vec2(0.0, 0.8), 0.1, health / maxHealth,
                   glm::vec4(0.4, 2.0, 0.4, 1.0));
+
+  if (boss && boss->active) {
+
+    renderHealthBar(glm::vec2(0.0, -0.8), 0.3, boss->health / boss->maxHealth,
+                    glm::vec4(1.8, 0.2, 0.2, 1.0));
+  }
 }

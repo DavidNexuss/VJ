@@ -1,4 +1,5 @@
 #pragma once
+#include "enemies/finalboss.hpp"
 #include "entity.hpp"
 #include "forceShot.hpp"
 #include "shot.hpp"
@@ -24,6 +25,7 @@ struct Player : public shambhala::LogicComponent,
   void activateForce(bool);
 
   int health = 50;
+  FinalBoss *boss = nullptr;
 
 private:
   void updatePlayerPosition();
