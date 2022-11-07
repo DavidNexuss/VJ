@@ -1300,7 +1300,7 @@ StepInfo shambhala::getStepInfo() {
 void shambhala::loop_io_sync_step() { io()->filewatchMonitor(); }
 void shambhala::loop_componentUpdate() {
 
-  StepInfo info;
+	StepInfo info = getStepInfo();
   for (int i = 0; i < engine.components.size(); i++) {
     engine.components[i]->step(info);
   }
