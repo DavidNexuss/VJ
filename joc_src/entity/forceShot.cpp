@@ -71,15 +71,11 @@ void ForceShotComponent::step(shambhala::StepInfo info) {
       glm::vec2 np = shots[i].position;
 
       if (!col.isEmpty()) {
-        lp = shots[i].position;
         shots[i].velocity *= glm::vec2(1.0, -1.0);
-        shots[i].position += delta * shots[i].velocity;
-        col = collide(shots[i].position);
+        col = collide(shots[i].position + delta * shots[i].velocity);
 
         if (!col.isEmpty()) {
-          shots[i].position = lp;
           shots[i].velocity *= glm::vec2(-1.0, -1.0);
-          shots[i].position += delta * shots[i].velocity;
         }
       }
 
