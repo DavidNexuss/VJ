@@ -27,6 +27,20 @@ struct ForceShotVertex {
   float color;
 };
 
+Collision ForceShotComponent::collide(glm::vec2 p) {
+
+  for (int j = 0; j < entities.size(); j++) {
+
+    Collision col;
+    col = entities[j]->inside(p);
+    if (col.typeClass == COLLISION_ENEMY) {
+      entities[j]->signalHit(col);
+    }
+    if (!col.isEmpty())
+      return col;
+  }
+  return Collision{};
+}
 void ForceShotComponent::step(shambhala::StepInfo info) {
 
   for (int i = 0; i < shots.size(); i++) {
@@ -41,14 +55,19 @@ void ForceShotComponent::step(shambhala::StepInfo info) {
     shots[i].position += shambhala::viewport()->deltaTime * shots[i].velocity;
     glm::vec2 np = shots[i].position;
 
-    Collision col;
-    bool rebota = false;
-    for (int j = 0; j < entities.size(); j++) {
-      col = entities[j]->inside(shots[i].position);
-      if (col.typeClass == COLLISION_ENEMY) {
-        entities[j]->signalHit(col);
-      } else if (!col.isEmpty())
-        rebota = true;
+    Collision col = collide(shots[i].position);
+    if (!col.isEmpty()) {
+      lp = shots[i].position;
+      shots[i].velocity *= glm::vec2(1.0, -1.0);
+      shots[i].position += shambhala::viewport()->deltaTime * shots[i].velocity;
+      col = collide(shots[i].position);
+
+      if (!col.isEmpty()) {
+        shots[i].position = lp;
+        shots[i].velocity *= glm::vec2(-1.0, -1.0);
+        shots[i].position +=
+            shambhala::viewport()->deltaTime * shots[i].velocity;
+      }
     }
 
     // Do rebota

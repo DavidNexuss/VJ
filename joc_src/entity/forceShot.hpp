@@ -18,6 +18,7 @@ private:
   shambhala::Mesh *mesh = nullptr;
   bool debugSpawn = false;
 
+  Collision collide(glm::vec2 p);
   struct ForceShot {
     glm::vec2 position;
     glm::vec2 velocity;
