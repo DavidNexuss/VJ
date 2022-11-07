@@ -19,6 +19,8 @@ struct EnemyInstance : public PhsyicalObject {
 
   float aimAngle;
   shambhala::Node *target;
+
+  int pendingShoots;
 };
 
 struct EnemyClass {
@@ -38,7 +40,8 @@ struct EnemyClass {
   bool shot = false;
   float shotSize = 3.0;
   int shootCount = 4;
-  float shootSpread = 0.8;
+  float shootSpread = 0.6;
+  float shotDecay = 0.0;
   float shootingAnimationThreshold = 0.8;
   float shootThreshold = 15.0f;
 

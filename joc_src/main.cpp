@@ -139,6 +139,8 @@ struct ComponentSystem {
         guyClass.regularAnimationCount = 6;
         guyClass.attackAnimationCount = 3;
         guyClass.shotCenter = glm::vec2(0.2, 0.9);
+        guyClass.shootSpread = 0.8;
+        guyClass.shootCount = guyClass.shootCount * 2;
         guyClass.shot = true;
         guyClass.fly = false;
 
@@ -168,18 +170,13 @@ struct ComponentSystem {
 
       // Create jumper class
       {
-        static int jumperCoords[] = {
-            0,   32, 36, 32, 72,  32, 36, 32, 108, 32, 36, 32,
-            144, 32, 36, 32, 180, 32, 36, 32, 216, 32, 36, 32,
-
-            0,   64, 36, 32, 72,  64, 36, 32, 108, 64, 36, 32,
-            144, 64, 36, 32, 180, 64, 36, 32};
+        static int jumperCoords[] = {0, 0, 38, 32, 38, 0, 38, 32};
         EnemyClass jumperClass;
         jumperClass.atlas =
-            createEnemyAtlas("textures/grenade_guy.png", jumperCoords);
+            createEnemyAtlas("textures/jumper.png", jumperCoords);
         jumperClass.scaleTransform = util::scale(2.0);
-        jumperClass.regularAnimationCount = 6;
-        jumperClass.attackAnimationCount = 3;
+        jumperClass.regularAnimationCount = 1;
+        jumperClass.attackAnimationCount = 1;
         jumperClass.shotCenter = glm::vec2(0.2, 0.9);
         jumperClass.shot = false;
         jumperClass.fly = false;
@@ -191,15 +188,15 @@ struct ComponentSystem {
       // Create shooter
       {
         static int shooterCoords[] = {
-            0,  32,  36,  32, 72, 32,  36,  32, 108, 32, 36,  32, 144, 32, 36,
-            32, 180, 32,  36, 32, 216, 32,  36, 32,  0,  64,  36, 32,  72, 64,
-            36, 32,  108, 64, 36, 32,  144, 64, 36,  32, 180, 64, 36,  32};
+            0,  30, 40, 30, 0,  0,  40,  30, 40, 0,
+            40, 30, 80, 0,  40, 30, 120, 0,  40, 30,
+        };
         EnemyClass shooterClass;
         shooterClass.atlas =
-            createEnemyAtlas("textures/grenade_guy.png", shooterCoords);
+            createEnemyAtlas("textures/fly.png", shooterCoords);
         shooterClass.scaleTransform = util::scale(2.0);
-        shooterClass.regularAnimationCount = 6;
-        shooterClass.attackAnimationCount = 3;
+        shooterClass.regularAnimationCount = 1;
+        shooterClass.attackAnimationCount = 4;
         shooterClass.shotCenter = glm::vec2(0.2, 0.9);
         shooterClass.shot = true;
         shooterClass.fly = true;
