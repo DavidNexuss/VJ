@@ -1,3 +1,4 @@
+#pragma once
 #include "entity.hpp"
 #include "forceShot.hpp"
 #include "shot.hpp"
@@ -29,6 +30,7 @@ private:
   float shootingDelay = 0.0;
   float shootingCharge = 0.0;
   bool forceActivated = false;
+  bool forceImproved = false;
 
   ShotComponent *shot = nullptr;
   ForceShotComponent *force = nullptr;
@@ -37,4 +39,13 @@ private:
   shambhala::Model *ship_model;
   shambhala::Model *ship_force;
   shambhala::Node *playerPosition;
+
+  shambhala::Texture *hud;
+  shambhala::Texture *life_hud;
+  shambhala::Texture *life_hud_foreground;
+  shambhala::Program *hudProgram;
+  shambhala::Material *hudMaterial;
+  shambhala::Mesh *hudMesh;
+
+  void renderHealthBar(glm::vec2 position, float size, float health);
 };

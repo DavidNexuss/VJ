@@ -56,6 +56,7 @@ Player::Player(ShotComponent *shot, ForceShotComponent *force,
     ship_force->material->set("stScale", glm::vec2(1.0));
     ship_force->material->set("stOffset", glm::vec2(0.0));
     ship_force->zIndex = 3;
+    ship_force->getNode()->setEnabled(false);
     addModel(ship_force);
   }
   this->soundModel = shambhala::audio::createSoundModel();
@@ -65,6 +66,41 @@ Player::Player(ShotComponent *shot, ForceShotComponent *force,
       shambhala::audio::createSoundResource("joc2d/music/music.wav"));
   this->soundModel->loop = true;
   this->soundModel->play();
+
+  // HUd
+  {
+    hud = loader::loadTexture("textures/hud.png", 4);
+    life_hud = loader::loadTexture("textures/life_hud.png", 4);
+    life_hud_foreground =
+        loader::loadTexture("textures/life_hud_foreground.png", 4);
+
+    hud->useNeareast = true;
+    life_hud->useNeareast = true;
+    life_hud_foreground->useNeareast = true;
+
+    hudMesh = util::createTexturedQuad();
+    hudMaterial = shambhala::createMaterial();
+    hudMaterial->set("mul", glm::vec4(1.0));
+    hudMaterial->set("add", glm::vec4(0.0));
+    hudMaterial->set("stOffset", glm::vec2(0.0));
+    hudMaterial->set("stScale", glm::vec2(1.0));
+    hudProgram = loader::loadProgram("programs/tiled.fs", "programs/tiled.vs");
+  }
+}
+
+void Player::activateForce(bool p) {
+  if (forceActivated) {
+    forceImproved = true;
+  }
+  forceActivated = p;
+  forceImproved &= forceActivated;
+  ship_force->getNode()->setEnabled(p);
+
+  if (forceImproved) {
+    ship_force->material->set("mul", glm::vec4(0.2, 0.4, 1.2, 1.0));
+  } else {
+    ship_force->material->set("mul", glm::vec4(0.4, 1.2, 0.4, 1.0));
+  }
 }
 
 glm::vec2 Player::getShootingCenter() {
@@ -131,14 +167,17 @@ void Player::step(shambhala::StepInfo info) {
                       glm::vec2(shootspeed, 0.0) + getVelocity() * 0.5f, 0,
                       2.0);
 
-        force->addShot(getShootingCenter(),
-                       glm::vec2(shootspeed * 2.0, 10.0) + getVelocity() * 0.5f,
-                       glm::vec3(20.0), 10.0);
+        if (forceActivated) {
+          force->addShot(getShootingCenter(),
+                         glm::vec2(shootspeed * 2.0, 10.0) +
+                             getVelocity() * 0.5f,
+                         glm::vec3(20.0), 10.0);
 
-        force->addShot(getShootingCenter(),
-                       glm::vec2(shootspeed * 2.0, -10.0) +
-                           getVelocity() * 0.5f,
-                       glm::vec3(20.0), 10.0);
+          force->addShot(getShootingCenter(),
+                         glm::vec2(shootspeed * 2.0, -10.0) +
+                             getVelocity() * 0.5f,
+                         glm::vec3(20.0), 10.0);
+        }
         this->shootingDelay = 0.0;
       }
     }
@@ -173,4 +212,46 @@ void Player::editorRender() {
   }
 }
 
-void Player::render() {}
+void Player::renderHealthBar(glm::vec2 position, float size, float health) {
+
+  float ra = 8.0;
+  glm::mat4 tr = util::translate(position.x, position.y, 0.0) *
+                 util::scale(size * ra, size, 1.0) *
+                 util::translate(-0.5, -0.5, 0.0);
+
+  hudProgram->bind(Standard::uProjectionMatrix, glm::mat4(1.0));
+  hudProgram->bind(Standard::uViewMatrix, glm::mat4(1.0));
+  hudProgram->bind(Standard::uTransformMatrix, tr);
+  hudProgram->bind("base", hud);
+
+  shambhala::device::drawCall();
+
+  float x = size * ra * health;
+
+  glm::mat4 tr2 = util::translate(position.x, position.y, 0.0) *
+                  util::translate(-x * 0.5, -0.5 * size, 0) *
+                  util::scale(x, size, 1.0);
+
+  hudProgram->bind(Standard::uTransformMatrix, tr2);
+  hudProgram->bind("base", life_hud);
+
+  shambhala::device::drawCall();
+
+  hudProgram->bind(Standard::uProjectionMatrix, glm::mat4(1.0));
+  hudProgram->bind(Standard::uViewMatrix, glm::mat4(1.0));
+  hudProgram->bind(Standard::uTransformMatrix, tr);
+  hudProgram->bind("base", life_hud_foreground);
+
+  shambhala::device::drawCall();
+}
+void Player::render() {
+  hudProgram->use();
+  hudProgram->bind(hudMaterial);
+  hudMesh->use();
+
+  static float debugTime = 0.0;
+  debugTime += viewport()->deltaTime;
+  float health = glm::cos(debugTime) * 0.5f + 0.5f;
+
+  renderHealthBar(glm::vec2(0.0, 0.8), 0.1, health);
+}

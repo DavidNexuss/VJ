@@ -100,8 +100,12 @@ Collision PhsyicalObject::collisionCheck() {
   for (int i = 0; i < component->entities.size(); i++) {
     Collision col =
         component->entities[i]->inside(playerAABB.lower, playerAABB.higher);
-    if (!col.isEmpty())
+    if (!col.isEmpty() && col.typeClass != COLLISION_COLLECTABLE)
       return col;
+
+    if (col.typeClass == COLLISION_COLLECTABLE) {
+      component->entities[i]->signalHit(Collision{});
+    }
   }
   return Collision{};
 }

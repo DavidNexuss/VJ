@@ -121,8 +121,8 @@ struct VertexAttribute {
   float *sourceData;
   int stride;
 
-  VertexAttribute() { }
-  VertexAttribute(int _index, int _size) : index(_index), size(_size) { }
+  VertexAttribute() {}
+  VertexAttribute(int _index, int _size) : index(_index), size(_size) {}
 };
 
 struct VertexBuffer : public Updatable {
@@ -271,9 +271,7 @@ struct Model : public ModelConfiguration, public DrawCallArgs {
 
   virtual void draw();
   bool ready() const;
-
   bool isEnabled();
-
   Node *getNode();
   void setNode(Node *node);
 };

@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "entity/collectable.hpp"
 #include "entity/enemies/base.hpp"
 #include "entity/enemies/finalboss.hpp"
 #include "entity/enemies/turret.hpp"
@@ -21,6 +22,8 @@ using namespace shambhala;
 
 static int playerCoords[] = {20, 14, 43, 34};
 
+Player *joc::player;
+static bool skipintro = true;
 struct ComponentSystem {
   PlayerCamera *camera = nullptr;
   FinalBoss *boss = nullptr;
@@ -33,6 +36,7 @@ struct ComponentSystem {
     initShotComponent();
     initPlayer();
     initEnemies();
+    initEntities();
 #ifndef DEBUGCAMERA
     initCamera();
 #endif
@@ -68,6 +72,8 @@ struct ComponentSystem {
     playerComponent->setPosition({8, 11});
     playerComponent->setName("Player");
     addComponent(playerComponent);
+
+    joc::player = playerComponent;
   }
 
   void spawnEnemies(const char *source, BaseEnemy *b) {
@@ -79,6 +85,16 @@ struct ComponentSystem {
     while (file >> clas >> x >> y) {
       b->spawnEnemy(clas, x, y);
     }
+  }
+
+  void initEntities() {
+    Collectable *force = Collectable::force();
+    force->getNode()->setName("force");
+
+    force->getNode()->transform(util::scale(2.0));
+    force->getNode()->setOffset(glm::vec3(131.5, 7.5, 0.0));
+    addModel(force);
+    playerComponent->addEntity(force);
   }
   void initEnemies() {
 
@@ -321,17 +337,17 @@ void setupLevel() {
 
   map = createLayer("levels/level01_2.txt", sizex, sizey, 11, baseColor, 5.0);
   map->setName("Level Front");
-	
+
   map = createLayer("levels/Level1-3.txt", sizex, sizey, 1, baseColor, 0.0);
   map->setName("Level 2 Main");
   map->rootNode->setOffset(glm::vec3(200, 0, 0));
   comp->registerEntity(map);
-  
+
   map = createLayer("levels/Level1-2.txt", sizex, sizey, 1, baseColor, 0.0);
   map->setName("Level 3 Main");
   map->rootNode->setOffset(glm::vec3(400, 0, 0));
   comp->registerEntity(map);
-  
+
   map = createLayer("levels/Level1-4.txt", sizex, sizey, 1, baseColor, 0.0);
   map->setName("Level 4 Main");
   map->rootNode->setOffset(glm::vec3(600, 0, 0));
@@ -551,6 +567,11 @@ struct MenuComponent : public LogicComponent {
     end.text = "END";
     creditPanel.text = "Programacio\n\nDavid garcia\nAlex\n\nGrafics\nGent "
                        "random\n\n3rd party\n\nWhatever";
+
+    if (skipintro) {
+      reset();
+      loadTestScene();
+    }
   }
 
   void reset() {
