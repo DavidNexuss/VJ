@@ -48,3 +48,14 @@ lib/freealut/src/alutOutputStream.c
 lib/freealut/src/alutUtil.c
 lib/freealut/src/alutVersion.c
 lib/freealut/src/alutWaveform.c
+lib/imgui/imgui.cpp
+lib/imgui/imgui_demo.cpp
+lib/imgui/imgui_draw.cpp
+lib/imgui/imgui_impl_glfw.cpp
+lib/imgui/imgui_impl_opengl3.cpp
+lib/imgui/imgui_tables.cpp
+lib/imgui/imgui_widgets.cpp
+lib/imguiText/TextEditor.cpp
+lib/stbimage/stb_image.cpp
+lib/xatlas/xatlas.cpp
+lib/lightmapper/lightmapper.cpp

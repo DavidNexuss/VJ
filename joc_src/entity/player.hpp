@@ -24,13 +24,13 @@ struct Player : public shambhala::LogicComponent,
 
   void activateForce(bool);
 
-  int health = 50;
+  int health = 150;
   FinalBoss *boss = nullptr;
 
 private:
   void updatePlayerPosition();
 
-  float maxHealth = 50.0;
+  float maxHealth = 150;
   float hit = 0.0;
   float shootingDelay = 0.0;
   float shootingCharge = 0.0;

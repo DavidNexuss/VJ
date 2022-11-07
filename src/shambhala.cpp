@@ -1449,7 +1449,9 @@ struct ShaderContainer : public loader::LoaderMap<Shader, ShaderContainer> {
   }
 
   static loader::Key computeKey(IResource *resource) {
-    return loader::Key(resource);
+    static int i = 0;
+    return i++;
+    // return loader::Key((void *)resource);
   }
 };
 struct ProgramContainer : public loader::LoaderMap<Program, ProgramContainer> {

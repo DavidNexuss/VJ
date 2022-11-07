@@ -24,6 +24,8 @@ struct FinalBoss : public shambhala::Model,
   ShotComponent *shot;
   ForceShotComponent *force;
 
+  glm::vec2 offset;
+
 private:
   float globalStep = 0.0f;
   float shootDelta = 10.0;

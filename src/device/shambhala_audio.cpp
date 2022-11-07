@@ -6,6 +6,9 @@
 using namespace shambhala;
 using namespace shambhala::audio;
 
+#undef ALC
+#define ALC(x)                                                                 \
+  {}
 struct SoundBindState {
   simple_vector<ALuint> toRemoveSources;
 };
@@ -47,7 +50,7 @@ io_buffer *SoundResource::read() {
 
 void audio::useSoundModel(SoundModel *model) {
   if (model->al_source == -1) {
-    alGenSources((ALuint)1, &model->al_source);
+    ALC(alGenSources((ALuint)1, &model->al_source));
   }
   if (model->node == nullptr)
     model->node = shambhala::createNode();
@@ -60,9 +63,10 @@ void audio::useSoundModel(SoundModel *model) {
   ALC(alSource3f(model->al_source, AL_POSITION, position.x, position.y,
                  position.z));
 
-  alSource3f(model->al_source, AL_VELOCITY, model->velocity.x,
-             model->velocity.y, model->velocity.z);
-  alSourcei(model->al_source, AL_LOOPING, model->loop ? AL_TRUE : AL_FALSE);
+  ALC(alSource3f(model->al_source, AL_VELOCITY, model->velocity.x,
+                 model->velocity.y, model->velocity.z));
+  ALC(alSourcei(model->al_source, AL_LOOPING,
+                model->loop ? AL_TRUE : AL_FALSE));
 
   useSoundMesh(model->mesh);
 }

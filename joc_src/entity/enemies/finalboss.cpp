@@ -34,8 +34,7 @@ void FinalBoss::draw() {
       parts[i].lastRotMat = path.getTransform();
       ST st = getST(path);
 
-      program->bind(Standard::uTransformMatrix,
-                    rootNode->getTransformMatrix() * path.getTransform());
+      program->bind(Standard::uTransformMatrix, path.getTransform());
 
       float t = parts[i].damage / 2.0;
       program->bind("add", glm::vec4(0.0));
@@ -127,14 +126,18 @@ FinalBoss::Path FinalBoss::getPath(float f) {
 
   return finalPath;
 }
+
+static glm::vec3 off;
 glm::mat4 FinalBoss::Path::getTransform() {
-  return util::translate(position.x, position.y, 0.0) *
+
+  return util::translate(off.x, 0.0, 0.0) *
+         util::translate(position.x, position.y, 0.0) *
          util::rotate(0, 0, 1, glm::atan(velocity.y, velocity.x)) *
          util::scale(5.0) * util::translate(-0.5f, -0.5f, 0.0);
 }
-
 glm::mat4 FinalBoss::Path::getCollisionTransform() {
-  return util::translate(position.x, position.y, 0.0) * util::scale(5.0) *
+  return util::translate(off.x, 0.0, 0.0) *
+         util::translate(position.x, position.y, 0.0) * util::scale(5.0) *
          util::translate(-0.5f, -0.5f, 0.0);
 }
 
@@ -164,7 +167,7 @@ void FinalBoss::step(shambhala::StepInfo info) {
     for (int i = 0; i < parts.size(); i++) {
       if (parts[i].shoot) {
         if (parts[i].shotdelay < 0.0) {
-          shot->addShot(parts[i].lastRotMat[3], parts[i].lastRotMat[1], 1, 3);
+          shot->addShot(parts[i].lastRotMat[3], parts[i].lastRotMat[1], 1, 7);
           parts[i].shoot = false;
         }
 
@@ -176,7 +179,9 @@ void FinalBoss::step(shambhala::StepInfo info) {
 
     if (shootDelta < 0.0) {
       attackSequence1(globalStep);
-      shootDelta = std::max(10.0, health / 10.0);
+      shootDelta = std::max(4.0, health / 10.0);
     }
   }
+
+  off = glm::vec3(offset, 0.0);
 }

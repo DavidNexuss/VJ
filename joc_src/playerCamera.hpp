@@ -1,3 +1,4 @@
+#pragma once
 #include "ext/worldmat.hpp"
 #include "shambhala.hpp"
 #include <ext.hpp>
@@ -25,11 +26,12 @@ struct PlayerCamera : public shambhala::worldmats::SimpleCamera,
   void editorRender() override;
   bool outside = false;
 
+  PlayerCameraWaypoint currentWaypoint;
+
 private:
   glm::vec3 offsetPosition;
   shambhala::Node *target;
   std::vector<PlayerCameraWaypoint> waypoints;
-  PlayerCameraWaypoint currentWaypoint;
   int waypointIndex;
   float interptime = 0.0f;
 };

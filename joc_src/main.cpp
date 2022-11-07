@@ -23,7 +23,7 @@ using namespace shambhala;
 static int playerCoords[] = {20, 14, 43, 34};
 
 Player *joc::player;
-worldmats::SimpleCamera *joc::camera;
+PlayerCamera *joc::camera;
 
 static bool skipintro = false;
 struct ComponentSystem {
@@ -709,6 +709,33 @@ struct MenuComponent : public LogicComponent {
           viewport()->deltaTime = delta;
         }
       }
+    }
+
+    if (viewport()->isKeyPressed(KEY_1)) {
+      joc::player->setPosition(glm::vec2(350, 12));
+      joc::camera->currentWaypoint.x = 350;
+    }
+
+    static bool hit = false;
+    bool once = false;
+    if (!hit && comp && comp->playerComponent) {
+      once = true;
+      float x =
+          comp->playerComponent->getPlayerPosition()->getCombinedMatrix()[3].x;
+      printf("%f\n", x);
+      once = x >= 350.0f;
+    }
+
+    if (viewport()->isKeyPressed(KEY_B) || once) {
+
+      hit = true;
+      comp->boss->active = true;
+      comp->boss->offset =
+          glm::vec3(joc::player->getPlayerPosition()->getCombinedMatrix()[3]);
+    }
+    if (hit) {
+
+      joc::camera->currentWaypoint.cameraspeed = 0.0;
     }
   }
 
