@@ -3,7 +3,7 @@
 #include <ext.hpp>
 #include <vector>
 
-//Hello
+// Hello
 enum class InterpolationMode { LINEAR, COSINE };
 
 struct PlayerCameraWaypoint {
@@ -23,6 +23,7 @@ struct PlayerCamera : public shambhala::worldmats::SimpleCamera,
   PlayerCamera(const char *configurationFile, shambhala::Node *targetNode);
   void step(shambhala::StepInfo info) override;
   void editorRender() override;
+  bool outside = false;
 
 private:
   glm::vec3 offsetPosition;

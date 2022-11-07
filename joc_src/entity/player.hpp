@@ -23,10 +23,11 @@ struct Player : public shambhala::LogicComponent,
 
   void activateForce(bool);
 
+  int health = 50;
+
 private:
   void updatePlayerPosition();
 
-  int health = 50;
   float maxHealth = 50.0;
   float hit = 0.0;
   float shootingDelay = 0.0;

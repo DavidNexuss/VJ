@@ -96,13 +96,21 @@ void PlayerCamera::step(shambhala::StepInfo info) {
   glm::vec3 target = glm::vec3(wayPosition.x, wayPosition.y, offset);
 
   glm::mat4 viewMatrix = glm::lookAtLH(eye, target, glm::vec3(0, 1, 0));
+  glm::mat4 projectionMatrix =
 
-  setViewMatrix(viewMatrix);
-  setProjectionMatrix(
       glm::perspective(glm::radians(90.0f * currentWaypoint.zoom),
                        float(shambhala::viewport()->getScreenWidth()) /
                            float(shambhala::viewport()->getScreenHeight()),
-                       0.01f, 500.0f));
+                       0.01f, 500.0f);
+  setViewMatrix(viewMatrix);
+  setProjectionMatrix(projectionMatrix);
+
+  glm::vec2 transformedPlayer =
+      getCombinedMatrix() * glm::vec4(playerPosition, 1.0);
+
+  if (targetPosition.x < -40.0) {
+    outside = true;
+  }
 }
 
 void PlayerCamera::editorRender() {

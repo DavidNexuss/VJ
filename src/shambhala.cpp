@@ -441,8 +441,10 @@ void device::bindRenderBuffer(GLuint rbo) {
 
 int device::bindTexture(GLuint textureId, GLenum mode) {
 
-  device::bindTexture(textureId, mode, gBindState.nextUnboundUnit);
-  return gBindState.nextUnboundUnit++;
+  int uid = (textureId % 100000);
+  device::bindTexture(textureId, mode, uid);
+  gBindState.nextUnboundUnit++;
+  return uid;
 }
 
 void device::bindTexture(GLuint textureId, GLenum mode, int textureUnit) {

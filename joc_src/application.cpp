@@ -8,6 +8,8 @@
 #include <impl/serialize.hpp>
 #include <shambhala.hpp>
 
+#include "globals.hpp"
+
 #ifdef GLFW
 #include <impl/viewport_glfw.hpp>
 #endif

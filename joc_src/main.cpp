@@ -23,6 +23,8 @@ using namespace shambhala;
 static int playerCoords[] = {20, 14, 43, 34};
 
 Player *joc::player;
+worldmats::SimpleCamera *joc::camera;
+
 static bool skipintro = true;
 struct ComponentSystem {
   PlayerCamera *camera = nullptr;
@@ -35,11 +37,12 @@ struct ComponentSystem {
   ComponentSystem() {
     initShotComponent();
     initPlayer();
-    initEnemies();
-    initEntities();
+
 #ifndef DEBUGCAMERA
     initCamera();
 #endif
+    initEnemies();
+    initEntities();
   }
 
   void initCamera() {
@@ -48,6 +51,9 @@ struct ComponentSystem {
                                          playerComponent->getPlayerPosition());
     shambhala::pushMaterial(cam);
     shambhala::addComponent(cam);
+
+    joc::camera = cam;
+    camera = cam;
   }
 
   void initShotComponent() {
@@ -255,7 +261,7 @@ private:
   }
 };
 
-ComponentSystem *comp;
+ComponentSystem *comp = nullptr;
 
 void setupComponentSystem() { comp = new ComponentSystem; }
 
@@ -571,6 +577,7 @@ struct MenuComponent : public LogicComponent {
 
   bool enabled = true;
   bool stop = false;
+  bool mort = false;
   float delta = 0.1;
 
   MenuComponent() {
@@ -599,7 +606,24 @@ struct MenuComponent : public LogicComponent {
   }
   void render() override {
 
-    if (enabled || stop) {
+    if (!enabled && comp) {
+      mort = comp->camera->outside || comp->playerComponent->health < 0;
+    }
+
+    if (mort) {
+      QuadArgs args;
+
+      args.fit = false;
+      args.mul = glm::vec4(1.0, 1.0, 1.0, 0.0);
+      args.add = glm::vec4(0.0, 0.0, 0.0, 0.8);
+
+      args.pos(glm::vec2(0.0), glm::vec2(1.0));
+
+      drawQuad(background, args);
+      viewport()->deltaTime = 0.0;
+
+      joc::font->render("HAS MORT", glm::vec2(0.0), glm::vec2(1.0));
+    } else if (enabled || stop) {
       QuadArgs args;
 
       float ty = glm::sin(0.5f * M_PI * gameStep / gameThreshold);
