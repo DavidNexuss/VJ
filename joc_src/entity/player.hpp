@@ -33,6 +33,7 @@ private:
   float shootingCharge = 0.0;
   bool forceActivated = false;
   bool forceImproved = false;
+  bool invulnerable = false;
 
   ShotComponent *shot = nullptr;
   ForceShotComponent *force = nullptr;

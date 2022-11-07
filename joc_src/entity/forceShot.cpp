@@ -17,7 +17,7 @@ void ForceShotComponent::addShot(glm::vec2 start, glm::vec2 velocity,
   shot.position = start;
   shot.velocity = velocity;
   shot.buffer->attributes =
-	  simple_vector<VertexAttribute>{ { 0, 2 },{ 1, 1 },{ 2, 1 } };
+      simple_vector<VertexAttribute>{{0, 2}, {1, 1}, {2, 1}};
   this->shots.push(shot);
 }
 

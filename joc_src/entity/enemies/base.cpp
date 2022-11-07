@@ -97,12 +97,7 @@ static float aim(glm::vec3 current, float currentAngle, float angularVelocity,
 
   glm::vec3 dir = glm::normalize(target - current);
   float targetAngle = glm::atan(dir.y, dir.x) - M_PI * 0.5f;
-  if (std::abs(currentAngle - targetAngle) > 0.01) {
-    currentAngle += glm::sign(targetAngle - currentAngle) * angularVelocity *
-                    viewport()->deltaTime;
-  }
-
-  return currentAngle;
+  return targetAngle;
 }
 
 void BaseEnemy::sequenceShoot(EnemyInstance &instance, EnemyClass &cl) {
@@ -119,6 +114,10 @@ void BaseEnemy::sequenceShoot(EnemyInstance &instance, EnemyClass &cl) {
     for (int i = 0; i < cl.shootCount; i++) {
       glm::vec2 shotPosition = cl.getAbsoluteShotCenter(instance);
       glm::vec2 shotDir = cl.shotDirection;
+      if (cl.aim) {
+        shotDir = instance.model->getNode()->getTransformMatrix() *
+                  glm::vec4(glm::vec3(shotDir, 0.0), 1.0);
+      }
       shotDir += glm::vec2(randf(), randf()) * cl.shootSpread;
       shot->addShot(shotPosition, shotDir, 1, cl.shotSize, cl.shotGravity);
     }
@@ -191,6 +190,10 @@ void BaseEnemy::step(shambhala::StepInfo info) {
       glm::vec3 targetPosition = instance.target->getCombinedMatrix()[3];
       instance.aimAngle =
           aim(enemyPosition, instance.aimAngle, cl.aimVelocity, targetPosition);
+      instance.model->getNode()->setTransformMatrix(
+          util::scale(2.0) * util::translate(0.5, 0.5, 0.0) *
+          util::rotate(0, 0, 1, instance.aimAngle - M_PI * 0.5) *
+          util::translate(-0.5, -0.5, 0.0));
     }
 
     // Update enemy

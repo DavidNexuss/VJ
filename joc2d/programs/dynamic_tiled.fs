@@ -5,11 +5,10 @@ uniform sampler2D base;
 uniform vec2 uv_scale;
 uniform vec2 uv_offset;
 uniform float hit = 0.0;
-uniform vec3 tint = vec3(1.0);
 
 void main() { 
   vec2 st = vUV * uv_scale + uv_offset;
   color = texture2D(base,st);
   color.yz *= (2.0 - hit)  / 2.0;
-  color.xyz *= tint;
+  color.xyz *= color.w;
 }

@@ -154,19 +154,26 @@ struct ComponentSystem {
       // Create turret class
       {
         static int turretCoords[] = {
-            0,   32, 36, 32, 72,  32, 36, 32, 108, 32, 36, 32,
-            144, 32, 36, 32, 180, 32, 36, 32, 216, 32, 36, 32,
-
-            0,   64, 36, 32, 72,  64, 36, 32, 108, 64, 36, 32,
-            144, 64, 36, 32, 180, 64, 36, 32};
+            0,   30 * 6, 40, 30, 0,   30 * 6, 40, 30, 40,  30 * 6, 40, 30,
+            80,  30 * 6, 40, 30, 120, 30 * 6, 40, 30, 160, 30 * 6, 40, 30,
+            200, 30 * 6, 40, 30, 240, 30 * 6, 40, 30, 280, 30 * 6, 40, 30,
+        };
         EnemyClass turretClass;
-        turretClass.atlas =
-            createEnemyAtlas("textures/grenade_guy.png", turretCoords);
+        turretClass.atlas = createEnemyAtlas("textures/fly.png", turretCoords);
         turretClass.scaleTransform = util::scale(2.0);
-        turretClass.regularAnimationCount = 6;
-        turretClass.attackAnimationCount = 3;
-        turretClass.shotCenter = glm::vec2(0.2, 0.9);
+        turretClass.regularAnimationCount = 1;
+        turretClass.attackAnimationCount = 7;
+        turretClass.shotCenter = glm::vec2(-0.3, 0.5);
+        turretClass.shotDirection = glm::vec2(-5.0, 0.0);
+        turretClass.shotGravity = glm::vec2(0.0);
+        turretClass.gravity = glm::vec2(0.0);
+        turretClass.attackFreq = 2;
+        turretClass.attackDivisor = 6;
+        turretClass.shootThreshold = 0.8;
+        turretClass.shootSpread = 0.0;
+        turretClass.shootCount = 1;
         turretClass.shot = true;
+        turretClass.aim = true;
         turretClass.fly = false;
 
         turret->createEnemyClass(0, turretClass);

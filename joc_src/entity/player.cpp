@@ -110,6 +110,10 @@ glm::vec2 Player::getShootingCenter() {
 }
 
 void Player::handleCollision(Collision col) {
+  if (invulnerable) {
+    return;
+  }
+
   if (col.typeClass == COLLISION_ENEMY_SHOT) {
     hit = 2.0;
     health -= col.damage;
@@ -124,6 +128,10 @@ void Player::handleCollision(Collision col) {
   PhsyicalObject::handleCollision(col);
 }
 Collision Player::inside(glm::vec2 position) {
+  if (invulnerable) {
+    return Collision{};
+  }
+
   Collision col;
   col.typeClass = COLLISION_PLAYER;
   if (containingBox(getLocalBox()).inside(position))
@@ -211,6 +219,10 @@ void Player::step(shambhala::StepInfo info) {
 
   if (viewport()->isKeyPressed(KEY_F)) {
     activateForce(true);
+  }
+
+  if (viewport()->isKeyJustPressed(KEY_G)) {
+    invulnerable = !invulnerable;
   }
 }
 
