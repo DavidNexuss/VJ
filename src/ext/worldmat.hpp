@@ -111,6 +111,8 @@ struct Clock : public Material, public LogicComponent {
   Clock();
   void step(StepInfo info) override;
 
+  inline float getTime() { return globalTime; }
+
 private:
   float globalTime = 0.0f;
 };

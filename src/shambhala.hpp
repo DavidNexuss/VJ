@@ -121,6 +121,9 @@ struct VertexAttribute {
   int attributeDivisor = 0;
   float *sourceData;
   int stride;
+
+  VertexAttribute() {}
+  VertexAttribute(int _index, int _size) : index(_index), size(_size) {}
 };
 
 struct VertexBuffer : public Updatable {
@@ -133,6 +136,8 @@ struct VertexBuffer : public Updatable {
 
   GLuint gl();
   void use();
+
+  GLenum mode = GL_STATIC_DRAW;
 
 private:
   mutable int _vertexsize = -1;
@@ -259,9 +264,7 @@ struct Model : public ModelConfiguration, public DrawCallArgs {
 
   virtual void draw();
   bool ready() const;
-
   bool isEnabled();
-
   Node *getNode();
   void setNode(Node *node);
 };
@@ -274,6 +277,7 @@ struct LogicComponent : EngineComponent<LogicComponent> {
 
   Material *hint_is_material = nullptr;
 
+  virtual void render() {}
   virtual void step(StepInfo info) {}
   virtual void editorStep(StepInfo info) {}
   virtual void editorRender() {}

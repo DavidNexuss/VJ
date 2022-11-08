@@ -32,7 +32,7 @@ shambhala::Material *ParallaxBackground::addParallaxBackground(
   else
     parallaxBackground->zIndex = zIndex;
 
-  parallaxBackground->material->set("input", texture);
+  parallaxBackground->material->set("base", texture);
   models.push(parallaxBackground);
   shambhala::addModel(parallaxBackground);
   texturecount++;

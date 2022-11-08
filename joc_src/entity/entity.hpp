@@ -32,12 +32,14 @@ const static int COLLISION_ENEMY = 2;
 const static int COLLISION_PLAYER = 3;
 const static int COLLISION_ENEMY_SHOT = 4;
 const static int COLLISION_PLAYER_SHOT = 5;
+const static int COLLISION_COLLECTABLE = 6;
 
 struct Collision {
   int typeClass = 0;
   int typeInstance = 0;
   glm::vec2 velocity;
   glm::vec2 shortestPosition;
+  glm::vec2 normal;
   int damage = 0;
 
   inline bool isEmpty() { return typeClass == 0; }
@@ -49,6 +51,9 @@ struct AABB {
   glm::vec2 higher = glm::vec2(1.0);
 
   glm::vec2 corner(int index);
+
+  AABB() {}
+  AABB(glm::vec2 _lower, glm::vec2 _higher) : lower(_lower), higher(_higher) {}
   inline bool inside(glm::vec2 point) {
     return point.x <= higher.x && point.x >= lower.x && point.y <= higher.y &&
            point.y >= lower.y;

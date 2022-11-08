@@ -1,3 +1,4 @@
+/*
 #include "shambhala.hpp"
 #include <assimp/scene.h>
 #include <string>
@@ -29,3 +30,4 @@ Node *loadScene(const char *path);
 void unloadScene(Node *scene);
 } // namespace loader
 } // namespace shambhala
+*/

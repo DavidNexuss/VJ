@@ -1,3 +1,4 @@
+/*
 #include "scene.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -393,4 +394,4 @@ struct SceneContainer : public loader::LoaderMap<Node, SceneContainer> {
 
 static SceneContainer sceneContainer;
 Node *loader::loadScene(const char *path) { return sceneContainer.get(path); }
-void loader::unloadScene(Node *scene) { sceneContainer.unload(scene); }
+void loader::unloadScene(Node *scene) { sceneContainer.unload(scene); }*/

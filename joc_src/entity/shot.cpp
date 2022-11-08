@@ -3,6 +3,7 @@
 #include "ext/math.hpp"
 #include "ext/util.hpp"
 #include "shambhala.hpp"
+#include <algorithm>
 #include <ext.hpp>
 #include <vector>
 using namespace shambhala;

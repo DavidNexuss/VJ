@@ -25,7 +25,7 @@ void DynamicPartAtlas::configureMaterial(int part, Material *material) {
   offset /= textureSize;
   scale /= textureSize;
 
-  material->set("input", textureAtlas);
+  material->set("base", textureAtlas);
   material->set("uv_scale", scale);
   material->set("uv_offset", offset);
   material->set("textureSize", textureSize);
@@ -100,8 +100,12 @@ Collision PhsyicalObject::collisionCheck() {
   for (int i = 0; i < component->entities.size(); i++) {
     Collision col =
         component->entities[i]->inside(playerAABB.lower, playerAABB.higher);
-    if (!col.isEmpty())
+    if (!col.isEmpty() && col.typeClass != COLLISION_COLLECTABLE)
       return col;
+
+    if (col.typeClass == COLLISION_COLLECTABLE) {
+      component->entities[i]->signalHit(Collision{});
+    }
   }
   return Collision{};
 }
@@ -114,11 +118,6 @@ void PhsyicalObject::updateNodePosition(glm::vec2 nodePosition) {
 bool PhsyicalObject::updatePositionStep(glm::vec2 acceleration, float delta) {
   velocity += acceleration * viewport()->deltaTime;
   velocity = velocity * damping;
-  float l = glm::length(velocity);
-
-  if (l > 1.0) {
-    velocity = glm::normalize(velocity) * glm::min(l, 2.0f);
-  }
 
   glm::vec2 oldPlayerPosition = position;
   position += velocity * viewport()->deltaTime;

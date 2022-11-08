@@ -8,6 +8,7 @@ struct EnemyInstance : public PhsyicalObject {
   int enemyClass;
   float hit = 0.0f;
   bool isAttacking = true;
+  int attackStage = 1;
   float animationDelay = 0.0;
   float shootDelay = 0.0;
   float jumpDelay = 0.0;
@@ -35,10 +36,13 @@ struct EnemyClass {
   float attackDistance = 20.0;
 
   // Shot sequence
+  int attackDivisor = 1;
+  int attackFreq = 1;
   bool shot = false;
   float shotSize = 3.0;
   int shootCount = 4;
-  float shootSpread = 0.8;
+  float shootSpread = 0.6;
+  float shotDecay = 0.00001;
   float shootingAnimationThreshold = 0.8;
   float shootThreshold = 15.0f;
 
@@ -50,7 +54,7 @@ struct EnemyClass {
   bool jump = false;
   float jumpThreshold = 10.0;
   float jumpMaxVelocity = 20.0;
-  float jumpExpectedTime = 8.0;
+  float jumpExpectedTime = 3.0;
 
   // Fly and jump
   float fly = false;

@@ -1,7 +1,7 @@
 #version 330 core
 in vec2 vUV;
 out vec4 color;
-uniform sampler2D input;
+uniform sampler2D base;
 uniform sampler2D input2;
 uniform vec2 uv_scale;
 uniform vec2 uv_offset;
@@ -11,7 +11,7 @@ uniform float uTime;
 
 void main() { 
   vec2 st = vUV * uv_scale + uv_offset;
-  vec3 c = texture(input, st).xyz;
+  vec3 c = texture(base, st).xyz;
   vec3 f = texture(input2, st).xyz;
   
   float s = smoothstep(-0.2,0.4,vUV.x) - 0.3;

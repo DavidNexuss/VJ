@@ -209,6 +209,35 @@ int VertexBuffer::vertexSize() const {
 }
 //--------------------------[END COMPILE]
 
+//--------------------------[BEGIN CREATE]
+
+//-------------------------[END CREATE]
+//-------------------------[BEGIN GL]
+
+struct BindState {
+  GLuint boundTextures[Standard::maxTextureUnits] = {0};
+  GLuint boundAttributes[100] = {0};
+  GLuint currentProgram = -1;
+  GLuint currentVbo = -1;
+  GLuint currentEbo = -1;
+  int activeTextureUnit = -1;
+
+  bool cullFrontFace = false;
+
+  GLuint currentVao = -1;
+
+  GLuint nextUnboundUnit = 0;
+
+  void clearState() {
+    currentVao = -1;
+    currentProgram = -1;
+    nextUnboundUnit = 0;
+  }
+
+  void printBindState() {}
+};
+static BindState gBindState;
+
 struct UseState {
 
   // Current use state
@@ -455,18 +484,6 @@ GLuint Texture::gl() {
     }
   }
   return gl_textureID;
-}
-
-void shambhala::renderPass() {
-  const std::vector<int> &renderOrder =
-      guseState.currentModelList->getRenderOrder();
-  SoftCheck(renderOrder.size() > 0, LOG("[Warning] Empty render pass ! ", 0););
-  for (int i = 0; i < renderOrder.size(); i++) {
-    Model *model = guseState.currentModelList->models[renderOrder[i]];
-    if (model->isEnabled()) {
-      model->draw();
-    }
-  }
 }
 
 //---------------------[END DEVICE USE]
@@ -826,6 +843,7 @@ void RenderCamera::render() { shambhala::renderPass(); }
 
 GLuint RenderCameraOutput::gl() {
 
+  Program *lastBoundProgram = guseState.currentProgram;
   if (camera->currentFrame != engine.currentFrame) {
     camera->currentFrame = engine.currentFrame;
 
@@ -836,6 +854,7 @@ GLuint RenderCameraOutput::gl() {
     engine_clearState();
   }
 
+  lastBoundProgram->use();
   return camera->getOutputTexture(attachmentIndex)->gl();
 }
 
@@ -926,7 +945,7 @@ StepInfo shambhala::getStepInfo() {
 void shambhala::loop_io_sync_step() { io()->filewatchMonitor(); }
 void shambhala::loop_componentUpdate() {
 
-  StepInfo info;
+  StepInfo info{};
   for (int i = 0; i < engine.components.size(); i++) {
     engine.components[i]->step(info);
   }
@@ -1077,7 +1096,9 @@ struct ShaderContainer : public loader::LoaderMap<Shader, ShaderContainer> {
   }
 
   static loader::Key computeKey(IResource *resource) {
-    return loader::Key(resource);
+    static int i = 0;
+    return i++;
+    // return loader::Key((void *)resource);
   }
 };
 struct ProgramContainer : public loader::LoaderMap<Program, ProgramContainer> {

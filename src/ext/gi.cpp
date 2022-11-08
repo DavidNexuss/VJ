@@ -88,7 +88,9 @@ Texture *gi::bakeAmbientOcclusion(ModelList *modelList, int size, int bounces) {
     short uvOffset;
   };
 
-  AOBinding bindings[modelList->models.size()];
+  AOBinding* bindings = new AOBinding [modelList->models.size()];
+
+  //AOBinding bindings[modelList->models.size()];
   for (int i = 0; i < modelList->size(); i++) {
     VertexBuffer *vbo = modelList->get(i)->mesh->vbo;
     int offset = 0;

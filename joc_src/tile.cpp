@@ -39,7 +39,9 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
 
     model->program = renderProgram;
     model->material = shambhala::createMaterial();
-    model->material->set("input", text);
+    model->material->set("base", text);
+    model->material->set("mul", glm::vec4(1.0));
+    model->material->set("add", glm::vec4(0.0));
     model->node = shambhala::createNode("tileMap");
     model->node->setParentNode(rootNode);
   }
@@ -90,9 +92,9 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
     fbo_shadows = createBakeFramebuffer();
     fbo_shadows->clearColor.w = 1.0;
 
-    bakedModel->material->set("input", fbo_bake->getOutputTexture(0));
+    bakedModel->material->set("base", fbo_bake->getOutputTexture(0));
 
-    illuminationModel->material->set("input", fbo_bake->getOutputTexture(0));
+    illuminationModel->material->set("base", fbo_bake->getOutputTexture(0));
     illuminationModel->material->set("shadow",
                                      fbo_shadows->getOutputTexture(0));
   }
@@ -279,6 +281,7 @@ void TileMap::loadLevel(IResource *leveldata) {
 
 Collision TileMap::inside(glm::vec2 position) {
 
+  position -= glm::vec2(rootNode->getCombinedMatrix()[3]);
   if (get(position.x, position.y) != 0) {
     Collision col;
     col.typeClass = COLLISION_WORLD;
@@ -290,8 +293,9 @@ Collision TileMap::inside(glm::vec2 position) {
 void TileMap::signalHit(Collision col) {}
 
 Collision TileMap::inside(AABB box) {
-  glm::vec2 lowerCorner = box.lower;
-  glm::vec2 highCorner = box.higher;
+  glm::vec2 offset = rootNode->getCombinedMatrix()[3];
+  glm::vec2 lowerCorner = box.lower - offset;
+  glm::vec2 highCorner = box.higher - offset;
   int i = lowerCorner.x;
   int j = lowerCorner.y;
 
@@ -299,10 +303,10 @@ Collision TileMap::inside(AABB box) {
   int jj = highCorner.y;
 
   // TODO get real corners x and y
-  for (int x = i; x < ii; x++) {
-    for (int y = j; y < jj; y++) {
+  for (int x = i; x <= ii; x++) {
+    for (int y = j; y <= jj; y++) {
       if (x >= 0 && y >= 0 && x < sizex && y < sizey) {
-        if (inside(glm::vec2(x, y))) {
+        if (get(x, y)) {
           Collision col;
           col.typeClass = COLLISION_WORLD;
           col.shortestPosition = glm::vec2(x, y);
