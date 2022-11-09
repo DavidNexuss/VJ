@@ -823,6 +823,21 @@ bool Texture::needsUpdate() {
   }
   return false;
 }
+
+void shambhala::renderPass() {
+  const std::vector<int> &renderOrder =
+      guseState.currentModelList->getRenderOrder();
+  for (int i = 0; i < renderOrder.size(); i++) {
+    Model *model = guseState.currentModelList->models[renderOrder[i]];
+    if (model->isEnabled()) {
+      model->draw();
+    }
+  }
+
+  for (int i = 0; i < componentCount(); i++) {
+    getComponent(i)->render();
+  }
+}
 //---------------------[END COMPONENT METHODS]
 
 //---------------------[BEGIN RENDERCAMERA]
@@ -854,7 +869,8 @@ GLuint RenderCameraOutput::gl() {
     engine_clearState();
   }
 
-  lastBoundProgram->use();
+  if (lastBoundProgram != nullptr)
+    lastBoundProgram->use();
   return camera->getOutputTexture(attachmentIndex)->gl();
 }
 
