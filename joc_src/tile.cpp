@@ -196,6 +196,9 @@ void TileMap::bake() {
       model->program->bind(camera);
       model->program->bind(this->model->material);
 
+      model->program->bind("stOffset", glm::vec2(0.0));
+      model->program->bind("stScale", glm::vec2(1.0));
+
       drawCall();
     }
     fbo_bake->end();

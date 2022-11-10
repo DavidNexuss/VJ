@@ -2,19 +2,23 @@
 #include <cstdio>
 #include <iostream>
 
-BufferPointer VertexPool::acquireBucket(size_t size) {
-  int current = findEmptyBucket(size);
-  if (current >= 0) {
-    return createPointer(current);
+size_t VertexPool::acquireBucket(size_t size) {
+  size_t current = findEmptyBucket(size);
+  if (current == -1) {
+    current = allocateBucket(size);
   }
-  return createPointer(allocateBucket(size));
+
+  bucketsData[current].used = true;
+  return current;
 }
 
-void VertexPool::releaseBucket(BufferPointer ptr) { destroyPointer(ptr); }
+void VertexPool::releaseBucket(size_t bucket) {
+  bucketsData[bucket].used = false;
+}
 
-void VertexPool::signalUpdate(BufferPointer ptr) {}
+void VertexPool::signalUpdate(size_t bucket) {}
 
-int VertexPool::findEmptyBucket(size_t size) {
+size_t VertexPool::findEmptyBucket(size_t size) {
   for (int i = 0; i < buckets.size(); i++) {
     if (!bucketsData[buckets[i].bucketIdx].used && buckets[i].size >= size) {
       if (buckets[i].size > size) {
@@ -41,7 +45,7 @@ int VertexPool::findEmptyBucket(size_t size) {
   return -1;
 }
 
-int VertexPool::allocateBucket(size_t size) {
+size_t VertexPool::allocateBucket(size_t size) {
 
   BucketAllocation alloc;
   alloc.bucketIdx = bucketId++;
@@ -50,18 +54,6 @@ int VertexPool::allocateBucket(size_t size) {
   buffer.resize(buffer.size() + size);
   buckets.push_back(alloc);
   return alloc.bucketIdx;
-}
-
-BufferPointer VertexPool::createPointer(size_t bucket) {
-  BufferPointer ptr;
-  ptr.buffer = &buffer;
-  ptr.position = buckets[bucket].position;
-  bucketsData[bucket].used = true;
-  return ptr;
-}
-
-void VertexPool::destroyPointer(BufferPointer ptr) {
-  bucketsData[ptr.bucketIdx].used = false;
 }
 
 void VertexPool::cleanup() { merge(); }
@@ -108,8 +100,6 @@ void VertexPool::print() {
 
 void VertexPool::debug() {
 
-  std::unordered_map<int, BufferPointer> ptrs;
-
   print();
   int operation;
   size_t size;
@@ -118,13 +108,11 @@ void VertexPool::debug() {
     switch (operation) {
     case 1:
       std::cin >> size;
-      printf("Acquired: %lu: \n", acquireBucket(size).bucketIdx);
+      printf("Acquired: %lu: \n", acquireBucket(size));
       break;
     case 2:
       std::cin >> bucketIdx;
-      BufferPointer ptr;
-      ptr.bucketIdx = bucketIdx;
-      releaseBucket(ptr);
+      releaseBucket(bucketIdx);
       break;
     case 3:
       merge();
@@ -134,3 +122,11 @@ void VertexPool::debug() {
     print();
   }
 }
+
+#ifdef VERTEXPOOLTEST
+
+int main() {
+  VertexPool pool;
+  pool.debug();
+}
+#endif
