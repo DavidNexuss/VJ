@@ -2,7 +2,7 @@
 #include "simple_vector.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
-// #include <AL/alut.h>
+#include <AL/alut.h>
 #include <adapters/log.hpp>
 #include <core/core.hpp>
 #include <cstdio>
@@ -44,12 +44,12 @@ static void destroyDevice_S(int index) {
 
 void AudioOpenAL::destroyDevice() {
   for (int i = 0; i < device.devices.size(); i++) {
-    // destroyDevice_S(i);
+    destroyDevice_S(i);
   }
 }
 bool AudioOpenAL::initDevice() {
-  // device.devices.push(createDevice(NULL));
-  // alutInitWithoutContext(NULL, NULL);
+  device.devices.push(createDevice(NULL));
+  alutInitWithoutContext(NULL, NULL);
 
   LOGS(2, "[AL] al device initialized\n", 0);
   return true;
@@ -68,7 +68,6 @@ static void list_audio_devices(const ALCchar *devices) {
 
 void AudioOpenAL::loadwave(const char *name, ALenum *format, ALvoid **data,
                            ALsizei *size, ALfloat *freq, ALboolean *loop) {
-  /*
   alutGetError();
   *data = alutLoadMemoryFromFile(name, format, size, freq);
   ALenum error = alutGetError();
@@ -77,5 +76,5 @@ void AudioOpenAL::loadwave(const char *name, ALenum *format, ALvoid **data,
 
   if (error) {
     LOGS(2, "[ALUT] %s\n", alutGetErrorString(error));
-  } */
+  }
 }

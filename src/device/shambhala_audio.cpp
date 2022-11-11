@@ -6,9 +6,6 @@
 using namespace shambhala;
 using namespace shambhala::audio;
 
-#undef ALC
-#define ALC(x)                                                                 \
-  {}
 struct SoundBindState {
   simple_vector<ALuint> toRemoveSources;
 };
