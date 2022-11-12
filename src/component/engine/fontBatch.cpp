@@ -104,7 +104,7 @@ void FontBatch::renderText(int idx, const char *textRender,
   if (sprite.text != textRender) {
     sprites.erase(idx);
     for (int i = 0; i < sprite.glyphs.size(); i++) {
-      spriteBatch.destroySprite(sprite.glyphs[i]);
+      spriteBatch->destroySprite(sprite.glyphs[i]);
     }
     sprite = buildSprite(idx, textRender, transformed, spriteBatch);
   }
@@ -112,7 +112,7 @@ void FontBatch::renderText(int idx, const char *textRender,
 
 FontBatch::TextSprite &FontBatch::buildSprite(int indx, const char *text,
                                               glm::mat4 transformed,
-                                              SpriteBatch &spriteBatch) {
+                                              SpriteBatch *spriteBatch) {
   std::string txt = text;
   auto it = sprites.find(indx);
   if (it != sprites.end())
@@ -123,7 +123,7 @@ FontBatch::TextSprite &FontBatch::buildSprite(int indx, const char *text,
   batch.glyphs.resize(txt.size());
   for (int i = 0; i < txt.size(); i++) {
     const auto &c = font->getCharacter(txt[i]);
-    Sprite spr = spriteBatch.createSprite();
+    Sprite spr = spriteBatch->createSprite();
     spr.position = transformed[3];
     spr.size = transformed * glm::vec4(glm::vec3(c.size, 0.0), 1.0);
     spr.stScale = c.size;
@@ -134,5 +134,3 @@ FontBatch::TextSprite &FontBatch::buildSprite(int indx, const char *text,
 
   return batch;
 }
-
-Buffer *FontBatch::getVertexBuffer() { return spriteBatch.getVertexBuffer(); }

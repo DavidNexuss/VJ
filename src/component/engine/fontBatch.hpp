@@ -23,11 +23,8 @@ private:
 
 struct FontBatch {
 
-  FontBatch(Font *font);
+  FontBatch(Font *font, SpriteBatch *batch);
   void renderText(int, const char *textRender, glm::mat4 transformed);
-
-  Buffer *getVertexBuffer();
-  void debug();
 
 private:
   struct TextSprite {
@@ -36,10 +33,10 @@ private:
   };
 
   TextSprite &buildSprite(int index, const char *text, glm::mat4 transformed,
-                          SpriteBatch &spriteBatch);
+                          SpriteBatch *spriteBatch);
 
   std::unordered_map<int, TextSprite> sprites;
 
-  SpriteBatch spriteBatch;
   Font *font;
+  SpriteBatch *spriteBatch;
 };

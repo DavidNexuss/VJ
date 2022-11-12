@@ -112,6 +112,7 @@ Buffer *MemoryPool::getBufferObject() {
 void MemoryPool::print() {
   printf("[POOL]\n");
   printf("Current heap size: %lu\n", allocator->size());
+  printf("Current heap ptr: %p\n", allocator->at(0));
   printf("Bucket count: %lu\n", bucketsData.size());
   printf("Bucket count useful: %lu\n\n", buckets.size());
 

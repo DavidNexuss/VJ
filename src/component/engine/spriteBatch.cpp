@@ -21,9 +21,11 @@ void SpriteBatch::uploadSprite(Sprite &spr) {
   vertices[0].tintAdd = spr.add;
   vertices[0].tintMul = spr.mul;
 
-  glm::mat4 tr = util::scale(spr.size.x, spr.size.y, 0.0) *
+  glm::mat4 tr = util::translate(spr.position.x, spr.position.y, 0.0) *
+                 util::scale(spr.size.x, spr.size.y, 0.0) *
                  util::rotate(0, 0, 1, spr.rotation) *
                  util::translate(-0.5, -0.5, 0.0);
+
   glm::vec2 positions[4];
   glm::vec2 uv[4];
 
