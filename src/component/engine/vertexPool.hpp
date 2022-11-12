@@ -72,3 +72,7 @@ private:
   size_t allocateBucket(size_t size);
   Buffer bufferObject;
 };
+
+struct VertexPool : public MemoryPool {
+  VertexPool() : MemoryPool(std::make_unique<VectorAllocator>()) {}
+};

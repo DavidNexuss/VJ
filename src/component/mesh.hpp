@@ -2,7 +2,6 @@
 #include "component.hpp"
 #include "shambhala.hpp"
 
-namespace shambhala {
 struct VertexAttribute {
   int index;
   int size;
@@ -36,4 +35,3 @@ struct Mesh {
   int vertexCount();
   void use();
 };
-} // namespace shambhala

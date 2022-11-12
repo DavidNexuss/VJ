@@ -174,7 +174,9 @@ void MemoryPool::debug() {
   }
 }
 
+#ifdef VERTEXPOOLDEBUG
 int main() {
   MemoryPool pool(std::make_unique<EmptyAllocator>());
   pool.debug();
 }
+#endif
