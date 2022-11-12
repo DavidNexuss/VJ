@@ -14,6 +14,7 @@ using namespace shambhala::video;
   { x }
 
 #define EXT_BUFFER_CREATE
+#define SANITY_TEXTURE_CACHING(cond) true
 
 static struct {
 
@@ -24,6 +25,7 @@ static struct {
 
 struct BufferInformation {
   GLenum type = 0;
+  size_t size = 0;
 };
 
 struct TextureInformation {
@@ -192,11 +194,7 @@ GLuint OpenGLDriver::compileProgram(ProgramDesc desc) {
 // TODO createBuffers 4.5
 GLuint OpenGLDriver::createBuffer(BufferDesc desc) {
   GLuint buff;
-#ifdef EXT_BUFFER_CREATE
-  glCreateBuffers(1, &buff);
-#else
   glGenBuffers(1, &buff);
-#endif
   BufferInformation inf;
   inf.type = desc.type;
   bindState.setBufferInformation(inf, buff);
@@ -205,37 +203,30 @@ GLuint OpenGLDriver::createBuffer(BufferDesc desc) {
 
 void OpenGLDriver::uploadBuffer(BufferUploadDesc desc) {
 
-  static GLenum mode = GL_STATIC_DRAW;
-#ifdef EXT_BUFFER_CREATE
-  if (desc.start == 0) {
-    glNamedBufferData(desc.id, desc.size, desc.buffer, mode);
-  } else {
-    glNamedBufferSubData(desc.id, desc.start, desc.size, desc.buffer);
-  }
-#else
   OpenGLDriver::bindBuffer(desc.id);
-  if (desc.start == 0) {
-    glBufferData(GL_ARRAY_BUFFER, desc.size, desc.buffer, mode);
+  if (desc.start == 0 &&
+      desc.size > bindState.getBufferInformation(desc.id).size) {
+    glBufferData(GL_ARRAY_BUFFER, desc.size, desc.buffer, desc.mode);
+    bindState.getBufferInformation(desc.id).size = desc.size;
   } else {
     glBufferSubData(GL_ARRAY_BUFFER, desc.start, desc.size, desc.buffer);
   }
-
-#endif
 }
 
 void OpenGLDriver::bindTexture(GLuint textureId, GLenum target) {
-  if (bindState.currentTexture != textureId) {
+  if (SANITY_TEXTURE_CACHING(bindState.currentTexture != textureId)) {
     glBindTexture(target, textureId);
     bindState.currentTexture = textureId;
     bindState.boundUnits[bindState.currentUnit] = textureId;
   }
 }
 int OpenGLDriver::bindTexture(GLuint textureId, GLenum target, GLuint unit) {
-  if (bindState.textureInformation[textureId].needsMipmap) {
+  if (SANITY_TEXTURE_CACHING(
+          bindState.textureInformation[textureId].needsMipmap)) {
     glGenerateTextureMipmap(textureId);
     bindState.textureInformation[textureId].needsMipmap = false;
   }
-  if (bindState.boundUnits[unit] != textureId) {
+  if (SANITY_TEXTURE_CACHING(bindState.boundUnits[unit] != textureId)) {
     bindState.currentUnit = unit;
     glActiveTexture(unit + GL_TEXTURE0);
     bindTexture(textureId, target);
@@ -463,6 +454,8 @@ VideoDeviceParameters OpenGLDriver::queryDeviceParameters() {
 }
 
 void OpenGLDriver::setViewport(int width, int height) {
+  if (width < 0 || height < 0)
+    return;
   glViewport(0, 0, width, height);
 }
 void OpenGLDriver::drawCall(DrawCallArgs args) {

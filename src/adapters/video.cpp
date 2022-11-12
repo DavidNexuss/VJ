@@ -43,7 +43,7 @@ video::TextureUploadDesc shambhala::descStencilUpload(int width, int height,
 video::TextureFormat shambhala::descTextureFormat(bool hdr, int components) {
 
   const static int internalFormatHDR[] = {};
-  const static int internalFormat[] = {GL_RED, GL_RG8, GL_RGB8, GL_RGBA8};
+  const static int internalFormat[] = {GL_R8, GL_RG8, GL_RGB8, GL_RGBA8};
   const static int externalFormat[] = {GL_RED, GL_RG, GL_RGB, GL_RGBA};
 
   video::TextureFormat format;

@@ -14,6 +14,8 @@ void shambhala::IViewport::fakeViewportSize(int width, int height) {
   backedHeight = screenHeight;
   screenWidth = width == 0 ? screenWidth : width;
   screenHeight = height == 0 ? screenHeight : height;
+  realScreenWidth = width;
+  realScreenHeight = height;
 }
 
 void shambhala::IViewport::restoreViewport() {
@@ -66,8 +68,16 @@ float shambhala::IViewport::getScrolllY() {
   return 0.0f;
 }
 
-float shambhala::IViewport::getScreenWidth() { return screenWidth; }
-float shambhala::IViewport::getScreenHeight() { return screenHeight; }
+float shambhala::IViewport::getScreenWidth() {
+  if (screenWidth == -1)
+    return realScreenWidth;
+  return screenWidth;
+}
+float shambhala::IViewport::getScreenHeight() {
+  if (screenHeight == -1)
+    return realScreenHeight;
+  return screenHeight;
+}
 
 float shambhala::IViewport::getX() { return xpos; }
 float shambhala::IViewport::getY() { return ypos; }

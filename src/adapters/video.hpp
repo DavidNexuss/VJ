@@ -81,6 +81,7 @@ struct BufferUploadDesc {
   int size = -1;
   int start = -1;
   GLuint id = -1;
+  GLenum mode = GL_STATIC_DRAW;
 };
 
 struct AttributeDesc {

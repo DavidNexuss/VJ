@@ -13,6 +13,10 @@ add_subdirectory(lib/lightmapper)
 add_subdirectory(lib/xatlas)
 target_include_directories(shambhala PRIVATE include src)
 target_link_libraries(shambhala imgui imguiText stbimage lightmapper xatlas)
+
+find_package(Freetype REQUIRED)
+target_include_directories(shambhala PRIVATE ${FREETYPE_INCLUDE_DIRS})
+target_link_libraries(shambhala ${FREETYPE_LIBRARIES})
 # add_executable(main main.cpp)
 # target_link_libraries(main shambhala stbimage GL GLEW glfw assimp)
 

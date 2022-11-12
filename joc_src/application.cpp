@@ -1,4 +1,5 @@
 #include "application.hpp"
+#include "component/engine/fontBatch.hpp"
 #include "device/shambhala_audio.hpp"
 #include "ext/util.hpp"
 #include "ext/worldmat.hpp"
@@ -97,6 +98,10 @@ void Joc::loop() {
 #endif
 
   int frame = 0;
+
+  Mesh *mesh;
+  Font *font = new Font("joc2d/font.ttf", 72);
+  // mainCamera->set("scene", font->getTexture());
   do {
 
     shambhala::audio::loop_stepAudio();
