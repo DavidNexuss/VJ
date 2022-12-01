@@ -16,7 +16,7 @@ add_subdirectory(lib/freealut)
 add_subdirectory(lib/glew)
 add_subdirectory(lib/openal-soft)
 target_include_directories(shambhala PRIVATE include src)
-target_link_libraries(shambhala imgui imguiText stbimage lightmapper xatlas glfw glew freealut openal-soft)
+target_link_libraries(shambhala imgui imguiText stbimage lightmapper xatlas glfw glew alut openal)
 # add_executable(main main.cpp)
 # target_link_libraries(main shambhala stbimage GL GLEW glfw assimp)
 
