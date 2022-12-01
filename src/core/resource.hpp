@@ -1,13 +1,12 @@
 #pragma once
-#include <filesystem>
 #include <string>
 using uint8_t = unsigned char;
 struct io_buffer {
   uint8_t *data;
   int length = 0;
 
-  io_buffer() { }
-  io_buffer(uint8_t* _data, int _length) : data(_data), length(_length) { }
+  io_buffer() {}
+  io_buffer(uint8_t *_data, int _length) : data(_data), length(_length) {}
 
   static io_buffer create(const std::string &data);
 };

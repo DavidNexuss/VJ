@@ -4,16 +4,12 @@
 #include <unordered_map>
 #include <vector>
 
-
 namespace shambhala {
 
 struct MemoryResource : public IResource {
   io_buffer buffer;
   virtual io_buffer *read() override;
   virtual void write() override;
-#ifdef RELOAD_IO
-  std::filesystem::file_time_type time;
-#endif
 };
 struct IIO {
   std::vector<const char *> translators;

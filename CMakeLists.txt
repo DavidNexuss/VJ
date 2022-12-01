@@ -32,4 +32,4 @@ target_link_libraries(joc_final shambhala GL)
 
 set(CMAKE_CXX_FLAGS "-O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3" )
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)

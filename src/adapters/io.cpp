@@ -11,7 +11,7 @@ void shambhala::IIO::freeFile(MemoryResource *resource) {
 }
 
 // TODO: Fix something
-//std::string shambhala::IIO::findFile(const std::string &path) {}
+// std::string shambhala::IIO::findFile(const std::string &path) {}
 
 MemoryResource *shambhala::IIO::readFile(const std::string &path) {
   LOG("Reading %s:", path.c_str());
@@ -27,9 +27,6 @@ MemoryResource *shambhala::IIO::readFile(const std::string &path) {
     resource.resourcename = path;
     if (resource.buffer.length > 0) {
       resource.useCount++;
-#ifdef RELOAD_IO
-      resource.time = std::filesystem::last_write_time(path);
-#endif
       insertFile(path, resource);
       auto it = cachedBuffers.find(path);
       return &it->second;
@@ -84,21 +81,7 @@ void shambhala::IIO::internal_writeFile(const std::string &name,
   file.close();
 }
 //------------------[FILE WATCHER]
-#include <filesystem>
-void shambhala::IIO::filewatchMonitor() {
-#ifdef RELOAD_IO
-  for (auto &it : cachedBuffers) {
-    auto last_write_time = std::filesystem::last_write_time(it.first);
-    if (last_write_time > it.second.time) {
-      MemoryResource *resource = &it.second;
-      delete[] resource->buffer.data;
-      resource->buffer = internal_readFile(resource->resourcename);
-      resource->signalUpdate();
-      resource->time = last_write_time;
-    }
-  }
-#endif
-}
+void shambhala::IIO::filewatchMonitor() {}
 
 //------------------[MEMORY RESOURCE]
 
