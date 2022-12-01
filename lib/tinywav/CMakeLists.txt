@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.20)
+project(tinywav)
+file(GLOB_RECURSE SRCS *.cpp)
+include_directories(../../src)
+add_library(tinywav ${SRCS})

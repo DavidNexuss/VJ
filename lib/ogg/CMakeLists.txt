@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.20)
+project(ogg)
+file(GLOB_RECURSE SRCS *.c)
+include_directories(../../src)
+add_library(ogg ${SRCS})

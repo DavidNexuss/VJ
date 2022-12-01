@@ -40,13 +40,14 @@ set(ALUT_HEADERS
 source_group(APIHeader FILES ${ALUT_HEADERS})
 
 
-if(BUILD_STATIC)
+if(0)
 	# we can't create a static library with the same name
 	# as the shared one, so we copy it over after creation
 	add_library(alut_static STATIC ${ALUT_SOURCES} ${ALUT_INTERNAL_HEADERS} ${ALUT_HEADERS})
-	target_link_libraries(alut_static ${OPENAL_LIBRARY} ${ADD_LIBS})
+  include_directories(../al/include)
+	target_link_libraries(alut_static ${OPENAL_LIBRARY} ${ADD_LIBS} openal)
 	if(UNIX)
-		target_link_libraries(alut_static m)
+		target_link_libraries(alut_static m openal)
 	endif()	
 	if(NOT WIN32)
 		# TODO this is an inelegant hack...
@@ -79,9 +80,9 @@ set_target_properties(alut
 	${MAJOR_VERSION}
 	SOVERSION
 	${MAJOR_VERSION})
-target_link_libraries(alut ${OPENAL_LIBRARY})
+target_link_libraries(alut openal)
 if(UNIX)
-	target_link_libraries(alut m)
+	target_link_libraries(alut m openal)
 endif()	
 
 install(TARGETS alut

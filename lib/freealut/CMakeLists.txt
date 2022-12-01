@@ -40,8 +40,7 @@ option(BUILD_USE_WERROR "enable fail on all warning" OFF)
 ###
 # Dependencies
 ###
-include_directories(../openal-soft/include)
-
+add_subdirectory(al)
 ###
 # Checking for types
 ###

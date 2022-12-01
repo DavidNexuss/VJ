@@ -1,0 +1,8 @@
+-I/home/david/shared/Projects/ShambhalaMini/src
+-I/home/david/shared/Projects/ShambhalaMini/lib
+-I/home/david/shared/Projects/ShambhalaMini/lib/imgui
+-I/home/david/shared/Projects/ShambhalaMini/include
+-I/home/david/shared/Projects/ShambhalaMini/lib/freealut/include
+-o
+/home/david/shared/Projects/ShambhalaMini/lib/freealut/al/utils/alsoft-config/moc_mainwindow.cpp
+/home/david/shared/Projects/ShambhalaMini/lib/freealut/al/utils/alsoft-config/mainwindow.h
