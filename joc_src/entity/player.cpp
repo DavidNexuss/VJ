@@ -1,7 +1,5 @@
 #include "player.hpp"
 #include "../globals.hpp"
-#include "adapters/audio.hpp"
-#include "device/shambhala_audio.hpp"
 #include "ext/math.hpp"
 #include "ext/util.hpp"
 #include "imgui.h"
@@ -59,13 +57,6 @@ Player::Player(ShotComponent *shot, ForceShotComponent *force,
     ship_force->getNode()->setEnabled(false);
     addModel(ship_force);
   }
-  this->soundModel = shambhala::audio::createSoundModel();
-  this->soundModel->node = ship_model->getNode();
-  this->soundModel->mesh = shambhala::audio::createSoundMesh();
-  this->soundModel->mesh->soundResource.acquire(
-      shambhala::audio::createSoundResource("joc2d/music/music.wav"));
-  this->soundModel->loop = true;
-  this->soundModel->play();
 
   // HUd
   {
@@ -205,16 +196,6 @@ void Player::step(shambhala::StepInfo info) {
     ship_model->material->set("hit", hit);
     ship_model->material->set("add", glm::vec4(0.0));
     ship_model->material->set("mul", glm::vec4(1.0));
-  }
-
-  // Audio
-  {
-    audio::SoundListener listener;
-    listener.orientation.x = glm::vec3(1.0, 0.0, 0.0);
-    listener.orientation.y = glm::vec3(0.0, 1.0, 0.0);
-    listener.position = glm::vec3(*immediateGetPosition(), 0.0);
-    listener.velocity = glm::vec3(getVelocity(), 0.0);
-    listener.use();
   }
 
   if (viewport()->isKeyPressed(KEY_F)) {

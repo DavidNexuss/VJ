@@ -1,5 +1,4 @@
 #pragma once
-#include "adapters/audio.hpp"
 #include "adapters/io.hpp"
 #include "adapters/log.hpp"
 #include "adapters/serialize.hpp"
@@ -465,7 +464,6 @@ struct EngineControllers {
   shambhala::IViewport *viewport = nullptr;
   shambhala::IIO *io = nullptr;
   shambhala::ILogger *logger = nullptr;
-  shambhala::audio::IAudio *audio = nullptr;
 };
 
 struct DeviceParameters {
@@ -567,7 +565,6 @@ void buildSortPass();
 ISerializer *serializer();
 IViewport *viewport();
 IIO *io();
-audio::IAudio *aud();
 
 void createEngine(EngineParameters parameters);
 void *createWindow(const WindowConfiguration &configuration);

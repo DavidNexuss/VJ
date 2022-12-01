@@ -3,7 +3,6 @@
 #include "entity.hpp"
 #include "forceShot.hpp"
 #include "shot.hpp"
-#include <device/shambhala_audio.hpp>
 #include <shambhala.hpp>
 
 struct Player : public shambhala::LogicComponent,
@@ -41,7 +40,6 @@ private:
   ShotComponent *shot = nullptr;
   ForceShotComponent *force = nullptr;
 
-  shambhala::audio::SoundModel *soundModel;
   shambhala::Model *ship_model;
   shambhala::Model *ship_force;
   shambhala::Node *playerPosition;

@@ -2,7 +2,6 @@
 #include "../atlas.hpp"
 #include "entity.hpp"
 #include "simple_vector.hpp"
-#include <device/shambhala_audio.hpp>
 #include <shambhala.hpp>
 
 struct ShotComponent : public shambhala::LogicComponent,
@@ -25,9 +24,6 @@ private:
 
   float startPitch = 1.5;
   float endPitch = 0.7;
-  shambhala::audio::SoundMesh *laserStart;
-  shambhala::audio::SoundMesh *laserEnd;
-  shambhala::Node *soundNode;
   // The shader needs a vector 3
   simple_vector<glm::vec3> shot_acceleration;
   simple_vector<glm::vec3> shot_positions;

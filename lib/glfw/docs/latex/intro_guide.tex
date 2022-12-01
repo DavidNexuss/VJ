@@ -1,0 +1,464 @@
+This guide introduces the basic concepts of GLFW and describes initialization, error handling and API guarantees and limitations. For a broad but shallow tutorial, see \mbox{\hyperlink{quick_guide}{Getting started}} instead. For details on a specific function in this category, see the init.
+
+There are also guides for the other areas of GLFW.
+
+
+\begin{DoxyItemize}
+\item \mbox{\hyperlink{window_guide}{Window guide}}
+\item \mbox{\hyperlink{context_guide}{Context guide}}
+\item \mbox{\hyperlink{vulkan_guide}{Vulkan guide}}
+\item \mbox{\hyperlink{monitor_guide}{Monitor guide}}
+\item \mbox{\hyperlink{input_guide}{Input guide}}
+\end{DoxyItemize}\hypertarget{intro_guide_intro_init}{}\doxysection{Initialization and termination}\label{intro_guide_intro_init}
+Before most GLFW functions may be called, the library must be initialized. This initialization checks what features are available on the machine, enumerates monitors, initializes the timer and performs any required platform-\/specific initialization.
+
+Only the following functions may be called before the library has been successfully initialized, and only from the main thread.
+
+
+\begin{DoxyItemize}
+\item glfw\+Get\+Version
+\item glfw\+Get\+Version\+String
+\item glfw\+Platform\+Supported
+\item glfw\+Get\+Error
+\item glfw\+Set\+Error\+Callback
+\item glfw\+Init\+Hint
+\item glfw\+Init\+Allocator
+\item glfw\+Init\+Vulkan\+Loader
+\item glfw\+Init
+\item glfw\+Terminate
+\end{DoxyItemize}
+
+Calling any other function before successful initialization will cause a GLFW\+\_\+\+NOT\+\_\+\+INITIALIZED error.\hypertarget{intro_guide_intro_init_init}{}\doxysubsection{Initializing GLFW}\label{intro_guide_intro_init_init}
+The library is initialized with glfw\+Init, which returns {\ttfamily GLFW\+\_\+\+FALSE} if an error occurred.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordflow}{if} (!glfwInit())}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    \textcolor{comment}{// Handle initialization failure}}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+If any part of initialization fails, any parts that succeeded are terminated as if glfw\+Terminate had been called. The library only needs to be initialized once and additional calls to an already initialized library will return {\ttfamily GLFW\+\_\+\+TRUE} immediately.
+
+Once the library has been successfully initialized, it should be terminated before the application exits. Modern systems are very good at freeing resources allocated by programs that exit, but GLFW sometimes has to change global system settings and these might not be restored without termination.
+
+{\bfseries{mac\+OS\+:}} When the library is initialized the main menu and dock icon are created. These are not desirable for a command-\/line only program. The creation of the main menu and dock icon can be disabled with the GLFW\+\_\+\+COCOA\+\_\+\+MENUBAR init hint.\hypertarget{intro_guide_init_hints}{}\doxysubsection{Initialization hints}\label{intro_guide_init_hints}
+Initialization hints are set before glfw\+Init and affect how the library behaves until termination. Hints are set with glfw\+Init\+Hint.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{glfwInitHint(GLFW\_JOYSTICK\_HAT\_BUTTONS, GLFW\_FALSE);}
+
+\end{DoxyCode}
+
+
+The values you set hints to are never reset by GLFW, but they only take effect during initialization. Once GLFW has been initialized, any values you set will be ignored until the library is terminated and initialized again.
+
+Some hints are platform specific. These may be set on any platform but they will only affect their specific platform. Other platforms will ignore them. Setting these hints requires no platform specific headers or functions.\hypertarget{intro_guide_init_hints_shared}{}\doxysubsubsection{Shared init hints}\label{intro_guide_init_hints_shared}
+\label{intro_guide_GLFW_PLATFORM}%
+\Hypertarget{intro_guide_GLFW_PLATFORM}%
+{\bfseries{GLFW\+\_\+\+PLATFORM}} specifies the platform to use for windowing and input. Possible values are {\ttfamily GLFW\+\_\+\+ANY\+\_\+\+PLATFORM}, {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+WIN32}, {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+COCOA}, {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+X11}, {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+WAYLAND} and {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+NULL}. The default value is {\ttfamily GLFW\+\_\+\+ANY\+\_\+\+PLATFORM}, which will choose any platform the library includes support for except for the Null backend.
+
+\label{intro_guide_GLFW_JOYSTICK_HAT_BUTTONS}%
+\Hypertarget{intro_guide_GLFW_JOYSTICK_HAT_BUTTONS}%
+{\bfseries{GLFW\+\_\+\+JOYSTICK\+\_\+\+HAT\+\_\+\+BUTTONS}} specifies whether to also expose joystick hats as buttons, for compatibility with earlier versions of GLFW that did not have glfw\+Get\+Joystick\+Hats. Possible values are {\ttfamily GLFW\+\_\+\+TRUE} and {\ttfamily GLFW\+\_\+\+FALSE}.
+
+\label{intro_guide_GLFW_ANGLE_PLATFORM_TYPE_hint}%
+\Hypertarget{intro_guide_GLFW_ANGLE_PLATFORM_TYPE_hint}%
+{\bfseries{GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE}} specifies the platform type (rendering backend) to request when using Open\+GL ES and EGL via \href{https://chromium.googlesource.com/angle/angle/}{\texttt{ ANGLE}}. If the requested platform type is unavailable, ANGLE will use its default. Possible values are one of {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+NONE}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+OPENGL}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+OPENGLES}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+D3\+D9}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+D3\+D11}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+VULKAN} and {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+METAL}.
+
+The ANGLE platform type is specified via the {\ttfamily EGL\+\_\+\+ANGLE\+\_\+platform\+\_\+angle} extension. This extension is not used if this hint is {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+NONE}, which is the default value.\hypertarget{intro_guide_init_hints_osx}{}\doxysubsubsection{mac\+OS specific init hints}\label{intro_guide_init_hints_osx}
+\label{intro_guide_GLFW_COCOA_CHDIR_RESOURCES_hint}%
+\Hypertarget{intro_guide_GLFW_COCOA_CHDIR_RESOURCES_hint}%
+{\bfseries{GLFW\+\_\+\+COCOA\+\_\+\+CHDIR\+\_\+\+RESOURCES}} specifies whether to set the current directory to the application to the {\ttfamily Contents/\+Resources} subdirectory of the application\textquotesingle{}s bundle, if present. Possible values are {\ttfamily GLFW\+\_\+\+TRUE} and {\ttfamily GLFW\+\_\+\+FALSE}. This is ignored on other platforms.
+
+\label{intro_guide_GLFW_COCOA_MENUBAR_hint}%
+\Hypertarget{intro_guide_GLFW_COCOA_MENUBAR_hint}%
+{\bfseries{GLFW\+\_\+\+COCOA\+\_\+\+MENUBAR}} specifies whether to create the menu bar and dock icon when GLFW is initialized. This applies whether the menu bar is created from a nib or manually by GLFW. Possible values are {\ttfamily GLFW\+\_\+\+TRUE} and {\ttfamily GLFW\+\_\+\+FALSE}. This is ignored on other platforms.\hypertarget{intro_guide_init_hints_x11}{}\doxysubsubsection{X11 specific init hints}\label{intro_guide_init_hints_x11}
+\label{intro_guide_GLFW_X11_XCB_VULKAN_SURFACE_hint}%
+\Hypertarget{intro_guide_GLFW_X11_XCB_VULKAN_SURFACE_hint}%
+{\bfseries{GLFW\+\_\+\+X11\+\_\+\+XCB\+\_\+\+VULKAN\+\_\+\+SURFACE}} specifies whether to prefer the {\ttfamily VK\+\_\+\+KHR\+\_\+xcb\+\_\+surface} extension for creating Vulkan surfaces, or whether to use the {\ttfamily VK\+\_\+\+KHR\+\_\+xlib\+\_\+surface} extension. Possible values are {\ttfamily GLFW\+\_\+\+TRUE} and {\ttfamily GLFW\+\_\+\+FALSE}. This is ignored on other platforms.\hypertarget{intro_guide_init_hints_values}{}\doxysubsubsection{Supported and default values}\label{intro_guide_init_hints_values}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{3}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Initialization hint   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Default value   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Supported values    }\\\cline{1-3}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Initialization hint   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Default value   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Supported values    }\\\cline{1-3}
+\endhead
+\mbox{\hyperlink{intro_guide_GLFW_PLATFORM}{GLFW\+\_\+\+PLATFORM}}   &{\ttfamily GLFW\+\_\+\+ANY\+\_\+\+PLATFORM}   &{\ttfamily GLFW\+\_\+\+ANY\+\_\+\+PLATFORM}, {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+WIN32}, {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+COCOA}, {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+X11}, {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+WAYLAND} or {\ttfamily GLFW\+\_\+\+PLATFORM\+\_\+\+NULL}    \\\cline{1-3}
+\mbox{\hyperlink{intro_guide_GLFW_JOYSTICK_HAT_BUTTONS}{GLFW\+\_\+\+JOYSTICK\+\_\+\+HAT\+\_\+\+BUTTONS}}   &{\ttfamily GLFW\+\_\+\+TRUE}   &{\ttfamily GLFW\+\_\+\+TRUE} or {\ttfamily GLFW\+\_\+\+FALSE}    \\\cline{1-3}
+GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE   &{\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+NONE}   &{\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+NONE}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+OPENGL}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+OPENGLES}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+D3\+D9}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+D3\+D11}, {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+VULKAN} or {\ttfamily GLFW\+\_\+\+ANGLE\+\_\+\+PLATFORM\+\_\+\+TYPE\+\_\+\+METAL}    \\\cline{1-3}
+GLFW\+\_\+\+COCOA\+\_\+\+CHDIR\+\_\+\+RESOURCES   &{\ttfamily GLFW\+\_\+\+TRUE}   &{\ttfamily GLFW\+\_\+\+TRUE} or {\ttfamily GLFW\+\_\+\+FALSE}    \\\cline{1-3}
+GLFW\+\_\+\+COCOA\+\_\+\+MENUBAR   &{\ttfamily GLFW\+\_\+\+TRUE}   &{\ttfamily GLFW\+\_\+\+TRUE} or {\ttfamily GLFW\+\_\+\+FALSE}    \\\cline{1-3}
+GLFW\+\_\+\+X11\+\_\+\+XCB\+\_\+\+VULKAN\+\_\+\+SURFACE   &{\ttfamily GLFW\+\_\+\+TRUE}   &{\ttfamily GLFW\+\_\+\+TRUE} or {\ttfamily GLFW\+\_\+\+FALSE}   \\\cline{1-3}
+\end{longtabu}
+\hypertarget{intro_guide_platform}{}\doxysubsection{Runtime platform selection}\label{intro_guide_platform}
+GLFW can be compiled for more than one platform (window system) at once. This lets a single library binary support both X11 and Wayland on Linux and other Unix-\/like systems.
+
+You can control platform selection via the \mbox{\hyperlink{intro_guide_GLFW_PLATFORM}{GLFW\+\_\+\+PLATFORM}} initialization hint. By default, this is set to GLFW\+\_\+\+ANY\+\_\+\+PLATFORM, which will look for supported window systems in order of priority and select the first one it finds. It can also be set to any specific platform to have GLFW only look for that one.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{glfwInitHint(GLFW\_PLATFORM, GLFW\_PLATFORM\_X11);}
+
+\end{DoxyCode}
+
+
+This mechanism also provides the Null platform, which is always supported but needs to be explicitly requested. This platform is effectively a stub, emulating a window system on a single 1080p monitor, but will not interact with any actual window system.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{glfwInitHint(GLFW\_PLATFORM, GLFW\_PLATFORM\_NULL);}
+
+\end{DoxyCode}
+
+
+You can test whether a library binary was compiled with support for a specific platform with glfw\+Platform\+Supported.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordflow}{if} (glfwPlatformSupported(GLFW\_PLATFORM\_WAYLAND))}
+\DoxyCodeLine{    glfwInitHint(GLFW\_PLATFORM, GLFW\_PLATFORM\_WAYLAND);}
+
+\end{DoxyCode}
+
+
+Once GLFW has been initialized, you can query which platform was selected with glfw\+Get\+Platform.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{int} platform = glfwGetPlatform();}
+
+\end{DoxyCode}
+
+
+If you are using any native access functions, especially on Linux and other Unix-\/like systems, then you may need to check that you are calling the ones matching the selected platform.\hypertarget{intro_guide_init_allocator}{}\doxysubsection{Custom heap memory allocator}\label{intro_guide_init_allocator}
+The heap memory allocator can be customized before initialization with glfw\+Init\+Allocator.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{GLFWallocator allocator;}
+\DoxyCodeLine{allocator.allocate = my\_malloc;}
+\DoxyCodeLine{allocator.reallocate = my\_realloc;}
+\DoxyCodeLine{allocator.deallocate = my\_free;}
+\DoxyCodeLine{allocator.user = NULL;}
+\DoxyCodeLine{}
+\DoxyCodeLine{glfwInitAllocator(\&allocator);}
+
+\end{DoxyCode}
+
+
+The allocator will be picked up at the beginning of initialization and will be used until GLFW has been fully terminated. Any allocator set after initialization will be picked up only at the next initialization.
+
+The allocator will only be used for allocations that would have been made with the C standard library. Memory allocations that must be made with platform specific APIs will still use those.
+
+The allocation function must have a signature matching GLFWallocatefun. It receives the desired size, in bytes, and the user pointer passed to glfw\+Init\+Allocator and returns the address to the allocated memory block.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{void}* my\_malloc(\textcolor{keywordtype}{size\_t} size, \textcolor{keywordtype}{void}* user)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    ...}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+The reallocation function must have a function signature matching GLFWreallocatefun. It receives the memory block to be reallocated, the new desired size, in bytes, and the user pointer passed to glfw\+Init\+Allocator and returns the address to the resized memory block.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{void}* my\_realloc(\textcolor{keywordtype}{void}* block, \textcolor{keywordtype}{size\_t} size, \textcolor{keywordtype}{void}* user)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    ...}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+The deallocation function must have a function signature matching GLFWdeallocatefun. It receives the memory block to be deallocated and the user pointer passed to glfw\+Init\+Allocator.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{void} my\_free(\textcolor{keywordtype}{void}* block, \textcolor{keywordtype}{void}* user)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    ...}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+\hypertarget{intro_guide_intro_init_terminate}{}\doxysubsection{Terminating GLFW}\label{intro_guide_intro_init_terminate}
+Before your application exits, you should terminate the GLFW library if it has been initialized. This is done with glfw\+Terminate.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{glfwTerminate();}
+
+\end{DoxyCode}
+
+
+This will destroy any remaining window, monitor and cursor objects, restore any modified gamma ramps, re-\/enable the screensaver if it had been disabled and free any other resources allocated by GLFW.
+
+Once the library is terminated, it is as if it had never been initialized, therefore you will need to initialize it again before being able to use GLFW. If the library was not initialized or had already been terminated, it returns immediately.\hypertarget{intro_guide_error_handling}{}\doxysection{Error handling}\label{intro_guide_error_handling}
+Some GLFW functions have return values that indicate an error, but this is often not very helpful when trying to figure out what happened or why it occurred. Other functions have no return value reserved for errors, so error notification needs a separate channel. Finally, far from all GLFW functions have return values.
+
+The last error code for the calling thread can be queried at any time with glfw\+Get\+Error.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{int} code = glfwGetError(NULL);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keywordflow}{if} (code != GLFW\_NO\_ERROR)}
+\DoxyCodeLine{    handle\_error(code);}
+
+\end{DoxyCode}
+
+
+If no error has occurred since the last call, GLFW\+\_\+\+NO\+\_\+\+ERROR (zero) is returned. The error is cleared before the function returns.
+
+The error code indicates the general category of the error. Some error codes, such as GLFW\+\_\+\+NOT\+\_\+\+INITIALIZED has only a single meaning, whereas others like GLFW\+\_\+\+PLATFORM\+\_\+\+ERROR are used for many different errors.
+
+GLFW often has more information about an error than its general category. You can retrieve a UTF-\/8 encoded human-\/readable description along with the error code. If no error has occurred since the last call, the description is set to {\ttfamily NULL}.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{const} \textcolor{keywordtype}{char}* description;}
+\DoxyCodeLine{\textcolor{keywordtype}{int} code = glfwGetError(\&description);}
+\DoxyCodeLine{}
+\DoxyCodeLine{\textcolor{keywordflow}{if} (description)}
+\DoxyCodeLine{    display\_error\_message(code, description);}
+
+\end{DoxyCode}
+
+
+The retrieved description string is only valid until the next error occurs. This means you must make a copy of it if you want to keep it.
+
+You can also set an error callback, which will be called each time an error occurs. It is set with glfw\+Set\+Error\+Callback.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{glfwSetErrorCallback(error\_callback);}
+
+\end{DoxyCode}
+
+
+The error callback receives the same error code and human-\/readable description returned by glfw\+Get\+Error.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{void} error\_callback(\textcolor{keywordtype}{int} code, \textcolor{keyword}{const} \textcolor{keywordtype}{char}* description)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    display\_error\_message(code, description);}
+\DoxyCodeLine{\}}
+
+\end{DoxyCode}
+
+
+The error callback is called after the error is stored, so calling glfw\+Get\+Error from within the error callback returns the same values as the callback argument.
+
+The description string passed to the callback is only valid until the error callback returns. This means you must make a copy of it if you want to keep it.
+
+{\bfseries{Reported errors are never fatal.}} As long as GLFW was successfully initialized, it will remain initialized and in a safe state until terminated regardless of how many errors occur. If an error occurs during initialization that causes glfw\+Init to fail, any part of the library that was initialized will be safely terminated.
+
+Do not rely on a currently invalid call to generate a specific error, as in the future that same call may generate a different error or become valid.\hypertarget{intro_guide_coordinate_systems}{}\doxysection{Coordinate systems}\label{intro_guide_coordinate_systems}
+GLFW has two primary coordinate systems\+: the {\itshape virtual screen} and the window {\itshape content area} or {\itshape content area}. Both use the same unit\+: {\itshape virtual screen coordinates}, or just {\itshape screen coordinates}, which don\textquotesingle{}t necessarily correspond to pixels.
+
+
+
+Both the virtual screen and the content area coordinate systems have the X-\/axis pointing to the right and the Y-\/axis pointing down.
+
+Window and monitor positions are specified as the position of the upper-\/left corners of their content areas relative to the virtual screen, while cursor positions are specified relative to a window\textquotesingle{}s content area.
+
+Because the origin of the window\textquotesingle{}s content area coordinate system is also the point from which the window position is specified, you can translate content area coordinates to the virtual screen by adding the window position. The window frame, when present, extends out from the content area but does not affect the window position.
+
+Almost all positions and sizes in GLFW are measured in screen coordinates relative to one of the two origins above. This includes cursor positions, window positions and sizes, window frame sizes, monitor positions and video mode resolutions.
+
+Two exceptions are the \mbox{\hyperlink{monitor_guide_monitor_size}{monitor physical size}}, which is measured in millimetres, and \mbox{\hyperlink{window_guide_window_fbsize}{framebuffer size}}, which is measured in pixels.
+
+Pixels and screen coordinates may map 1\+:1 on your machine, but they won\textquotesingle{}t on every other machine, for example on a Mac with a Retina display. The ratio between screen coordinates and pixels may also change at run-\/time depending on which monitor the window is currently considered to be on.\hypertarget{intro_guide_guarantees_limitations}{}\doxysection{Guarantees and limitations}\label{intro_guide_guarantees_limitations}
+This section describes the conditions under which GLFW can be expected to function, barring bugs in the operating system or drivers. Use of GLFW outside these limits may work on some platforms, or on some machines, or some of the time, or on some versions of GLFW, but it may break at any time and this will not be considered a bug.\hypertarget{intro_guide_lifetime}{}\doxysubsection{Pointer lifetimes}\label{intro_guide_lifetime}
+GLFW will never free any pointer you provide to it, and you must never free any pointer it provides to you.
+
+Many GLFW functions return pointers to dynamically allocated structures, strings or arrays, and some callbacks are provided with strings or arrays. These are always managed by GLFW and should never be freed by the application. The lifetime of these pointers is documented for each GLFW function and callback. If you need to keep this data, you must copy it before its lifetime expires.
+
+Many GLFW functions accept pointers to structures or strings allocated by the application. These are never freed by GLFW and are always the responsibility of the application. If GLFW needs to keep the data in these structures or strings, it is copied before the function returns.
+
+Pointer lifetimes are guaranteed not to be shortened in future minor or patch releases.\hypertarget{intro_guide_reentrancy}{}\doxysubsection{Reentrancy}\label{intro_guide_reentrancy}
+GLFW event processing and object destruction are not reentrant. This means that the following functions must not be called from any callback function\+:
+
+
+\begin{DoxyItemize}
+\item glfw\+Destroy\+Window
+\item glfw\+Destroy\+Cursor
+\item glfw\+Poll\+Events
+\item glfw\+Wait\+Events
+\item glfw\+Wait\+Events\+Timeout
+\item glfw\+Terminate
+\end{DoxyItemize}
+
+These functions may be made reentrant in future minor or patch releases, but functions not on this list will not be made non-\/reentrant.\hypertarget{intro_guide_thread_safety}{}\doxysubsection{Thread safety}\label{intro_guide_thread_safety}
+Most GLFW functions must only be called from the main thread (the thread that calls main), but some may be called from any thread once the library has been initialized. Before initialization the whole library is thread-\/unsafe.
+
+The reference documentation for every GLFW function states whether it is limited to the main thread.
+
+Initialization, termination, event processing and the creation and destruction of windows, cursors and Open\+GL and Open\+GL ES contexts are all restricted to the main thread due to limitations of one or several platforms.
+
+Because event processing must be performed on the main thread, all callbacks except for the error callback will only be called on that thread. The error callback may be called on any thread, as any GLFW function may generate errors.
+
+The error code and description may be queried from any thread.
+
+
+\begin{DoxyItemize}
+\item glfw\+Get\+Error
+\end{DoxyItemize}
+
+Empty events may be posted from any thread.
+
+
+\begin{DoxyItemize}
+\item glfw\+Post\+Empty\+Event
+\end{DoxyItemize}
+
+The window user pointer and close flag may be read and written from any thread, but this is not synchronized by GLFW.
+
+
+\begin{DoxyItemize}
+\item glfw\+Get\+Window\+User\+Pointer
+\item glfw\+Set\+Window\+User\+Pointer
+\item glfw\+Window\+Should\+Close
+\item glfw\+Set\+Window\+Should\+Close
+\end{DoxyItemize}
+
+These functions for working with Open\+GL and Open\+GL ES contexts may be called from any thread, but the window object is not synchronized by GLFW.
+
+
+\begin{DoxyItemize}
+\item glfw\+Make\+Context\+Current
+\item glfw\+Get\+Current\+Context
+\item glfw\+Swap\+Buffers
+\item glfw\+Swap\+Interval
+\item glfw\+Extension\+Supported
+\item glfw\+Get\+Proc\+Address
+\end{DoxyItemize}
+
+The raw timer functions may be called from any thread.
+
+
+\begin{DoxyItemize}
+\item glfw\+Get\+Timer\+Frequency
+\item glfw\+Get\+Timer\+Value
+\end{DoxyItemize}
+
+The regular timer may be used from any thread, but reading and writing the timer offset is not synchronized by GLFW.
+
+
+\begin{DoxyItemize}
+\item glfw\+Get\+Time
+\item glfw\+Set\+Time
+\end{DoxyItemize}
+
+Library version information may be queried from any thread.
+
+
+\begin{DoxyItemize}
+\item glfw\+Get\+Version
+\item glfw\+Get\+Version\+String
+\end{DoxyItemize}
+
+Platform information may be queried from any thread.
+
+
+\begin{DoxyItemize}
+\item glfw\+Platform\+Supported
+\item glfw\+Get\+Platform
+\end{DoxyItemize}
+
+All Vulkan related functions may be called from any thread.
+
+
+\begin{DoxyItemize}
+\item glfw\+Vulkan\+Supported
+\item glfw\+Get\+Required\+Instance\+Extensions
+\item glfw\+Get\+Instance\+Proc\+Address
+\item glfw\+Get\+Physical\+Device\+Presentation\+Support
+\item glfw\+Create\+Window\+Surface
+\end{DoxyItemize}
+
+GLFW uses synchronization objects internally only to manage the per-\/thread context and error states. Additional synchronization is left to the application.
+
+Functions that may currently be called from any thread will always remain so, but functions that are currently limited to the main thread may be updated to allow calls from any thread in future releases.\hypertarget{intro_guide_compatibility}{}\doxysubsection{Version compatibility}\label{intro_guide_compatibility}
+GLFW uses \href{https://semver.org/}{\texttt{ Semantic Versioning}}. This guarantees source and binary backward compatibility with earlier minor versions of the API. This means that you can drop in a newer version of the library and existing programs will continue to compile and existing binaries will continue to run.
+
+Once a function or constant has been added, the signature of that function or value of that constant will remain unchanged until the next major version of GLFW. No compatibility of any kind is guaranteed between major versions.
+
+Undocumented behavior, i.\+e. behavior that is not described in the documentation, may change at any time until it is documented.
+
+If the reference documentation and the implementation differ, the reference documentation will almost always take precedence and the implementation will be fixed in the next release. The reference documentation will also take precedence over anything stated in a guide.\hypertarget{intro_guide_event_order}{}\doxysubsection{Event order}\label{intro_guide_event_order}
+The order of arrival of related events is not guaranteed to be consistent across platforms. The exception is synthetic key and mouse button release events, which are always delivered after the window defocus event.\hypertarget{intro_guide_intro_version}{}\doxysection{Version management}\label{intro_guide_intro_version}
+GLFW provides mechanisms for identifying what version of GLFW your application was compiled against as well as what version it is currently running against. If you are loading GLFW dynamically (not just linking dynamically), you can use this to verify that the library binary is compatible with your application.\hypertarget{intro_guide_intro_version_compile}{}\doxysubsection{Compile-\/time version}\label{intro_guide_intro_version_compile}
+The compile-\/time version of GLFW is provided by the GLFW header with the {\ttfamily GLFW\+\_\+\+VERSION\+\_\+\+MAJOR}, {\ttfamily GLFW\+\_\+\+VERSION\+\_\+\+MINOR} and {\ttfamily GLFW\+\_\+\+VERSION\+\_\+\+REVISION} macros.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{printf(\textcolor{stringliteral}{"{}Compiled against GLFW \%i.\%i.\%i\(\backslash\)n"{}},}
+\DoxyCodeLine{       GLFW\_VERSION\_MAJOR,}
+\DoxyCodeLine{       GLFW\_VERSION\_MINOR,}
+\DoxyCodeLine{       GLFW\_VERSION\_REVISION);}
+
+\end{DoxyCode}
+\hypertarget{intro_guide_intro_version_runtime}{}\doxysubsection{Run-\/time version}\label{intro_guide_intro_version_runtime}
+The run-\/time version can be retrieved with glfw\+Get\+Version, a function that may be called regardless of whether GLFW is initialized.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{int} major, minor, revision;}
+\DoxyCodeLine{glfwGetVersion(\&major, \&minor, \&revision);}
+\DoxyCodeLine{}
+\DoxyCodeLine{printf(\textcolor{stringliteral}{"{}Running against GLFW \%i.\%i.\%i\(\backslash\)n"{}}, major, minor, revision);}
+
+\end{DoxyCode}
+\hypertarget{intro_guide_intro_version_string}{}\doxysubsection{Version string}\label{intro_guide_intro_version_string}
+GLFW 3 also provides a compile-\/time generated version string that describes the version, platform, compiler and any platform-\/specific compile-\/time options. This is primarily intended for submitting bug reports, to allow developers to see which code paths are enabled in a binary.
+
+The version string is returned by glfw\+Get\+Version\+String, a function that may be called regardless of whether GLFW is initialized.
+
+{\bfseries{Do not use the version string}} to parse the GLFW library version. The glfw\+Get\+Version function already provides the version of the running library binary.
+
+{\bfseries{Do not use the version string}} to parse what platforms are supported. The glfw\+Platform\+Supported function lets you query platform support.
+
+{\bfseries{GLFW 3.\+4\+:}} The format of this string was changed to support the addition of \mbox{\hyperlink{intro_guide_platform}{runtime platform selection}}.
+
+The format of the string is as follows\+:
+\begin{DoxyItemize}
+\item The version of GLFW
+\item For each supported platform\+:
+\begin{DoxyItemize}
+\item The name of the window system API
+\item The name of the window system specific context creation API, if applicable
+\end{DoxyItemize}
+\item The names of the always supported context creation APIs EGL and OSMesa
+\item Any additional compile-\/time options, APIs and (on Windows) what compiler was used
+\end{DoxyItemize}
+
+For example, compiling GLFW 3.\+4 with Min\+GW as a DLL for Windows, may result in a version string like this\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{3.4.0 Win32 WGL Null EGL OSMesa MinGW DLL}
+
+\end{DoxyCode}
+
+
+Compiling GLFW as a static library for Linux, with both Wayland and X11 enabled, may result in a version string like this\+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{3.4.0 Wayland X11 GLX Null EGL OSMesa monotonic}
+
+\end{DoxyCode}
+ 

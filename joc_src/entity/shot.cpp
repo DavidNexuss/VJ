@@ -1,5 +1,4 @@
 #include "shot.hpp"
-#include "device/shambhala_audio.hpp"
 #include "ext/math.hpp"
 #include "ext/util.hpp"
 #include "shambhala.hpp"
@@ -17,14 +16,6 @@ ShotComponent::ShotComponent() {
   node->transform(util::translate(-0.5, -0.5, 0.2));
   zIndex = 2;
   setName("ShotComponent");
-
-  laserStart = audio::createSoundMesh();
-  laserStart->soundResource.acquire(
-      audio::createSoundResource("joc2d/sound/laser_start.wav"));
-  laserEnd = audio::createSoundMesh();
-  laserEnd->soundResource.acquire(
-      audio::createSoundResource("joc2d/sound/laser_end.wav"));
-  soundNode = shambhala::createNode();
 }
 
 static int maximumShots = 500;
@@ -43,15 +34,6 @@ void ShotComponent::addShot(glm::vec2 position, glm::vec2 direction, int type,
     shots.removeNShift(0);
     shot_scale.removeNShift(0);
     shot_acceleration.removeNShift(0);
-  }
-
-  if (type == 0) {
-    soundNode->setOffset(glm::vec3(position, 0.0));
-    audio::SoundModel model;
-    model.mesh = laserStart;
-    model.node = soundNode;
-    model.pitch = startPitch;
-    model.play();
   }
 }
 
@@ -91,15 +73,6 @@ void ShotComponent::step(shambhala::StepInfo info) {
         if (!hit) {
           hitted.push_back(i);
           hit = true;
-        }
-
-        if (shots[i].type == 0) {
-          soundNode->setOffset(shot_positions[i]);
-          audio::SoundModel model;
-          model.mesh = laserStart;
-          model.node = soundNode;
-          model.pitch = endPitch;
-          model.play();
         }
       }
     }

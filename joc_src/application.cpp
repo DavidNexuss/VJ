@@ -1,9 +1,7 @@
 #include "application.hpp"
-#include "device/shambhala_audio.hpp"
 #include "ext/util.hpp"
 #include "ext/worldmat.hpp"
 #include <ext.hpp>
-#include <impl/audio_openal.hpp>
 #include <impl/logger.hpp>
 #include <impl/serialize.hpp>
 #include <shambhala.hpp>
@@ -45,7 +43,6 @@ void Joc::enginecreate() {
 #endif
   parameters.logger = new shambhala::DefaultLogger;
   parameters.serializer = new shambhala::StreamSerializer;
-  parameters.audio = new AudioOpenAL;
 
   parameters.io->translators.push_back("assets/%s");
   parameters.io->translators.push_back("internal_assets/%s");
@@ -97,7 +94,6 @@ void Joc::loop() {
   int frame = 0;
   do {
 
-    shambhala::audio::loop_stepAudio();
     shambhala::loop_begin();
     {
 
