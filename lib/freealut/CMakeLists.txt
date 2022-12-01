@@ -40,8 +40,7 @@ option(BUILD_USE_WERROR "enable fail on all warning" OFF)
 ###
 # Dependencies
 ###
-find_package(OpenAL REQUIRED)
-include_directories(${OPENAL_INCLUDE_DIR})
+include_directories(../openal-soft/include)
 
 ###
 # Checking for types
