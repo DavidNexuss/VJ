@@ -7,8 +7,6 @@ Resources/Nonfree
 os.Resources/
 
 # Compiled Object files
-*.make
-*.cmake
 *.slo
 *.lo
 *.o
