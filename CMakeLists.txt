@@ -17,7 +17,7 @@ add_subdirectory(lib/glfw)
 add_subdirectory(lib/glew)
 add_subdirectory(lib/glm)
 target_include_directories(shambhala PRIVATE include src)
-target_link_libraries(shambhala imgui imguiText stbimage lightmapper xatlas glfw glew glm)
+target_link_libraries(shambhala imgui imguiText stbimage lightmapper xatlas glfw glew glm -static-libgcc -static-libstdc++)
 # add_executable(main main.cpp)
 # target_link_libraries(main shambhala stbimage GL GLEW glfw assimp)
 
@@ -31,7 +31,7 @@ target_link_libraries(joc shambhala GL)
 
 add_executable(joc_final ${JOC})
 target_compile_definitions(joc_final PUBLIC GLFW)
-target_link_libraries(joc_final shambhala GL)
+target_link_libraries(joc_final shambhala GL  -static-libgcc -static-libstdc++)
 
 set(CMAKE_CXX_FLAGS "-O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3" )

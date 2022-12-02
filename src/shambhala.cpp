@@ -1320,7 +1320,7 @@ void *shambhala::createWindow(const WindowConfiguration &configuration) {
 }
 void shambhala::setActiveWindow(void *window) {
   viewport()->setActiveWindow(window);
-  viewport()->imguiInit(4, 2);
+  viewport()->imguiInit(3, 3);
 }
 
 void shambhala::addModel(Model *model) { getWorkingModelList()->add(model); }

@@ -55,8 +55,8 @@ void Joc::enginecreate() {
   configuration.width = 800;
   configuration.height = 600;
   configuration.mssaLevel = 4;
-  configuration.openglMajorVersion = 4;
-  configuration.openglMinorVersion = 3;
+  configuration.openglMajorVersion = 3;
+  configuration.openglMinorVersion = 2;
 
   shambhala::setActiveWindow(shambhala::createWindow(configuration));
 

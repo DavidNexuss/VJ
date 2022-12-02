@@ -92,6 +92,10 @@ bool ViewportGLFW::shouldClose() {
   return glfwWindowShouldClose(currentWindow);
 }
 
+void errorCallback(int code, const char *msg) {
+  printf("GLFW error: %d %s \n", code, msg);
+}
+
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -138,9 +142,10 @@ void *ViewportGLFW::createWindow(const WindowConfiguration &configuration) {
 
   if (!glfwInit()) {
     cerr << "[ERROR] Could not initialize GLFW" << endl;
+    glfwTerminate();
     return nullptr;
   }
-
+  glfwSetErrorCallback(errorCallback);
   glfwWindowHint(GLFW_SAMPLES, configuration.mssaLevel);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, configuration.openglMajorVersion);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, configuration.openglMinorVersion);
