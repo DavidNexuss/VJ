@@ -1,6 +1,7 @@
 #pragma once
 #include "texture.hpp"
 #include <adapters/video.hpp>
+#include <glm/glm.hpp>
 
 enum FrameBufferDescriptorFlags {
   FRAME_BUFFER_NULL = 0,
@@ -13,8 +14,8 @@ enum FrameBufferDescriptorFlags {
 };
 
 struct FrameBufferAttachmentDefinition {
-  shambhala::video::TextureDesc desc;
-  shambhala::video::TextureFormat format;
+  video::TextureDesc desc;
+  video::TextureFormat format;
 };
 
 ENUM_OPERATORS(FrameBufferDescriptorFlags)
@@ -59,7 +60,7 @@ public:
   FrameBufferOutput *getOutputTexture(int index);
   GLuint getOutputAttachment(int index);
   void addOutputAttachment(FrameBufferAttachmentDefinition def);
-  void addOutput(shambhala::video::TextureFormat format);
+  void addOutput(video::TextureFormat format);
 
   void begin(int width, int height);
   void begin();

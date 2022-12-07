@@ -1,6 +1,7 @@
 #pragma once
 #include "core/core.hpp"
 #include "standard.hpp"
+#include <glm/glm.hpp>
 #include <string>
 
 namespace video {

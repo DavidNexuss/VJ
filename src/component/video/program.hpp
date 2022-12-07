@@ -1,4 +1,3 @@
-#include "core/resource.hpp"
 #include "material.hpp"
 #include <adapters/video.hpp>
 

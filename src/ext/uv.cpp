@@ -1,5 +1,4 @@
 #include "uv.hpp"
-#include <shambhala.hpp>
 #include <xatlas/xatlas.hpp>
 
 using namespace shambhala;
@@ -7,8 +6,7 @@ using namespace shambhala;
 xatlas::MeshDecl getMeshDeclaration(Mesh *mesh) {
   xatlas::MeshDecl meshDecl;
 
-  meshDecl.vertexCount =
-      mesh->vbo->vertexBuffer.size() / mesh->vbo->vertexSize();
+  meshDecl.vertexCount = mesh->vertexCount();
 
   {
     VertexAttribute positionAttribute = mesh->getAttribute(Standard::aPosition);

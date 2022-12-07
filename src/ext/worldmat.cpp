@@ -80,9 +80,9 @@ static glm::vec3 createViewDir(float a, float b) {
   return viewDir;
 }
 
-DebugCamera::DebugCamera() { hint_is_material = this; }
+DebugCamera::DebugCamera() {}
 void DebugCamera::step(StepInfo info) {
-  float deltatime = viewport::;
+  float deltatime = viewport::getDeltaTime();
   time += deltatime;
 
   constexpr static float aproxTime = 0.4f;
@@ -103,51 +103,51 @@ void DebugCamera::step(StepInfo info) {
     lastBeta = 0.0f;
   };
 
-  if (viewport()->isKeyJustPressed(KEY_KP_1)) {
+  if (viewport::isKeyJustPressed(KEY_KP_1)) {
     setDir(0.0f, 0.0f);
   }
 
-  if (viewport()->isKeyJustPressed(KEY_KP_3)) {
+  if (viewport::isKeyJustPressed(KEY_KP_3)) {
     setDir(M_PI, 0.0f);
   }
 
-  if (viewport()->isKeyJustPressed(KEY_KP_4)) {
+  if (viewport::isKeyJustPressed(KEY_KP_4)) {
     setDir(M_PI * 0.5f, 0.0f);
   }
 
-  if (viewport()->isKeyJustPressed(KEY_KP_6)) {
+  if (viewport::isKeyJustPressed(KEY_KP_6)) {
     setDir(-M_PI * 0.5f, 0.0f);
   }
 
-  if (viewport()->isKeyJustPressed(KEY_KP_7)) {
+  if (viewport::isKeyJustPressed(KEY_KP_7)) {
     setDir(M_PI * 0.5f, -M_PI * 0.5f);
   }
 
-  if (viewport()->isKeyJustPressed(KEY_KP_9)) {
+  if (viewport::isKeyJustPressed(KEY_KP_9)) {
     setDir(M_PI * 0.5f, M_PI * 0.5f);
   }
 
   // Mouse input
-  if (shambhala::input_mouse_free()) {
-    bool mousePressed = viewport()->isMousePressed();
-    bool middleMousePressed = viewport()->isMiddleMousePressed();
+  if (viewport::input_mouse_free()) {
+    bool mousePressed = viewport::isMousePressed();
+    bool middleMousePressed = viewport::isMiddleMousePressed();
 
     distance +=
-        viewport()->getScrolllY() * std::max(std::abs(distance * 0.05), 0.1);
+        viewport::getScrolllY() * std::max(std::abs(distance * 0.05), 0.1);
 
     if (mousePressed) {
       if (!pressed) {
         pressed = true;
-        cursorStartx = viewport()->getX();
-        cursorStarty = viewport()->getY();
+        cursorStartx = viewport::getX();
+        cursorStarty = viewport::getY();
       }
 
       lastAlpha =
-          ((viewport()->getX() - cursorStartx) / viewport()->getScreenWidth()) *
+          ((viewport::getX() - cursorStartx) / viewport::getScreenWidth()) *
           M_PI * 2.0;
-      lastBeta = ((viewport()->getY() - cursorStarty) /
-                  viewport()->getScreenHeight()) *
-                 M_PI * 2.0;
+      lastBeta =
+          ((viewport::getY() - cursorStarty) / viewport::getScreenHeight()) *
+          M_PI * 2.0;
     }
     if (!mousePressed && pressed) {
       pressed = false;
@@ -165,21 +165,21 @@ void DebugCamera::step(StepInfo info) {
     if (middleMousePressed) {
       if (!middlepressed) {
         middlepressed = true;
-        cursorStartx = viewport()->getX();
-        cursorStarty = viewport()->getY();
+        cursorStartx = viewport::getX();
+        cursorStarty = viewport::getY();
         lastTarget = nextTarget;
       }
 
-      moveDirection = glm::vec2(cursorStartx - viewport()->getX(),
-                                viewport()->getY() - cursorStarty) /
-                      glm::vec2(viewport()->getScreenWidth(),
-                                viewport()->getScreenHeight());
+      moveDirection =
+          glm::vec2(cursorStartx - viewport::getX(),
+                    viewport::getY() - cursorStarty) /
+          glm::vec2(viewport::getScreenWidth(), viewport::getScreenHeight());
     } else {
-      moveDirection.x += viewport()->isKeyPressed(KEY_D) * deltatime * 0.4;
-      moveDirection.y += viewport()->isKeyPressed(KEY_W) * deltatime * 0.4;
+      moveDirection.x += viewport::isKeyPressed(KEY_D) * deltatime * 0.4;
+      moveDirection.y += viewport::isKeyPressed(KEY_W) * deltatime * 0.4;
 
-      moveDirection.x -= viewport()->isKeyPressed(KEY_A) * deltatime * 0.4;
-      moveDirection.y -= viewport()->isKeyPressed(KEY_S) * deltatime * 0.4;
+      moveDirection.x -= viewport::isKeyPressed(KEY_A) * deltatime * 0.4;
+      moveDirection.y -= viewport::isKeyPressed(KEY_S) * deltatime * 0.4;
       lastTarget = nextTarget;
     }
 
@@ -213,8 +213,8 @@ void DebugCamera::step(StepInfo info) {
 }
 
 void Camera2D::step(StepInfo info) {
-  float width = shambhala::viewport()->getScreenWidth() * 0.5;
-  float height = shambhala::viewport()->getScreenHeight() * 0.5;
+  float width = viewport::getScreenWidth() * 0.5;
+  float height = viewport::getScreenHeight() * 0.5;
 
   width /= 500.0f;
   height /= 500.0f;
@@ -225,11 +225,8 @@ void Camera2D::step(StepInfo info) {
                                  zoom * height, -1.0f, 1.0f));
 }
 
-Clock::Clock() {
-  hint_is_material = this;
-  set("uTime", 0.0f);
-}
+Clock::Clock() { set("uTime", 0.0f); }
 void Clock::step(StepInfo info) {
-  globalTime += viewport()->deltaTime;
+  globalTime += viewport::getDeltaTime();
   set("uTime", globalTime);
 }

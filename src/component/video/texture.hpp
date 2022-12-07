@@ -1,4 +1,5 @@
 #pragma once
+#include <adapters/io.hpp>
 #include <adapters/video.hpp>
 
 struct ITexture {
@@ -28,3 +29,9 @@ struct Texture : public ITexture, video::TextureDesc {
 private:
   GLuint gl_textureID = -1;
 };
+
+namespace resource {
+
+TextureResource *stbiTextureMemory(MemoryResource *memoryResource);
+TextureResource *stbiTextureFile(const std::string &path, int desiredChannels);
+} // namespace resource

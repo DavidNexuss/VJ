@@ -1,9 +1,7 @@
 #include "io.hpp"
-#include "shambhala.hpp"
 #include <adapters/log.hpp>
 
-using namespace shambhala;
-void shambhala::IIO::freeFile(MemoryResource *resource) {
+void io::freeFile(MemoryResource *resource) {
   resource->useCount--;
   if (resource->useCount < 1) {
     eraseFile(resource->resourcename);
@@ -11,9 +9,9 @@ void shambhala::IIO::freeFile(MemoryResource *resource) {
 }
 
 // TODO: Fix something
-// std::string shambhala::IIO::findFile(const std::string &path) {}
+// std::string io::findFile(const std::string &path) {}
 
-MemoryResource *shambhala::IIO::readFile(const std::string &path) {
+MemoryResource *io::readFile(const std::string &path) {
   LOG("Reading %s:", path.c_str());
   auto it = cachedBuffers.find(path);
   if (it != cachedBuffers.end()) {
@@ -55,33 +53,28 @@ MemoryResource *shambhala::IIO::readFile(const std::string &path) {
 
   return buff;
 }
-void shambhala::IIO::writeFile(MemoryResource *resource) {
+void io::writeFile(MemoryResource *resource) {
   LOG("[IO] Writing resource %s to disk\n", resource->resourcename.c_str());
   internal_writeFile(resource->resourcename, resource->buffer);
 }
 
-void shambhala::IIO::eraseFile(const std::string &name) {
-  cachedBuffers.erase(name);
-}
-void shambhala::IIO::insertFile(const std::string &name,
-                                MemoryResource resource) {
+void io::eraseFile(const std::string &name) { cachedBuffers.erase(name); }
+void io::insertFile(const std::string &name, MemoryResource resource) {
 
   auto it = cachedBuffers.insert({name, resource});
   addWatch(name, &it.first->second);
 }
 
-void shambhala::IIO::addWatch(const std::string &name,
-                              MemoryResource *resource) {}
+void io::addWatch(const std::string &name, MemoryResource *resource) {}
 
 #include <fstream>
-void shambhala::IIO::internal_writeFile(const std::string &name,
-                                        io_buffer buffer) {
+void io::internal_writeFile(const std::string &name, io_buffer buffer) {
   std::ofstream file(name);
   file.write((const char *)buffer.data, buffer.length);
   file.close();
 }
 //------------------[FILE WATCHER]
-void shambhala::IIO::filewatchMonitor() {}
+void io::filewatchMonitor() {}
 
 //------------------[MEMORY RESOURCE]
 

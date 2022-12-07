@@ -40,6 +40,8 @@ struct IndexBuffer : public DriverBuffer {
 struct Mesh {
 
   int vertexCount();
+  int indexCount();
+
   void use();
 
   static Mesh *create(VertexBuffer *vbo, IndexBuffer *ebo);

@@ -19,14 +19,12 @@ struct Engine {
 
   void stepComponent();
   void stepAudio();
+  void stepPollEvents();
 
   void beginRenderContext();
   void beginUIRenderContext();
   void endUIRenderContext();
   void endRenderContext();
-
-  void stepPollEvents();
-  void renderScene();
 };
 
 Engine *createEngine();

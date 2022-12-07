@@ -1,28 +1,22 @@
 #include "rendercamera.hpp"
-#include "resource.hpp"
-#include "shambhala.hpp"
-#include "util.hpp"
 #include <standard.hpp>
 
-using namespace shambhala;
 using namespace rendercamera;
-namespace shambhala {
 RenderCamera *rendercamera::createDefferedPass() {
-  RenderCamera *deferredPipeline = shambhala::createRenderCamera();
+  RenderCamera *deferredPipeline = RenderCamera::create();
   deferredPipeline->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});   // ALBEDO
   deferredPipeline->addOutput({GL_RGB, GL_RGB, GL_FLOAT});           // NORMAL
   deferredPipeline->addOutput({GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE}); // ESP
-  deferredPipeline->setConfiguration(shambhala::USE_DEPTH);
+  deferredPipeline->setConfiguration(USE_DEPTH);
   return deferredPipeline;
 }
 
 RenderCamera *rendercamera::createForwardPass() {
 
-  RenderCamera *pbrPass = shambhala::createRenderCamera();
+  RenderCamera *pbrPass = RenderCamera::create();
   pbrPass->addOutput({GL_RGB, GL_RGB, GL_FLOAT});
   pbrPass->addOutput({GL_RGB, GL_RGB, GL_FLOAT});
-  pbrPass->setConfiguration(shambhala::USE_RENDER_BUFFER |
-                            shambhala::USE_DEPTH);
+  pbrPass->setConfiguration(USE_RENDER_BUFFER | USE_DEPTH);
   return pbrPass;
 }
 
@@ -57,4 +51,3 @@ RenderCamera *rendercamera::createBlendPass(RenderCamera *pbrPass) {
   blendPass->addOutput({GL_RGB, GL_RGB, GL_UNSIGNED_BYTE});
   return blendPass;
 }
-} // namespace shambhala

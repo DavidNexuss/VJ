@@ -1,6 +1,5 @@
 #include "vertexPool.hpp"
 #include <glm/glm.hpp>
-#include <shambhala.hpp>
 
 struct SpriteBatch;
 struct Sprite {

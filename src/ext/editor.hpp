@@ -1,6 +1,4 @@
-#include <shambhala.hpp>
 #include <string>
-namespace shambhala {
 namespace editor {
 void addEditorTab(RenderCamera *renderCamera, RenderShot shot,
                   const std::string &name);
@@ -21,4 +19,3 @@ void textEditor(ResourceHandler handler, const char *windowName);
 void materialEditor(Material *material);
 int selectableList(simple_vector<std::string> &list, int last_selected);
 } // namespace gui
-} // namespace shambhala

@@ -1,5 +1,6 @@
 #include "framebuffer.hpp"
-using namespace shambhala;
+#include "adapters/video.hpp"
+#include "adapters/viewport.hpp"
 
 FrameBuffer::FrameBuffer() { clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0); }
 GLuint FrameBufferOutput::gl() {
@@ -102,23 +103,23 @@ void FrameBuffer::begin() { begin(desiredWidth, desiredHeight); }
 void FrameBuffer::begin(int screenWidth, int screenHeight) {
 
   if (screenWidth < 0)
-    screenWidth = viewport()->getScreenWidth() / -desiredWidth;
+    screenWidth = viewport::getScreenWidth() / -desiredWidth;
   if (screenHeight < 0)
-    screenHeight = viewport()->getScreenHeight() / -desiredHeight;
+    screenHeight = viewport::getScreenHeight() / -desiredHeight;
 
   resize(screenWidth, screenHeight);
   video::bindFrameBuffer(gl_framebuffer);
   video::set(video::SH_CLEAR_COLOR, clearColor);
   video::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  shambhala::viewport()->fakeViewportSize(screenWidth, screenHeight);
-  shambhala::updateViewport();
+  viewport::pushViewport(screenWidth, screenHeight);
+  video::setViewport(viewport::getWidth(), viewport::getHeight());
 }
 
 void FrameBuffer::end() {
   video::bindFrameBuffer(0);
-  shambhala::viewport()->restoreViewport();
-  shambhala::updateViewport();
+  viewport::popViewport();
+  video::setViewport(viewport::getWidth(), viewport::getHeight());
 }
 
 void FrameBuffer::addOutput(video::TextureFormat format) {

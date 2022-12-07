@@ -18,8 +18,7 @@ struct ModelConfiguration {
   uint32_t skipRenderMask = 0;
 };
 
-struct Model : public ModelConfiguration,
-               public shambhala::video::DrawCallArgs {
+struct Model : public ModelConfiguration, public video::DrawCallArgs {
   Program *program = nullptr;
   Mesh *mesh = nullptr;
   Material *material = nullptr;
@@ -41,3 +40,4 @@ struct Model : public ModelConfiguration,
   Node *getNode();
   void setNode(Node *node);
 };
+using ModelList = std::vector<Model *>;

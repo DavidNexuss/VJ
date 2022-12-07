@@ -1,5 +1,5 @@
 #ifndef WIN32
-#include "io_linux.hpp"
+#include <adapters/io.hpp>
 #include <adapters/log.hpp>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -12,7 +12,7 @@ static int getFileSize(const char *path) {
   return st.st_size * (ret == 0);
 }
 
-io_buffer shambhala::LinuxIO::internal_readFile(const std::string &path_s) {
+io_buffer io::internal_readFile(const std::string &path_s) {
 
   const char *path = path_s.c_str();
   int fileSize = getFileSize(path);
@@ -30,5 +30,5 @@ io_buffer shambhala::LinuxIO::internal_readFile(const std::string &path_s) {
   return {fileBuffer, fileSize};
 }
 
-void shambhala::LinuxIO::internal_freeFile(uint8_t *buffer) { delete[] buffer; }
+void internal_freeFile(uint8_t *buffer) { delete[] buffer; }
 #endif

@@ -12,6 +12,7 @@ struct WindowConfiguration {
 };
 namespace viewport {
 
+float getDeltaTime();
 float aspectRatio();
 bool isKeyPressed(int keyCode);
 bool isKeyJustPressed(int keyCode);

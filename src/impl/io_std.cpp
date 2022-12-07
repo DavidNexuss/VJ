@@ -1,8 +1,8 @@
-#include "io_std.hpp"
+#include <adapters/io.hpp>
 #include <fstream>
 #include <sstream>
 
-io_buffer shambhala::STDIO::internal_readFile(const std::string &path) {
+io_buffer io::internal_readFile(const std::string &path) {
   std::ifstream input(path);
 
   if (input) {
@@ -22,4 +22,4 @@ io_buffer shambhala::STDIO::internal_readFile(const std::string &path) {
     return io_buffer();
   }
 }
-void shambhala::STDIO::internal_freeFile(uint8_t *buffer) { delete[] buffer; }
+void io::internal_freeFile(uint8_t *buffer) { delete[] buffer; }

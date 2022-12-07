@@ -1,5 +1,5 @@
-#include "shambhala.hpp"
 #include "spriteBatch.hpp"
+#include <component/video/texture.hpp>
 #include <unordered_map>
 
 struct Font {
@@ -13,11 +13,11 @@ struct Font {
   Font(const char *path, int size);
 
   inline const Character &getCharacter(char c) { return characters[c]; }
-  inline shambhala::Texture *getTexture() { return glyph; }
+  inline Texture *getTexture() { return glyph; }
 
 private:
   std::vector<Character> characters;
-  shambhala::Texture *glyph;
+  Texture *glyph;
   bool errored = false;
 };
 
