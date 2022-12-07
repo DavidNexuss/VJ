@@ -2,11 +2,10 @@
 using namespace shambhala;
 using namespace shambhala::video;
 
-video::BufferUploadDesc video::descUpload(simple_vector_span span,
-                                          GLuint buffer) {
+video::BufferUploadDesc video::descUpload(span span, GLuint buffer) {
   BufferUploadDesc desc;
-  desc.buffer = span.data;
-  desc.size = span._size;
+  desc.buffer = span.buffer;
+  desc.size = span.count;
   desc.id = buffer;
   desc.start = 0;
   return desc;

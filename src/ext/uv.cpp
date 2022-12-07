@@ -1,5 +1,4 @@
 #include "uv.hpp"
-#include "simple_vector.hpp"
 #include <shambhala.hpp>
 #include <xatlas/xatlas.hpp>
 
@@ -40,7 +39,7 @@ xatlas::MeshDecl getMeshDeclaration(Mesh *mesh) {
   return meshDecl;
 }
 
-simple_vector<float> generateFromAtlas(xatlas::Atlas *atlas) {
+std::vector<float> generateFromAtlas(xatlas::Atlas *atlas) {
 
   int count = 0;
   for (int i = 0; i < atlas->meshCount; i++) {
@@ -48,7 +47,7 @@ simple_vector<float> generateFromAtlas(xatlas::Atlas *atlas) {
     count += mesh.vertexCount;
   }
 
-  simple_vector<float> uvbuffer(count * 2);
+  std::vector<float> uvbuffer(count * 2);
   for (int i = 0; i < atlas->meshCount; i++) {
     const xatlas::Mesh &mesh = atlas->meshes[i];
     int offset = 0;
@@ -60,7 +59,7 @@ simple_vector<float> generateFromAtlas(xatlas::Atlas *atlas) {
   }
   return uvbuffer;
 }
-simple_vector<float> shambhala::ui::generateUVMap(Mesh **meshes, int count) {
+std::vector<float> shambhala::ui::generateUVMap(Mesh **meshes, int count) {
 
   xatlas::Atlas *atlas = xatlas::Create();
   for (int i = 0; i < count; i++) {

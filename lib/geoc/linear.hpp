@@ -1,24 +1,19 @@
 #pragma once
 #include <array>
+#include <glm/mat3x3.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
 namespace geoc {
-struct vec2 {
-  float x;
-  float y;
-};
-
-struct vec3 {
-  float x, y, z;
-};
-
-struct vec4 {
-  float x, y, z, w;
-};
-
+using vec2 = glm::vec2;
+using vec3 = glm::vec3;
+using vec4 = glm::vec4;
+using mat2 = glm::mat2;
+using mat3 = glm::mat3;
+using mat4 = glm::mat4;
 using vec = vec3;
-
-using mat2 = std::array<vec2, 2>;
-using mat3 = std::array<vec3, 3>;
-using mat4 = std::array<vec4, 4>;
 
 vec2 norm(vec2);
 vec2 cross(vec2);

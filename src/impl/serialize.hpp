@@ -1,5 +1,6 @@
 #include <adapters/serialize.hpp>
 #include <unordered_map>
+#include <vector>
 
 namespace shambhala {
 struct StreamSerializer : public ISerializer {
@@ -24,7 +25,7 @@ private:
   };
 
   struct DeserializeState {
-    simple_vector<DeserializedData> data;
+    std::vector<DeserializedData> data;
     std::unordered_map<std::string, int> keysToData;
   };
   DeserializeState deserializeState;

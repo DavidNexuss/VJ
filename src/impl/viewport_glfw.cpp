@@ -1,51 +1,46 @@
-#include "shambhala.hpp"
 #include <string>
 #define GLFW_STATIC
-#include "viewport_glfw.hpp"
-#include <GL/glew.h>
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+// Some includes
+
 #include <GLFW/glfw3.h>
+#include <adapters/viewport.hpp>
 #include <iostream>
 #include <unordered_map>
-
 using namespace shambhala;
+
 using Window = GLFWwindow;
-
-static ViewportGLFW *currentViewport;
-static Window *currentWindow;
-
-ViewportGLFW::ViewportGLFW() {
-  screenWidth = 800;
-  screenHeight = 600;
-  deltaTime = 0.1;
-  mousePressed = false;
-}
+static GLFWwindow *currentWindow;
 
 void cursor_position_callback(Window *window, double x, double y) {
-  if (!currentViewport->isInputEnabled())
+  if (!viewport::isInputEnabled())
     return;
 
-  currentViewport->setX(x);
-  currentViewport->setY(y);
+  viewport::setX(x);
+  viewport::setY(y);
 }
 
 void framebuffer_size_callback(Window *window, int width, int height) {
-  currentViewport->setWidth(width);
-  currentViewport->setHeight(height);
+  viewport::setScreenWidth(width);
+  viewport::setScreenHeight(height);
 }
 
 void scroll_callback(Window *window, double xoffset, double yoffset) {
-  currentViewport->setScrollX(xoffset);
-  currentViewport->setScrollY(yoffset);
+  viewport::setScrollX(xoffset);
+  viewport::setScrollY(yoffset);
 }
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action,
                   int mods) {
   bool pressed = action == GLFW_PRESS || action == GLFW_REPEAT;
   if (pressed) {
-    currentViewport->setKeyPressed(key, true);
+    viewport::setKeyPressed(key, true);
   }
   if (action == GLFW_RELEASE) {
-    currentViewport->setKeyPressed(key, false);
+    viewport::setKeyPressed(key, false);
   }
 }
 
@@ -53,54 +48,42 @@ void mouse_button_callback(GLFWwindow *window, int button, int action,
                            int mods) {
 
   if (button == GLFW_MOUSE_BUTTON_LEFT)
-    currentViewport->mousePressed = action == GLFW_PRESS;
+    viewport::setMousePressed(action == GLFW_PRESS);
 
   if (button == GLFW_MOUSE_BUTTON_MIDDLE)
-    currentViewport->middleMousePressed = action == GLFW_PRESS;
+    viewport::setMiddlePressed(action == GLFW_PRESS);
 
   if (button == GLFW_MOUSE_BUTTON_RIGHT)
-    currentViewport->rightMousePressed = action == GLFW_PRESS;
+    viewport::setRightPressed(action == GLFW_PRESS);
 }
 
-void ViewportGLFW::setActiveWindow(void *udata) {
+void viewport::setActiveWindow(void *udata) {
   GLFWwindow *window = (GLFWwindow *)udata;
   glfwSetCursorPosCallback(window, cursor_position_callback);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetScrollCallback(window, scroll_callback);
   glfwSetKeyCallback(window, key_callback);
   glfwSetMouseButtonCallback(window, mouse_button_callback);
-  currentViewport = this;
   currentWindow = window;
 }
 
-void ViewportGLFW::hideMouse(bool hide) {
+void viewport::hideMouse(bool hide) {
   glfwSetInputMode(currentWindow, GLFW_CURSOR,
                    hide ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 }
 
-void ViewportGLFW::dispatchRenderEvents() {
+void viewport::dispatchRenderEvents() {
   glfwSwapBuffers(currentWindow);
   glfwPollEvents();
-
-  /*
-  float currentFrame = glfwGetTime();
-  deltaTime = (currentFrame - last_time) * 10.0f;
-  last_time = currentFrame; */
 }
 
-bool ViewportGLFW::shouldClose() {
-  return glfwWindowShouldClose(currentWindow);
-}
+bool viewport::shouldClose() { return glfwWindowShouldClose(currentWindow); }
 
 void errorCallback(int code, const char *msg) {
   printf("GLFW error: %d %s \n", code, msg);
 }
 
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-
-void ViewportGLFW::imguiInit(int openglMajorVersion, int openglMinorVersion) {
+void viewport::imguiInit(int openglMajorVersion, int openglMinorVersion) {
 
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
@@ -120,25 +103,26 @@ void ViewportGLFW::imguiInit(int openglMajorVersion, int openglMinorVersion) {
                         std::to_string(openglMinorVersion) + "0 ";
   ImGui_ImplOpenGL3_Init(version.c_str());
 }
-void ViewportGLFW::imguiDispose() {
+void viewport::imguiDispose() {
 
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 }
-void ViewportGLFW::imguiBeginRender() {
+void viewport::imguiBeginRender() {
 
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 }
-void ViewportGLFW::imguiEndRender() {
+void viewport::imguiEndRender() {
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 using namespace std;
-void *ViewportGLFW::createWindow(const WindowConfiguration &configuration) {
+
+void *viewport::createWindow(const WindowConfiguration &configuration) {
 
   if (!glfwInit()) {
     cerr << "[ERROR] Could not initialize GLFW" << endl;

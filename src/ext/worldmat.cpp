@@ -1,15 +1,7 @@
-
 #include "worldmat.hpp"
-#include "shambhala.hpp"
+#include <adapters/viewport.hpp>
 #include <glm/ext.hpp>
-#include <glm/ext/matrix_transform.hpp>
-#include <standard.hpp>
-
-using namespace glm;
-using namespace std;
-using namespace shambhala;
-using namespace shambhala::worldmats;
-
+using namespace worldmats;
 SimpleCamera::SimpleCamera() { hint_isCamera = true; }
 
 void SimpleCamera::setViewMatrix(const glm::mat4 &viewMatrix) {
@@ -50,14 +42,14 @@ glm::mat4 Camera::createProjectionMatrix() {
 
   if (useZoom) {
     const auto deltaTime = 0.1f;
-    zoomSpeed += viewport()->getScrolllY() * deltaTime;
+    zoomSpeed += viewport::getScrolllY() * deltaTime;
     zoomFactor -= zoomSpeed * deltaTime;
     zoomSpeed -= zoomSpeed * deltaTime * zoomDamping;
     zoomFactor = std::max(zoomFactor, 0.0f);
   }
   return glm::perspective(glm::radians(fov * zoom),
-                          float(shambhala::viewport()->getScreenWidth()) /
-                              float(shambhala::viewport()->getScreenHeight()),
+                          float(viewport::getScreenWidth()) /
+                              float(viewport::getScreenHeight()),
                           zNear, zFar);
 }
 glm::mat4 Camera::createOrthoMatrix() {
@@ -90,7 +82,7 @@ static glm::vec3 createViewDir(float a, float b) {
 
 DebugCamera::DebugCamera() { hint_is_material = this; }
 void DebugCamera::step(StepInfo info) {
-  float deltatime = viewport()->deltaTime;
+  float deltatime = viewport::;
   time += deltatime;
 
   constexpr static float aproxTime = 0.4f;

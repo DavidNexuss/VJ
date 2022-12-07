@@ -1,5 +1,4 @@
 #pragma once
-namespace shambhala {
 struct ILogger {
   virtual void log(const char *msg, int level = 0) = 0;
   virtual void registerEvent(const char *type, int count = 1) = 0;
@@ -9,7 +8,6 @@ struct ILogger {
 
 ILogger *log();
 extern char *logbuffer;
-} // namespace shambhala
 
 #include <string.h>
 #define __FILENAME__                                                           \

@@ -3,8 +3,6 @@
 #include "adapters/video.hpp"
 #include "core/core.hpp"
 #include "core/resource.hpp"
-#include "ext/math.hpp"
-#include "simple_vector.hpp"
 #include "standard.hpp"
 #include <algorithm>
 #include <cstdio>
@@ -26,9 +24,9 @@ struct Engine : public SelectionHint {
   EngineControllers controllers;
 
   // Global State
-  simple_vector<ModelList *> workingLists;
-  simple_vector<Material *> materialsStack;
-  simple_vector<LogicComponent *> components;
+  std::vector<ModelList *> workingLists;
+  std::vector<Material *> materialsStack;
+  std::vector<LogicComponent *> components;
 
   // Root configuration
   Material *wCamera;
@@ -62,76 +60,6 @@ struct Engine : public SelectionHint {
 static Engine engine;
 //---------------------[BEGIN NODE]
 
-Node::Node() { clean = false; }
-
-void Node::setDirty() {
-  clean = false;
-  enableclean = false;
-  for (Node *child : children) {
-    child->setDirty();
-  }
-}
-void Node::addChildNode(Node *childNode) {
-  children.push_back(childNode);
-  childNode->setDirty();
-}
-void Node::setParentNode(Node *parentNode) {
-  if (this->parentNode) {
-    this->parentNode->children.remove(this);
-  }
-  this->parentNode = parentNode;
-  parentNode->addChildNode(this);
-}
-
-void Node::setOffset(glm::vec3 offset) {
-  transformMatrix[3] = glm::vec4(offset, 1.0);
-  setDirty();
-}
-void Node::setTransformMatrix(const glm::mat4 &newVal) {
-  transformMatrix = newVal;
-  setDirty();
-}
-
-void Node::transform(const glm::mat4 &newval) {
-  glm::mat4 oldMatrix = getTransformMatrix();
-  setTransformMatrix(newval * oldMatrix);
-}
-
-const glm::mat4 &Node::getTransformMatrix() const { return transformMatrix; }
-
-const glm::mat4 &Node::getCombinedMatrix() const {
-  if (clean)
-    return combinedMatrix;
-  clean = true;
-  if (parentNode != nullptr)
-    return combinedMatrix = parentNode->getCombinedMatrix() * transformMatrix;
-  else
-    return combinedMatrix = transformMatrix;
-}
-
-void Node::bind(Program *activeProgram) {
-  activeProgram->bind(Standard::uTransformMatrix, Uniform(getCombinedMatrix()));
-}
-
-bool Node::isEnabled() {
-  if (enableclean)
-    return cachedenabled;
-
-  enableclean = true;
-  if (!enabled)
-    return cachedenabled = false;
-  if (parentNode == nullptr)
-    return cachedenabled = true;
-  return cachedenabled = parentNode->isEnabled();
-}
-
-void Node::setEnabled(bool pEnable) {
-  enabled = pEnable;
-  setDirty();
-}
-
-//---------------------[END NODE]
-//-----------------------[BEGIN UNIFORM]
 bool Uniform::bind(GLuint program, GLuint glUniformID) const {
 
   // TODO: This switch should be deleted...
@@ -197,15 +125,6 @@ bool Uniform::bind(GLuint program, GLuint glUniformID) const {
   }
 
   return true;
-}
-int VertexBuffer::vertexSize() const {
-  if (_vertexsize != -1)
-    return _vertexsize;
-  int vs = 0;
-  for (int i = 0; i < attributes.size(); i++) {
-    vs += attributes[i].size;
-  }
-  return _vertexsize = vs * sizeof(float);
 }
 //--------------------------[END COMPILE]
 
@@ -370,91 +289,6 @@ void Program::bind(Material *mat) {
   }
 }
 
-void IndexBuffer::use() {
-
-  if (this == guseState.currentIndexBuffer)
-    return;
-
-  guseState.currentIndexBuffer = this;
-
-  if (indexBuffer.size() == 0)
-    return;
-
-  if (gl_ebo == -1) {
-    gl_ebo = video::createBuffer({GL_ELEMENT_ARRAY_BUFFER});
-  }
-
-  if (needsUpdate()) {
-
-    video::uploadBuffer(video::descUpload(indexBuffer.span(), gl_ebo));
-    signalAck();
-  }
-
-  video::bindBuffer(gl_ebo);
-}
-
-void VertexBuffer::use() {
-
-  // Skip if buffer is already bound and updated
-  if (this == guseState.currentVertexBuffer && !needsUpdate())
-    return;
-
-  guseState.currentVertexBuffer = this;
-
-  SoftCheck(vertexBuffer.size() > 0, { LOG("Vertex buffer empty!\n", 0); });
-
-  if (vertexBuffer.size() == 0)
-    return;
-
-  if (gl_vbo == -1) {
-    gl_vbo = video::createBuffer({GL_ARRAY_BUFFER});
-  }
-
-  // Create vertexBuffer
-  if (needsUpdate()) {
-    video::uploadBuffer(video::descUpload(vertexBuffer.span(), gl_vbo));
-    signalAck();
-  }
-
-  video::bindBuffer(gl_vbo);
-
-  // Bind attributes
-  SoftCheck(attributes.size() != 0, {
-    LOG("[Warning] Vertexbuffer with not attributes! %d",
-        (int)attributes.size());
-  });
-  int offset = 0;
-  int stride = vertexSize();
-  for (int i = 0; i < attributes.size(); i++) {
-    int index = attributes[i].index;
-    int divisor = attributes[i].attributeDivisor;
-    int size = attributes[i].size;
-
-    video::AttributeDesc attr;
-    attr.buffer = gl_vbo;
-    attr.index = index;
-    attr.size = size;
-    attr.stride = stride;
-    attr.offset = offset * sizeof(float);
-    attr.divisor = divisor;
-    video::bindAttribute(attr);
-    offset += attributes[i].size;
-  }
-}
-
-void Mesh::use() {
-
-  if (guseState.currentMesh == this)
-    return;
-
-  vbo->use();
-  if (ebo)
-    ebo->use();
-
-  guseState.currentMesh = this;
-  guseState.meshCullFrontFace = invertedFaces;
-}
-
 GLuint Texture::gl() {
 
   if (gl_textureID == -1) {
@@ -489,142 +323,6 @@ GLuint Texture::gl() {
 //---------------------[END DEVICE USE]
 
 // --------------------[BEGIN FRAMEBUFFER]
-
-FrameBuffer::FrameBuffer() { clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0); }
-GLuint FrameBufferOutput::gl() {
-  return framebuffer->getOutputAttachment(attachmentIndex);
-}
-FrameBufferOutput *FrameBuffer::getOutputTexture(int index) {
-  auto *out = new FrameBufferOutput;
-  out->framebuffer = this;
-  out->attachmentIndex = index;
-  return out;
-}
-GLuint FrameBuffer::getOutputAttachment(int index) {
-  if (index == Standard::attachmentDepthBuffer)
-    return gl_depthBuffer;
-  return colorAttachments[index];
-}
-
-GLuint FrameBuffer::createDepthStencilBuffer() {
-  return video::createRenderbuffer(
-      {GL_DEPTH24_STENCIL8, bufferWidth, bufferHeight});
-}
-
-void FrameBuffer::initialize() {
-
-  video::TextureUploadDesc text;
-  text.width = bufferWidth;
-  text.height = bufferHeight;
-  text.textureID = 0;
-  text.target = GL_TEXTURE_2D;
-
-  if (gl_framebuffer == -1) {
-
-    colorAttachments.resize(attachmentsDefinition.size());
-    for (int i = 0; i < attachmentsDefinition.size(); i++) {
-
-      video::TextureDesc textureDesc = attachmentsDefinition[i].desc;
-      colorAttachments[i] = video::createTexture(textureDesc);
-      text.textureID = colorAttachments[i];
-      text.format = attachmentsDefinition[i].format;
-      video::uploadTexture(text);
-    }
-
-    video::FrameBufferDesc fbodef;
-    if (combinedDepthStencil()) {
-      if (configuration & USE_RENDER_BUFFER) {
-        gl_stencilDepthBuffer = createDepthStencilBuffer();
-        fbodef.renderBufferAttachment = gl_stencilDepthBuffer;
-      } else {
-        gl_stencilDepthBuffer = video::createTexture({});
-        text.textureID = gl_stencilDepthBuffer;
-        video::uploadTexture(text);
-        fbodef.depthStencilAttachment = gl_stencilDepthBuffer;
-      }
-    }
-
-    else {
-      if (configuration & USE_DEPTH) {
-        gl_depthBuffer = video::createTexture(video::descDepthTexture());
-        video::uploadTexture(
-            video::descDepthUpload(bufferWidth, bufferHeight, gl_depthBuffer));
-        fbodef.depthAttachment = gl_depthBuffer;
-      }
-
-      if (configuration & USE_STENCIL) {
-        gl_stencilBuffer = video::createTexture(video::descStencilTexture());
-        video::uploadTexture(video::descStencilUpload(bufferWidth, bufferHeight,
-                                                      gl_stencilBuffer));
-        fbodef.stencilAttachment = gl_stencilBuffer;
-      }
-    }
-
-    fbodef.attachmentCount = colorAttachments.size();
-    fbodef.attachments = &colorAttachments[0];
-    gl_framebuffer = video::createFramebuffer(fbodef);
-  } else {
-    for (int i = 0; i < attachmentsDefinition.size(); i++) {
-      text.textureID = colorAttachments[i];
-      text.format = attachmentsDefinition[i].format;
-      video::uploadTexture(text);
-    }
-  }
-}
-
-void FrameBuffer::dispose() {}
-
-void FrameBuffer::resize(int screenWidth, int screenHeight) {
-  if (bufferWidth == screenWidth && bufferHeight == screenHeight)
-    return;
-  if (gl_framebuffer != -1)
-    dispose();
-
-  bufferWidth = screenWidth;
-  bufferHeight = screenHeight;
-
-  initialize();
-}
-
-void FrameBuffer::begin() { begin(desiredWidth, desiredHeight); }
-
-void FrameBuffer::begin(int screenWidth, int screenHeight) {
-
-  if (screenWidth < 0)
-    screenWidth = viewport()->getScreenWidth() / -desiredWidth;
-  if (screenHeight < 0)
-    screenHeight = viewport()->getScreenHeight() / -desiredHeight;
-
-  resize(screenWidth, screenHeight);
-  video::bindFrameBuffer(gl_framebuffer);
-  video::set(video::SH_CLEAR_COLOR, clearColor);
-  video::clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  shambhala::viewport()->fakeViewportSize(screenWidth, screenHeight);
-  shambhala::updateViewport();
-}
-
-void FrameBuffer::end() {
-  video::bindFrameBuffer(0);
-  shambhala::viewport()->restoreViewport();
-  shambhala::updateViewport();
-}
-
-void FrameBuffer::addOutput(video::TextureFormat format) {
-  FrameBufferAttachmentDefinition def;
-  def.format = format;
-  attachmentsDefinition.push(def);
-}
-void FrameBuffer::addOutputAttachment(FrameBufferAttachmentDefinition def) {
-  attachmentsDefinition.push(def);
-}
-
-void FrameBuffer::setConfiguration(FrameBufferDescriptorFlags flags) {
-  configuration = flags;
-}
-
-int FrameBuffer::getWidth() { return bufferWidth; }
-int FrameBuffer::getHeight() { return bufferHeight; }
 
 //---------------------[FRAMEBUFFER END]
 //---------------------[MODEL BEGIN]
@@ -803,7 +501,7 @@ VertexAttribute Mesh::getAttribute(int attribIndex) {
 }
 
 void ModelList::add(Model *model) {
-  this->models.push(model);
+  this->models.push_back(model);
   forceSorting();
 
   if (model->mesh == nullptr) {

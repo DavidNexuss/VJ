@@ -2,7 +2,6 @@
 #include <glm/glm.hpp>
 #include <unordered_map>
 
-namespace shambhala {
 struct WindowConfiguration {
   const char *titlename;
   int width;
@@ -11,80 +10,63 @@ struct WindowConfiguration {
   int openglMinorVersion;
   int mssaLevel;
 };
-struct IViewport {
+namespace viewport {
 
-  double aspectRatio();
-  bool isKeyPressed(int keyCode);
-  bool isKeyJustPressed(int keyCode);
+float aspectRatio();
+bool isKeyPressed(int keyCode);
+bool isKeyJustPressed(int keyCode);
 
-  void fakeViewportSize(int width, int height);
-  void restoreViewport();
+void pushViewport(int width, int height);
+void popViewport();
 
-  bool isMousePressed();
-  bool isMiddleMousePressed();
-  bool isRightMousePressed();
+bool isMousePressed();
+bool isMiddleMousePressed();
+bool isRightMousePressed();
 
-  void enableInput(bool enable);
+void setMousePressed(bool p);
+void setMiddlePressed(bool p);
+void setRightPressed(bool p);
 
-  // TODO: This should be abstracted
-  void notifyFrame(int frame);
-  void notifyFrameEnd();
+void enableInput(bool enable);
 
-  virtual void setActiveWindow(void *window) = 0;
-  virtual void hideMouse(bool hide) = 0;
+glm::vec2 getMouseViewportCoords();
 
-  virtual void *createWindow(const WindowConfiguration &configuration) = 0;
-  virtual void dispatchRenderEvents() = 0;
-  virtual bool shouldClose() = 0;
+bool isInputEnabled();
+void setKeyPressed(int keycode, bool active);
 
-  virtual void imguiInit(int openglmajor, int openglminor) = 0;
-  virtual void imguiDispose() = 0;
-  virtual void imguiBeginRender() = 0;
-  virtual void imguiEndRender() = 0;
+float getScrolllX();
+float getScrolllY();
 
-  bool mousePressed = false;
-  bool middleMousePressed = false;
-  bool rightMousePressed = false;
+float getScreenWidth();
+float getScreenHeight();
 
-  glm::vec2 getMouseViewportCoords();
+float getX();
+float getY();
 
-  bool isInputEnabled();
+void setX(float x);
+void setY(float y);
 
-  void setKeyPressed(int keycode, bool active);
+float getWidth();
+float getHeight();
+void setScreenWidth(float x);
+void setScreenHeight(float y);
 
-  float getScrolllX();
-  float getScrolllY();
+void setScrollX(float x);
+void setScrollY(float y);
 
-  float getScreenWidth();
-  float getScreenHeight();
+/** TO IMPLEMENT **/
+void setActiveWindow(void *window);
+void hideMouse(bool hide);
 
-  float getX();
-  float getY();
+void *createWindow(const WindowConfiguration &configuration);
+void dispatchRenderEvents();
+bool shouldClose();
 
-  float deltaTime;
-
-  void setX(float x);
-  void setY(float y);
-  void setWidth(float x);
-  void setHeight(float y);
-
-  void setScrollX(float x);
-  void setScrollY(float y);
-
-protected:
-  float scrollX = 0.0, scrollY = 0.0;
-  int backedWidth = -1;
-  int backedHeight = -1;
-  bool inputEnabled = true;
-  int currentFrame = -1;
-
-  float realScreenWidth = -1, realScreenHeight = -1;
-  float screenWidth = -1, screenHeight = -1;
-  float xpos = -1, ypos = -1;
-
-  std::unordered_map<int, int> pressed;
-};
-} // namespace shambhala
+void imguiInit(int openglmajor, int openglminor);
+void imguiDispose();
+void imguiBeginRender();
+void imguiEndRender();
+}; // namespace viewport
 
 // GLFW key table, ascii for regular characters
 #define KEY_UNKNOWN -1

@@ -1,6 +1,8 @@
 #pragma once
-#include <shambhala.hpp>
-namespace shambhala {
+#include <component/logicHook.hpp>
+#include <component/video/material.hpp>
+#include <component/video/node.hpp>
+
 namespace worldmats {
 
 struct SimpleCamera : public Material {
@@ -28,7 +30,7 @@ private:
   glm::mat4 combinedMatrix = glm::mat4(1.0f);
 };
 
-struct Camera : public SimpleCamera, public LogicComponent {
+struct Camera : public SimpleCamera, public Logic {
 
   float fov;
   float zoomDamping = 0.6;
@@ -98,7 +100,7 @@ public:
   FlyCamera();
 };
 
-struct Camera2D : public SimpleCamera, public LogicComponent {
+struct Camera2D : public SimpleCamera, public Logic {
 
   Camera2D();
   glm::vec2 offset = glm::vec2(0.0);
@@ -107,7 +109,7 @@ struct Camera2D : public SimpleCamera, public LogicComponent {
   void step(StepInfo info) override;
 };
 
-struct Clock : public Material, public LogicComponent {
+struct Clock : public Material, public Logic {
   Clock();
   void step(StepInfo info) override;
 
@@ -117,4 +119,3 @@ private:
   float globalTime = 0.0f;
 };
 } // namespace worldmats
-} // namespace shambhala

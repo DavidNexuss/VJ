@@ -1,48 +1,54 @@
 #include "viewport.hpp"
 #include <stdio.h>
-bool shambhala::IViewport::isKeyPressed(int keyCode) {
+#include <unordered_map>
+#include <vector>
+using namespace shambhala;
+
+static std::unordered_map<unsigned int, bool> pressed;
+static bool inputEnabled;
+static int currentFrame;
+static bool mousePressed;
+static std::vector<glm::vec2> viewports;
+static int xpos;
+static int ypos;
+static bool middlePressed;
+static bool rightPressed;
+static float scrollX;
+static float scrollY;
+static int screenWidth;
+static int screenHeight;
+
+bool viewport::isKeyPressed(int keyCode) {
   return pressed[keyCode] && inputEnabled;
 }
 
-bool shambhala::IViewport::isKeyJustPressed(int keyCode) {
+bool viewport::isKeyJustPressed(int keyCode) {
   int difference = currentFrame - pressed[keyCode];
   return (difference < 2) && inputEnabled;
 }
 
-void shambhala::IViewport::fakeViewportSize(int width, int height) {
-  backedWidth = screenWidth;
-  backedHeight = screenHeight;
-  screenWidth = width == 0 ? screenWidth : width;
-  screenHeight = height == 0 ? screenHeight : height;
-  realScreenWidth = width;
-  realScreenHeight = height;
+void viewport::pushViewport(int width, int height) {}
+
+void viewport::popViewport() {}
+
+bool viewport::isMousePressed() { return mousePressed; }
+
+float viewport::aspectRatio() {
+  return viewport::getScreenWidth() / viewport::getScreenHeight();
 }
 
-void shambhala::IViewport::restoreViewport() {
-  screenWidth = backedWidth;
-  screenHeight = backedHeight;
+glm::vec2 viewport::getMouseViewportCoords() {
+  return glm::vec2{xpos / getScreenWidth(), ypos / getScreenHeight()};
 }
 
-bool shambhala::IViewport::isMousePressed() {
-  return inputEnabled && mousePressed;
-}
+bool viewport::isMiddleMousePressed() { return middlePressed; }
+bool viewport::isRightMousePressed() { return rightPressed; }
 
-double shambhala::IViewport::aspectRatio() {
-  return screenWidth / screenHeight;
-}
+void viewport::enableInput(bool enable) { inputEnabled = enable; }
 
-glm::vec2 shambhala::IViewport::getMouseViewportCoords() {
-  return glm::vec2(xpos / screenWidth, ypos / screenHeight);
-}
+bool viewport::isInputEnabled() { return inputEnabled; }
 
-bool shambhala::IViewport::isMiddleMousePressed() { return middleMousePressed; }
-bool shambhala::IViewport::isRightMousePressed() { return rightMousePressed; }
-
-void shambhala::IViewport::enableInput(bool enable) { inputEnabled = enable; }
-
-bool shambhala::IViewport::isInputEnabled() { return inputEnabled; }
-
-void shambhala::IViewport::setKeyPressed(int keycode, bool active) {
+void viewport::setKeyPressed(int keycode, bool active) {
   if (active) {
     pressed[keycode] = currentFrame;
   } else {
@@ -50,43 +56,40 @@ void shambhala::IViewport::setKeyPressed(int keycode, bool active) {
   }
 }
 
-void shambhala::IViewport::notifyFrame(int frame) { currentFrame = frame; }
-void shambhala::IViewport::notifyFrameEnd() {
-  scrollX = 0;
-  scrollY = 0;
-}
-
-float shambhala::IViewport::getScrolllX() {
+float viewport::getScrolllX() {
   if (isInputEnabled())
     return scrollX;
   return 0.0f;
 }
 
-float shambhala::IViewport::getScrolllY() {
+float viewport::getScrolllY() {
   if (isInputEnabled())
     return scrollY;
   return 0.0f;
 }
 
-float shambhala::IViewport::getScreenWidth() {
-  if (screenWidth == -1)
-    return realScreenWidth;
-  return screenWidth;
+float viewport::getScreenWidth() { return screenWidth; }
+float viewport::getScreenHeight() { return screenHeight; }
+
+float viewport::getWidth() {
+  if (viewports.empty())
+    return screenWidth;
+  return viewports.back().x;
 }
-float shambhala::IViewport::getScreenHeight() {
-  if (screenHeight == -1)
-    return realScreenHeight;
-  return screenHeight;
+float viewport::getHeight() {
+  if (viewports.empty())
+    return screenHeight;
+  return viewports.back().y;
 }
 
-float shambhala::IViewport::getX() { return xpos; }
-float shambhala::IViewport::getY() { return ypos; }
+float viewport::getX() { return xpos; }
+float viewport::getY() { return ypos; }
 
-void shambhala::IViewport::setX(float x) { xpos = x; }
-void shambhala::IViewport::setY(float y) { ypos = y; }
+void viewport::setX(float x) { xpos = x; }
+void viewport::setY(float y) { ypos = y; }
 
-void shambhala::IViewport::setWidth(float x) { screenWidth = x; }
-void shambhala::IViewport::setHeight(float y) { screenHeight = y; }
+void viewport::setScreenWidth(float x) { screenWidth = x; }
+void viewport::setScreenHeight(float y) { screenHeight = y; }
 
-void shambhala::IViewport::setScrollX(float x) { scrollX = x; }
-void shambhala::IViewport::setScrollY(float y) { scrollY = y; }
+void viewport::setScrollX(float x) { scrollX = x; }
+void viewport::setScrollY(float y) { scrollY = y; }

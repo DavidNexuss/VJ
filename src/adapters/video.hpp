@@ -3,8 +3,6 @@
 #include "standard.hpp"
 #include <string>
 
-namespace shambhala {
-
 namespace video {
 
 struct DrawCallArgs {
@@ -197,7 +195,7 @@ void drawCall(DrawCallArgs args);
 
 void set(GLenum property, ConfigurationValue value);
 
-video::BufferUploadDesc descUpload(simple_vector_span, GLuint buffer);
+video::BufferUploadDesc descUpload(span, GLuint buffer);
 video::TextureDesc descDepthTexture();
 video::TextureDesc descStencilTexture();
 video::TextureUploadDesc descDepthUpload(int width, int height, GLuint texture);
@@ -206,4 +204,3 @@ video::TextureUploadDesc descStencilUpload(int width, int height,
 
 video::TextureFormat descTextureFormat(bool hdr, int components);
 } // namespace video
-} // namespace shambhala
