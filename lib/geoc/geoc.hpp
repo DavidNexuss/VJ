@@ -8,9 +8,7 @@ namespace geoc {
 
 struct Intersection {
   std::array<vec, 10> intersectionPoints;
-
-  int solutionCount();
-  vec solution(int index);
+  int solutionCount;
 };
 
 struct Orientation {
@@ -22,44 +20,25 @@ struct Orientation {
   bool right();
 };
 
-struct GeometricObject {
-  virtual Intersection intersect(GeometricObject &other) {
-    return Intersection{};
-  }
-  virtual Orientation orientation(GeometricObject &other) {
-    return Orientation{};
-  }
-  virtual float distance() { return 0.0; }
-};
-
-struct Circumference : public GeometricObject {
+struct Circumference {
   vec center;
   float radius;
-
-  Intersection intersect(GeometricObject &other) override;
-  float distance() override;
 };
 
-struct ParametricLine : public GeometricObject {
+struct ParametricLine {
   vec start;
   vec direction;
-  Intersection intersect(GeometricObject &other) override;
-  float distance() override;
 };
 
-struct Point : public GeometricObject {
+struct Point {
   vec position;
-  Intersection intersect(GeometricObject &other) override;
-  float distance() override;
 };
 
-struct ConvexPolygon : public GeometricObject {
+struct ConvexPolygon {
   std::vector<vec> vertices;
-  Intersection intersect(GeometricObject &other) override;
-  float distance() override;
 };
 
-struct Triangle : public GeometricObject {};
+using Triangle = ConvexPolygon;
 
 struct Ray {
   vec3 ro, rd;
@@ -78,10 +57,13 @@ Circumference createInscribedCircumference(vec a, vec b, vec c);
 Circumference createCircumferenceCloud(std::vector<vec> &pointCloud);
 ConvexPolygon createConvexPolygonCloud(std::vector<vec> &pointcloud);
 Triangle createEnclosingTriangle(std::vector<vec> &pointcloud);
-
 Ray createRay(mat4 viewMatrix, vec2 position, float ra);
-float rayDistance(Ray a, Ray b);
-vec3 rayIntersection(Ray ray, Plane a);
-Plane zplane(float z);
+Plane createPlane(float z);
+
+float distanceRayRay(Ray a, Ray b);
+Intersection intersectionRayPlane(Ray ray, Plane a);
+
+Intersection intersectionCircumferenceCircumference(Circumference a,
+                                                    Circumference b);
 
 } // namespace geoc

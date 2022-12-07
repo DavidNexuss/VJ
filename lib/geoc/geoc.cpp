@@ -2,6 +2,11 @@
 #include <glm/glm.hpp>
 using namespace geoc;
 
+Intersection noIntersection() { return {{}, 0}; }
+Intersection infiniteIntersection() { return {{}, -1}; }
+
+/** Plane and rays **/
+
 Ray geoc::createRay(mat4 viewMatrix, vec2 position, float ra) {
   float aspectRatio = ra;
 
@@ -23,7 +28,7 @@ Ray geoc::createRay(mat4 viewMatrix, vec2 position, float ra) {
   return result;
 }
 
-float geoc::rayDistance(Ray a, Ray b) {
+float geoc::distanceRayRay(Ray a, Ray b) {
   glm::vec3 b1 = glm::normalize(a.rd);
   glm::vec3 b2 = glm::normalize(b.rd);
   glm::vec3 a1 = a.ro;
@@ -31,22 +36,53 @@ float geoc::rayDistance(Ray a, Ray b) {
   return glm::length(b1 * b2 * (a2 - a1)) / glm::length(glm::cross(b1, b2));
 }
 
-glm::vec3 geoc::rayIntersection(Ray ray, Plane a) {
+Intersection geoc::intersectionRayPlane(Ray ray, Plane a) {
   glm::vec3 planeNormal = a.normal();
   float denom = glm::dot(planeNormal, ray.rd);
   if (glm::abs(denom) > 0.00001f) {
     float t = glm::dot((a.origin - ray.ro), planeNormal) / denom;
-    return ray.rd * t + ray.ro;
+    return {{ray.rd * t + ray.ro}, 1};
   }
-  return glm::vec3(INFINITY);
+  return {{glm::vec3(INFINITY)}, 0};
 }
 
 glm::vec3 Plane::normal() const { return glm::normalize(glm::cross(x, y)); }
 
-Plane geoc::zplane(float z) {
+Plane geoc::createPlane(float z) {
   Plane plane;
   plane.x = glm::vec3(1.0, 0.0, 0.0);
   plane.y = glm::vec3(0.0, 1.0, 0.0);
   plane.origin = glm::vec3(0.0, 0.0, z);
   return plane;
+}
+
+/** Circumferences ***/
+
+Intersection geoc::intersectionCircumferenceCircumference(Circumference a,
+                                                          Circumference b) {
+
+  vec c1 = a.center;
+  vec c2 = b.center;
+  float d = glm::length(glm::vec2(c1.x - c2.x, c1.y - c2.y));
+
+  if (d > a.radius + b.radius) { // Too far apart
+    return noIntersection();
+  } else if (d == 0 && a.radius == b.radius) { // Concide intersection
+    return infiniteIntersection();
+  } else if (d + glm::min(a.radius, b.radius) <
+             glm::max(a.radius, b.radius)) { // Subset situation
+    return noIntersection();
+  } else {
+    float A = (a.radius * a.radius - b.radius * b.radius + d * d) / (2.0 * d);
+    float H = sqrt(a.radius * a.radius - A * A);
+    vec2 p2(c1.x + (A * (c2.x - c1.x) / d), c1.y + (A * (c2.y - c1.y) / d));
+    vec2 intersectA =
+        vec2(p2.x + (H * (c2.y - c1.y) / d), p2.y - (H * (c2.x - c1.x) / d));
+    vec2 intersectB =
+        vec2(p2.x - (H * (c2.y - c1.y) / d), p2.y + (H * (c2.x - c1.x) / d));
+    if (d == a.radius + b.radius)
+      return {{vec3(intersectA)}, 1};
+    else
+      return {{vec3{intersectA}, vec3{intersectB}}, 2};
+  }
 }
