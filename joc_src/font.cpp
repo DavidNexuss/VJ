@@ -7,7 +7,6 @@ static VertexBuffer vbo;
 BitMapFont::BitMapFont(const char *path) {
   program = loader::loadProgram("programs/tiled.fs", "programs/tiled.vs");
   fonttexture = loader::loadTexture(path, 4);
-  fonttexture->useNeareast = true;
   fonttexture->clamp = true;
   mesh = shambhala::createMesh();
   vbo.attributes = {{Standard::aPosition, 3}, {Standard::aUV, 2}};
@@ -104,5 +103,5 @@ void BitMapFont::render(const std::string &text, glm::vec2 position,
   // program->bind("stOffset", -totalSize * 0.5f);
   program->bind("stScale", glm::vec2(1.0));
 
-  shambhala::device::drawCall();
+  shambhala::drawCall();
 }

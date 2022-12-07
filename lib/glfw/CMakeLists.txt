@@ -63,6 +63,7 @@ list(APPEND CMAKE_MODULE_PATH "${GLFW_SOURCE_DIR}/CMake/modules")
 
 find_package(Threads REQUIRED)
 
+set(GLFW_BUILD_DOCS FALSE)
 if (GLFW_BUILD_DOCS)
     set(DOXYGEN_SKIP_DOT TRUE)
     find_package(Doxygen)

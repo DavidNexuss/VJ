@@ -235,7 +235,7 @@ Model *util::modelCreateSkyBox(
   for (int i = 0; i < textures.size(); i++) {
     skyCubemap->addTextureResource(textures[i]);
   }
-  skyCubemap->textureMode = GL_TEXTURE_CUBE_MAP;
+  skyCubemap->mode = GL_TEXTURE_CUBE_MAP;
 
   result->material->set(Standard::uSkyBox, skyCubemap);
 
@@ -367,7 +367,7 @@ int util::doSelectionPass(ModelList *models) {
       selectionMaterial->set("uModelID", model->hint_modelid);
       model->mesh->use();
       selection->bind(model->getNode());
-      device::drawCall();
+      drawCall();
     }
   }
 
@@ -403,10 +403,11 @@ void util::renderPlaneGrid(glm::vec3 x, glm::vec3 y, glm::vec3 origin,
 void util::renderScreen(Material *material, Program *program) {
   program->bind(material);
 
+  program->use();
   program->bind(Standard::uTransformMatrix, Uniform(glm::mat4(1.0)));
   program->bind(Standard::uViewMatrix, Uniform(glm::mat4(1.0)));
   program->bind(Standard::uProjectionMatrix, Uniform(glm::mat4(1.0)));
   createScreen()->use();
   program->use();
-  device::drawCall();
+  drawCall();
 }

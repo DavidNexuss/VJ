@@ -78,6 +78,7 @@ protected:
   bool inputEnabled = true;
   int currentFrame = -1;
 
+  float realScreenWidth = -1, realScreenHeight = -1;
   float screenWidth = -1, screenHeight = -1;
   float xpos = -1, ypos = -1;
 

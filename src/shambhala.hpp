@@ -2,6 +2,7 @@
 #include "adapters/io.hpp"
 #include "adapters/log.hpp"
 #include "adapters/serialize.hpp"
+#include "adapters/video.hpp"
 #include "adapters/viewport.hpp"
 #include "core/component.hpp"
 #include "core/core.hpp"
@@ -81,7 +82,7 @@ struct Uniform {
   UNIFORMS_LIST(UNIFORMS_CONSTRUCTOR)
 #undef UNIFORMS_CONSTRUCTOR
 
-  bool bind(GLuint glUniformID) const;
+  bool bind(GLuint program, GLuint glUniformID) const;
 };
 
 struct Program;
@@ -138,7 +139,6 @@ struct VertexBuffer : public Updatable {
   GLenum mode = GL_STATIC_DRAW;
 
 private:
-  int vboSize = 0;
   mutable int _vertexsize = -1;
   GLuint gl_vbo = -1;
 };
@@ -243,21 +243,14 @@ struct ModelConfiguration {
   int lineWidth = 5;
 
   uint32_t skipRenderMask = 0;
-
-  int zIndex = 0;
-
-  void use();
 };
 
-struct DrawCallArgs {
-  int instance_count = 0;
-};
-
-struct Model : public ModelConfiguration, public DrawCallArgs {
+struct Model : public ModelConfiguration, public video::DrawCallArgs {
   Program *program = nullptr;
   Mesh *mesh = nullptr;
   Material *material = nullptr;
   Node *node = nullptr;
+  int zIndex = 0;
 
   int hint_class = 0;
   bool hint_raycast = false;
@@ -320,17 +313,13 @@ struct TextureResource : public IResource {
   virtual io_buffer *read() override;
 };
 
-struct Texture : public ITexture {
-
-  GLenum textureMode = GL_TEXTURE_2D;
-  bool useNeareast = false;
-  bool clamp = false;
+struct Texture : public ITexture, video::TextureDesc {
 
   bool needsUpdate();
   void addTextureResource(TextureResource *textureData);
 
   GLuint gl() override;
-  GLenum getMode() override { return textureMode; }
+  GLenum getMode() override { return video::TextureDesc::mode; }
 
   simple_vector<ResourceHandlerAbstract<TextureResource>> textureData;
 
@@ -348,14 +337,12 @@ enum FrameBufferDescriptorFlags {
   ONLY_READ_DEPTH = 1 << 5,
 };
 
-ENUM_OPERATORS(FrameBufferDescriptorFlags)
-
-struct FrameBufferAttachmentDescriptor {
-  GLuint internalFormat;
-  GLuint externalFormat;
-  GLenum type;
-  bool useNeareast;
+struct FrameBufferAttachmentDefinition {
+  video::TextureDesc desc;
+  video::TextureFormat format;
 };
+
+ENUM_OPERATORS(FrameBufferDescriptorFlags)
 
 struct FrameBuffer;
 struct FrameBufferOutput : public ITexture {
@@ -369,7 +356,6 @@ private:
 
 class FrameBuffer {
   FrameBufferDescriptorFlags configuration = FRAME_BUFFER_NULL;
-  GLuint gl_framebuffer = -1;
   int bufferWidth = -1, bufferHeight = -1;
 
   int desiredWidth = -1;
@@ -385,14 +371,20 @@ class FrameBuffer {
     return configuration & USE_DEPTH && configuration & USE_STENCIL &&
            !(configuration & SEPARATE_DEPTH_STENCIL);
   }
-
   simple_vector<GLuint> colorAttachments;
-  simple_vector<FrameBufferAttachmentDescriptor> attachmentsDefinition;
+  simple_vector<FrameBufferAttachmentDefinition> attachmentsDefinition;
+
+  GLuint gl_framebuffer = -1;
+  GLuint gl_stencilDepthBuffer = -1;
+  GLuint gl_depthBuffer = -1;
+  GLuint gl_stencilBuffer = -1;
 
 public:
+  FrameBuffer();
   FrameBufferOutput *getOutputTexture(int index);
   GLuint getOutputAttachment(int index);
-  void addOutput(const FrameBufferAttachmentDescriptor &configuration);
+  void addOutputAttachment(FrameBufferAttachmentDefinition def);
+  void addOutput(video::TextureFormat format);
 
   void begin(int width, int height);
   void begin();
@@ -405,11 +397,7 @@ public:
   int getWidth();
   int getHeight();
 
-  glm::vec4 clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0);
-
-  GLuint gl_stencilDepthBuffer;
-  GLuint gl_depthBuffer;
-  GLuint gl_stencilBuffer;
+  glm::vec4 clearColor;
 };
 
 struct RenderShot {
@@ -466,65 +454,9 @@ struct EngineControllers {
   shambhala::ILogger *logger = nullptr;
 };
 
-struct DeviceParameters {
-  int maxTextureUnits;
-};
-
-struct EngineParameters : public EngineControllers {};
 } // namespace shambhala
 
 namespace shambhala {
-
-namespace device {
-
-GLuint compileShader(const char *data, GLenum type,
-                     const std::string &resourcename);
-GLuint compileProgram(GLuint *shaders, GLint *status);
-GLuint createVAO();
-GLuint createVBO(const simple_vector<uint8_t> &vertexBuffer, GLuint *vbo,
-                 GLenum mode = GL_STATIC_DRAW);
-GLuint createEBO(const simple_vector<Standard::meshIndex> &indexBuffer,
-                 GLuint *ebo);
-GLuint createTexture(bool filter, bool clamp = false);
-GLuint createCubemap();
-GLuint createRenderBuffer();
-GLuint createFramebuffer();
-GLuint createRenderBuffer();
-GLuint getShaderType(int shaderType);
-GLuint getUniform(GLuint program, const char *name);
-
-void uploadTexture(GLenum target, unsigned char *texturebuffer, int width,
-                   int height, int components, bool hdr);
-
-void uploadDepthTexture(GLuint texture, int width, int height);
-void uploadStencilTexture(GLuint texture, int width, int height);
-void uploadDepthStencilTexture(GLuint texture, int width, int height);
-
-void configureRenderBuffer(GLenum mode, int width, int height);
-void disposeShader(GLuint shader);
-void disposeProgram(GLuint program);
-void disposeTexture(GLuint texture);
-void disposeVao(GLuint vao);
-void disposeVbo(GLuint vbo);
-void bindAttribute(GLuint vbo, int index, int size, int stride, int offset,
-                   int divisor);
-void bindProgram(GLuint program);
-void bindVao(GLuint vao);
-void bindVbo(GLuint vbo);
-void bindEbo(GLuint ebo);
-int bindTexture(GLuint textureId, GLenum mode);
-void bindTexture(GLuint textureId, GLenum mode, int textureUnit);
-
-void bindRenderBuffer(GLuint renderBuffer);
-void bindFrameBuffer(GLuint frameBuffer);
-
-void cullFrontFace(bool frontFace);
-void ignoreProgramBinding(bool ignore);
-
-void drawCall(DrawCallArgs args = DrawCallArgs{});
-DeviceParameters queryDeviceParameters();
-void renderPass();
-} // namespace device
 
 Node *createNode();
 Node *createNode(const char *componentName);
@@ -566,7 +498,7 @@ ISerializer *serializer();
 IViewport *viewport();
 IIO *io();
 
-void createEngine(EngineParameters parameters);
+void createEngine(EngineControllers controllers);
 void *createWindow(const WindowConfiguration &configuration);
 void setActiveWindow(void *window);
 void destroyEngine();
@@ -585,6 +517,10 @@ void loop_beginUIContext();
 void loop_endUIContext();
 bool loop_shouldClose();
 void loop_end();
+
+video::DrawCallArgs getDefaultArgs();
+void drawCall();
+void renderPass();
 
 void engine_clearState();
 void engine_prepareRender();

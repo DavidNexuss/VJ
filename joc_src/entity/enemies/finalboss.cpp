@@ -19,7 +19,6 @@ FinalBoss::FinalBoss() {
     parts.push(FinalBossPart{-float(i) * 0.50f});
   }
   rootNode = shambhala::createNode();
-  texture->useNeareast = true;
 }
 
 void FinalBoss::draw() {
@@ -42,7 +41,7 @@ void FinalBoss::draw() {
       program->bind("stOffset", st.offset);
       program->bind("stScale", st.scale);
 
-      shambhala::device::drawCall();
+      shambhala::drawCall();
     }
   }
 }

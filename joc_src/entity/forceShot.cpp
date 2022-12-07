@@ -130,7 +130,7 @@ void ForceShotComponent::render() {
     shots[i].buffer->use();
     this->mesh->use();
 
-    shambhala::device::drawCall();
+    shambhala::drawCall();
   }
 }
 

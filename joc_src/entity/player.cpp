@@ -65,10 +65,6 @@ Player::Player(ShotComponent *shot, ForceShotComponent *force,
     life_hud_foreground =
         loader::loadTexture("textures/life_hud_foreground.png", 4);
 
-    hud->useNeareast = true;
-    life_hud->useNeareast = true;
-    life_hud_foreground->useNeareast = true;
-
     hudMesh = util::createTexturedQuad();
     hudMaterial = shambhala::createMaterial();
     hudMaterial->set("mul", glm::vec4(1.0));
@@ -229,7 +225,7 @@ void Player::renderHealthBar(glm::vec2 position, float size, float health,
   hudProgram->bind(Standard::uTransformMatrix, tr);
   hudProgram->bind("base", hud);
 
-  shambhala::device::drawCall();
+  shambhala::drawCall();
 
   float x = size * ra * health;
 
@@ -241,7 +237,7 @@ void Player::renderHealthBar(glm::vec2 position, float size, float health,
   hudProgram->bind("mul", color);
   hudProgram->bind("base", life_hud);
 
-  shambhala::device::drawCall();
+  shambhala::drawCall();
   hudProgram->bind("mul", glm::vec4(1.0));
 
   hudProgram->bind(Standard::uProjectionMatrix, glm::mat4(1.0));
@@ -249,7 +245,7 @@ void Player::renderHealthBar(glm::vec2 position, float size, float health,
   hudProgram->bind(Standard::uTransformMatrix, tr);
   hudProgram->bind("base", life_hud_foreground);
 
-  shambhala::device::drawCall();
+  shambhala::drawCall();
 }
 void Player::render() {
   hudProgram->use();

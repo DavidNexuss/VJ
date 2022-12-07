@@ -7,6 +7,14 @@ Resources/Nonfree
 os.Resources/
 
 # Compiled Object files
+<<<<<<< HEAD
+=======
+*.make
+<<<<<<< HEAD
+=======
+*.cmake
+>>>>>>> joc2d
+>>>>>>> ft_driver
 *.slo
 *.lo
 *.o

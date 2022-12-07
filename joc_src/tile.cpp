@@ -79,11 +79,10 @@ TileMap::TileMap(int sizex, int sizey, TileAtlas *atlas, Texture *text,
   {
     static auto createBakeFramebuffer = []() {
       auto *fbo = shambhala::createFramebuffer();
-      FrameBufferAttachmentDescriptor desc;
+      video::TextureFormat desc;
       desc.externalFormat = GL_RGBA;
       desc.internalFormat = GL_RGBA;
       desc.type = GL_UNSIGNED_BYTE;
-      desc.useNeareast = true;
       fbo->addOutput(desc);
       fbo->clearColor = glm::vec4(0.0);
       return fbo;
@@ -172,7 +171,7 @@ void TileMap::bakeShadows() {
       shadowGenerator->bind(camera);
       shadowGenerator->bind("shadowLevel", Uniform(float(i)));
 
-      device::drawCall();
+      drawCall();
     }
     fbo_shadows->end();
   }
@@ -184,7 +183,7 @@ void TileMap::bake() {
 
   glm::vec2 size = glm::vec2(sizex, sizey) * 16.0f;
 
-  glDisable(GL_BLEND);
+  video::set(GL_BLEND, false);
   {
     fbo_bake->begin(size.x, size.y);
     {
@@ -197,11 +196,14 @@ void TileMap::bake() {
       model->program->bind(camera);
       model->program->bind(this->model->material);
 
-      device::drawCall();
+      model->program->bind("stOffset", glm::vec2(0.0));
+      model->program->bind("stScale", glm::vec2(1.0));
+
+      drawCall();
     }
     fbo_bake->end();
   }
-  glEnable(GL_BLEND);
+  video::set(GL_BLEND, true);
 
   bakedModel->node->setTransformMatrix(util::scale(sizex, sizey, 1.001));
 }

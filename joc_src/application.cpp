@@ -27,7 +27,7 @@ using namespace shambhala;
 void Joc::enginecreate() {
 
   // Setup engine and window
-  EngineParameters parameters;
+  EngineControllers parameters;
 #ifdef WIN32
   parameters.io = new shambhala::STDIO;
 #else
@@ -66,7 +66,7 @@ void Joc::enginecreate() {
   // sourceCamera->setWidth(-2);
   // sourceCamera->setHeight(-2);
   sourceCamera->setConfiguration(shambhala::USE_RENDER_BUFFER);
-  sourceCamera->addOutput({GL_RGBA16F, GL_RGBA, GL_FLOAT, false});
+  sourceCamera->addOutput({GL_RGBA16F, GL_RGBA, GL_FLOAT});
   sourceCamera->clearColor = glm::vec4(0.0, 0.0, 0.0, 1.0);
 
   mainCamera = new PostProcessCamera(
@@ -92,13 +92,18 @@ void Joc::loop() {
 #endif
 
   int frame = 0;
+
+  Mesh *mesh;
+  // mainCamera->set("scene", font->getTexture());
   do {
 
     shambhala::loop_begin();
     {
 
       getWorkingModelList()->use();
+#ifdef EDITOR
       shambhala::loop_io_sync_step();
+#endif
 
       shambhala::loop_beginRenderContext(frame);
       {

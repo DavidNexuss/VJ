@@ -21,5 +21,5 @@ void joc::renderBox(glm::vec2 start, glm::vec2 end, glm::vec4 color) {
   mesh->use();
   mesh->use();
 
-  shambhala::device::drawCall();
+  shambhala::drawCall();
 }
