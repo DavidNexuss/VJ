@@ -2,19 +2,20 @@
 #include <glm/glm.hpp>
 using namespace geoc;
 
-Intersection noIntersection() { return {{}, 0}; }
-Intersection infiniteIntersection() { return {{}, -1}; }
+static Intersection noIntersection() { return {{}, 0}; }
+static Intersection infiniteIntersection() { return {{}, -1}; }
+static vec3 to_vec3(vec2 v) { return vec3{v.x, v.y, 0.0}; }
 
 /** Plane and rays **/
 
 Ray geoc::createRay(mat4 viewMatrix, vec2 position, float ra) {
   float aspectRatio = ra;
+  float fov = 3.1415 / 2;
 
   position = position * 2.0f - vec2(1.0);
   position.x *= aspectRatio;
   position.y = -position.y;
 
-  float fov = 3.1415 / 2;
   float zdir = glm::tan(fov / 2);
 
   glm::vec3 rd = glm::normalize(glm::vec3(position.x, position.y, -1.0f));
@@ -81,8 +82,8 @@ Intersection geoc::intersectionCircumferenceCircumference(Circumference a,
     vec2 intersectB =
         vec2(p2.x - (H * (c2.y - c1.y) / d), p2.y + (H * (c2.x - c1.x) / d));
     if (d == a.radius + b.radius)
-      return {{vec3(intersectA)}, 1};
+      return {{to_vec3(intersectA)}, 1};
     else
-      return {{vec3{intersectA}, vec3{intersectB}}, 2};
+      return {{to_vec3(intersectA), to_vec3(intersectB)}, 2};
   }
 }
